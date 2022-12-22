@@ -6338,7 +6338,7 @@ c                                       loop to follow the gradient
                   if (mode.lt.0) go to 60
 
                   if (deriv(rids)) then
-                     needfd = .false.
+c                    needfd = .false.
                   end if
 
                end if
