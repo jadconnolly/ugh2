@@ -14,3 +14,7 @@ bfast.prn
 bfast.tim
 
 bfast.tof
+
+*.exe
+
+intel/
