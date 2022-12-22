@@ -1,0 +1,11 @@
+        !COMPILER-GENERATED INTERFACE MODULE: Thu Dec 22 14:00:15 2022
+        ! This source file is for reference only and may not completely
+        ! represent the generated interface used by the compiler.
+        MODULE GETPA__genmod
+          INTERFACE 
+            SUBROUTINE GETPA(IDS,ID)
+              INTEGER(KIND=4) :: IDS
+              INTEGER(KIND=4) :: ID
+            END SUBROUTINE GETPA
+          END INTERFACE 
+        END MODULE GETPA__genmod
