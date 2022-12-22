@@ -1175,6 +1175,7 @@ c        planes (1, j), (2, j), ..., (j-1, j).
 c                                 end of cmr1md
       end
 
+
       subroutine lpcolr(nrz,ldr,r,rzz)
 c----------------------------------------------------------------------
 c     lpcolr  loads the last column of the  nrz x nrz  triangular factor
@@ -1191,6 +1192,8 @@ c----------------------------------------------------------------------
       r(nrz,nrz) = rzz
 c                                 end of lpcolr
       end
+
+
 
       subroutine npalf (inform,n,nclin,alfa,alfmin,alfmax,bigbnd,
      *                  dxnorm,anorm,adx,ax,bl,bu,dx,x)
@@ -1547,7 +1550,7 @@ c           swap columns nrz1 and jart of r.
 c                                 end of lsdel
       end
 
-      subroutine npsetx (unitq,nclin,nactiv,nfree,nz,n,nctotl,ldzy,
+      subroutine npsetx(unitq,ncqp,nactiv,nfree,nz,n,nctotl,ldzy,
      *                  ldaqp,ldr,ldt,istate,kactiv,kx,dxnorm,gdx,aqp,
      *                  adx,bl,bu,rpq,rpq0,dx,gq,r,t,zy,work)
 c----------------------------------------------------------------------
@@ -1560,9 +1563,9 @@ c----------------------------------------------------------------------
 
       logical unitq
 
-      integer ldaqp, ldr, ldt, ldzy, n, nactiv, nctotl,
+      integer ldaqp, ldr, ldt, ldzy, n, nactiv, ncqp, nctotl,
      *        nfree, nz, istate(nctotl), kactiv(n), kx(n),
-     *        i, j, k, nfixed, nr, nclin
+     *        i, j, k, nfixed, nr
 
       double precision adx(*), aqp(ldaqp,*), bl(nctotl), bu(nctotl),
      *                 dx(n), gq(n), r(ldr,*), rpq(n), rpq0(n),
@@ -1637,7 +1640,7 @@ c     compute the 2-norm of  dx.
 c     initialize  a*dx.
 
       dxnorm = dnrm2 (n,dx,1)
-      if (nclin.gt.0) call dgemv ('n',nclin,n,1d0,aqp,ldaqp,dx,0d0,adx)
+      if (ncqp.gt.0) call dgemv ('n',ncqp,n,1d0,aqp,ldaqp,dx,0d0,adx)
 c                                 end of npsetx
       end
 
@@ -3784,8 +3787,8 @@ c----------------------------------------------------------------------
       double precision asize, dtmax, dtmin
       common/ ngg008 /asize, dtmax, dtmin
 
-      integer itmax1, itmax2, lprob
-      common/ ngg016 /itmax1, itmax2, lprob
+      integer itmax1, itmax2, lprob, nn, nnclin
+      common/ ngg016 /itmax1, itmax2, lprob, nn, nnclin
 
       double precision rcndbd, rfrobn, drmax, drmin
       common/ ngg018 /rcndbd, rfrobn, drmax, drmin
@@ -3836,8 +3839,9 @@ c     violations.
 
          weight = 1d0
 
-         if (abs(blj).le.qptol(j)) blj = 0d0
-         if (abs(buj).le.qptol(j)) buj = 0d0
+            if (abs(blj).le.qptol(j)) blj = 0d0
+            if (abs(buj).le.qptol(j)) buj = 0d0
+
 
          wtinf(j) = weight
          qpbl(j) = blj
@@ -3916,6 +3920,8 @@ c           count the violated linear constraints.
 
       nlnact = 0
       linact = nactiv - nlnact
+
+c     extract various useful quantities from the qp solution.
 
 c     compute  hpq = r'r(pq)  from the transformed gradient of the qp
 c     objective function and  r(pq)  from the transformed residual.
@@ -4602,6 +4608,7 @@ c----------------------------------------------------------------------
 c                                 end of cmprt
       end
 
+
       subroutine rzadd (unitq,rset,inform,ifix,iadd,jadd,it,nactiv,nz,
      *                  nfree,nrz,ngq,n,lda,ldq,ldr,ldt,kx,condmx,drzz,
      *                  a,r,t,gqm,q,w,c,s)
@@ -4888,7 +4895,6 @@ c           the proposed working set appears to be linearly dependent.
       end if
 c                                 end of rzadd
       end
-
 
       subroutine npfeas(n,nclin,istate,bigbnd,cvnorm,errmax,jmax,
      *                  nviol,ax,bl,bu,featol,x,work)
@@ -6255,15 +6261,14 @@ c----------------------------------------------------------------------
 
       double precision fdnorm, objf, xnorm
 
-      integer inform, ldaqp, ldr, lenw, majits,
+      integer inform, ldaqp, ldr, lenw, majits, 
      *        n, nactiv, nclin, nctotl, nfree, nfun, ngrad, nz
 
       logical unitq
 
       double precision aqp(ldaqp,*), ax(*), bl(nctotl), bu(nctotl),
-     *                 clamda(nctotl), featol(nctotl), grad(n),
-     *                 gradu(n), r(ldr,*), w(lenw), x(n)
-
+     *                  clamda(nctotl), featol(nctotl), grad(n),
+     *                  gradu(n), r(ldr,*), w(lenw), x(n)
       integer istate(*), iw(*), kactiv(n), kx(n)
 
       external objfun
@@ -6275,14 +6280,18 @@ c----------------------------------------------------------------------
      *                  grdalf, gtest, gznorm, obj, objalf, objsiz,
      *                  qpcurv, rootn, rtftol, rtmax, xsize
 
-      integer info, jmax, linact, lvioln, majit0, minits, mnr,
-     *        mnrsum, mode,nlnact, nlserr, nmajor, nminor, nqperr,
-     *        nqpinf, numinf, nviol
+      integer info, jmax, 
+     *                  linact, lvioln, majit0, minits, mnr,
+     *                  mnrsum, mode, ncqp, 
+     *                  nlnact, nlserr, nmajor, nminor, nqperr,
+     *                  nqpinf, numinf, nviol
 
       logical convpt, convrg, done, error, feasqp,
-     *        goodgq, infeas, needfd, newgq, optiml, overfl
+     *                  goodgq, infeas, needfd, newgq, optiml, overfl
 
-      character*5 mjrmsg
+      character*5       mjrmsg
+
+      logical ktcond(2)
 
       double precision ddot, dnrm2, sdiv 
       external ddot, dnrm2, sdiv 
@@ -6349,6 +6358,7 @@ c                                 initialize
       rootn = sqrt(dble(n))
 c                                 information from the feasibility phase will be used to generate a
 c                                 hot start for the first qp subproblem.
+
       call dcopy (nctotl,featol,1,w(lqptol),1)
 
       objalf = objf
@@ -6391,7 +6401,7 @@ c                                 and multipliers.
      *            kactiv,kx,dxnorm,gdx,qpcurv,aqp,w(ladx),ax,
      *            bl,bu,clamda,w(ldx),w(lbl),w(lbu),w(lqptol),r,
      *            x,w(lwtinf),w)
-c
+
             minits = minits + mnr
             mnrsum = mnrsum + mnr
 c
@@ -6533,7 +6543,7 @@ c        defined limit alflim on the change in x.
             alfmax = sdiv (bigdx,dxnorm,overfl)
 
             call npalf(info,n,nclin,alfa,alfmin,alfmax,bigbnd,
-     *                 dxnorm,w(lanorm),w(ladx),ax,bl,bu,w(ldx),x)
+     *                  dxnorm,w(lanorm),w(ladx),ax,bl,bu,w(ldx),x)
 
             alfmax = alfa
             if (alfmax.lt.1d0+epspt3 .and. feasqp) alfmax = 1d0
@@ -6634,7 +6644,7 @@ c                                 compute the missing gradients.
                call dcopy (n,grad,1,w(lgq),1)
 
                call cmqmul (6,n,nz,nfree,ldzy,unitq,kx,w(lgq),w(lzy),
-     *                      w(lwrk1))
+     *                  w(lwrk1))
 
                xnorm = dnrm2 (n,x,1)
 
@@ -6659,17 +6669,15 @@ c              partition of q'hq.
 
                   call nprset (unitq,n,nfree,nz,ldzy,ldr,iw(liperm),kx,
      *                     w(lgq),r,w(lzy),w(lwrk1),w(lqrwrk))
-
                end if
             end if
-         
-         else 
-
-            exit 
-
          end if
 
+         if (done .or. error) exit
+
       end do
+
+c     ======================end of main loop============================
 
       if (done) then
          if (convrg .and. optiml) then
@@ -6688,10 +6696,16 @@ c              partition of q'hq.
             inform = 6
          end if
       end if
-c                                 set clamda
+
+c     set clamda
+
    60 call cmprt (nfree,n,nctotl,nactiv,kactiv,kx,clamda,w(lrlam))
 c                                 end of npcore
       end
+
+
+
+
 
       subroutine cmsetx (rowerr,unitq,nclin,nactiv,nfree,nz,n,ldq,lda,
      *                  ldt,istate,kactiv,kx,jmax,errmax,xnorm,a,ax,bl,
@@ -7293,19 +7307,18 @@ c        set  wrk  =  relevant part of  zy * v.
 c        expand  wrk  into  v  as a full n-vector.
 
          call sload (n,0d0,v,1)
-
-         do k = 1, nfree
+         do 20 k = 1, nfree
             j = kx(k)
             v(j) = wrk(k)
-          end do
+   20    continue
 
 c        copy  wrk(fixed)  into the appropriate parts of  v.
 
          if (mode.gt.1) then
-            do l = 1, nfixed
+            do 40 l = 1, nfixed
                j = kx(nfree+l)
                v(j) = wrk(nfree+l)
-            end do
+   40       continue
          end if
 
       else
@@ -7314,19 +7327,19 @@ c        mode = 4, 5, 6, 7  or  8.
 c        put the fixed components of  v  into the end of  wrk.
 
          if (mode.eq.5 .or. mode.eq.6) then
-            do l = 1, nfixed
+            do 60 l = 1, nfixed
                j = kx(nfree+l)
                wrk(nfree+l) = v(j)
-            end do
+   60       continue
          end if
 
 c        put the free  components of  v  into the beginning of  wrk.
 
          if (nfree.gt.0) then
-            do k = 1, nfree
+            do 80 k = 1, nfree
                j = kx(k)
                wrk(k) = v(j)
-            end do
+   80       continue
 
 c           set  v  =  relevant part of  zy' * wrk.
 
@@ -7344,7 +7357,6 @@ c        copy the fixed components of  wrk  into the end of  v.
 
          if (nfixed.gt.0 .and. (mode.eq.5 .or. mode.eq.6))
      *       call dcopy (nfixed,wrk(nfree+1),1,v(nfree+1),1)
-
       end if
 c                                 end of cmqmul
       end
@@ -7800,8 +7812,7 @@ c
       end if
 c                                 set clamda
 
-      call cmprt (nfree,n,nctotl,
-     *            nactiv,kactiv,kx,clamda,w(lrlam))
+      call cmprt (nfree,n,nctotl,nactiv,kactiv,kx,clamda,w(lrlam))
 
 c                                 end of lscore
       end
@@ -7837,6 +7848,7 @@ c     into the  clamda  array.
       end do
 c                                 end of cmprnt
       end
+
 
       subroutine lsbnds (unitq,inform,nz,nfree,nrank,nres,ngq,n,ldzy,lda
      *                  ,ldr,ldt,istate,kx,condmx,a,r,t,res,gq,zy,w,c,s)
@@ -10292,20 +10304,20 @@ c----------------------------------------------------------------------
             end if
    20    continue
       else if (side.eq.'r') then
-         do j = k2 - 1, k1, -1
+         do 40 j = k2 - 1, k1, -1
             subh = s(j)
             call srotgc(a(j + 1, j+1), subh, ctemp, stemp)
             stemp = -stemp
             s(j) = stemp
             c(j) = ctemp
             if ((ctemp.ne.1d0).or.(stemp.ne.0d0)) then
-               do i = j, 1, -1
+               do 30 i = j, 1, -1
                   temp = a(i, j+1)
                   a(i, j+1) = ctemp*temp - stemp*a(i,j)
                   a(i,j) = stemp*temp + ctemp*a(i,j)
-               end do
+   30          continue
             end if
-         end do 
+   40    continue
       end if
 c                                 end of suhqr
       end
