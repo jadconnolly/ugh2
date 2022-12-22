@@ -364,8 +364,8 @@ c----------------------------------------------------------------------
       integer iter, lda, ldr, leniw, lenw, n, nclin, 
      *        i, ianrmj, ikx, inform, maxnz, minact,
      *        itmxsv, itns, j, jinf, jmax, lax, mode,
-     *        lclam, ldaqp, ldfju,litotl,
-     *        lwtotl, m, maxact, minfxd, mxfree, nact1, 
+     *        lclam, ldaqp, litotl,
+     *        lwtotl, maxact, minfxd, mxfree, nact1, 
      *        nartif, nctotl, nfun, ngq, ngrad,nres, numinf,
      *        nlperr, nmajor, nminor, nrank, nrejtd, 
      *        nz1, istate(n+nclin), iw(leniw)
@@ -375,9 +375,9 @@ c----------------------------------------------------------------------
       double precision a(lda,*), bl(n+nclin), bu(n+nclin),
      *                 clamda(n+nclin), 
      *                 gradu(n), r(ldr,*), w(lenw), x(n), objf,
-     *                 amin, condmx, ctx, errmax, fdchk,
+     *                 amin, condmx, ctx, errmax, 
      *                 fdnorm, feamax, feamin, obj, rootn, ssq1,
-     *                 suminf, xnorm, dnrm2,c(1)
+     *                 suminf, xnorm, dnrm2
 
       external objfun
 
@@ -436,12 +436,13 @@ c                                 f(n) parameters
       hcndbd = max(1d0/(1d2*wmach(3)*dble(n)),1d6)
       nctotl = n + nclin
 
-      nminor = max(50,3*nctotl)
-      nmajor = nminor
-      itmax1 = nminor
+      nmajor = max(50,3*nctotl)
+      nminor = nmajor
+      itmax1 = nmajor
 
       jverfy(2) = n
       jverfy(4) = n
+
       rootn = sqrt(dble(n))
 
       inform = 0
@@ -473,8 +474,7 @@ c                                 forward diff = 1, central = 2
          ncolt = mxfree
       end if
 
-      m = 1
-      ldfju = 2
+c     m = 1
 
       ldaqp = max(nclin,1)
       if (nclin.gt.0) ldaqp = lda
@@ -493,7 +493,6 @@ c                                 w(1:2*n) were reserved for fwd and ctl differe
 c                                 increments, these are now free (set in cxt009).
       lkactv = 1
       lkx = 1 + n
-c     lneedc = 1 + 2*n
       liperm = 1 + 2*n
 
       lhctrl = 1 + n
@@ -522,21 +521,9 @@ c                                  addresses used by npcore
       lfeatl = lgq1 + n
       lx1 = lfeatl + nctotl
       lwrk2 = lx1 + n
-
-c     lcs1 = lwrk2 + nctotl
-c     lcs2 = lcs1 
-c     lc1mul = lcs2 
-c     lcmul = lc1mul 
-c     lcjdx = lcmul 
-c     ldlam = lcjdx 
-c     ldslk = ldlam 
-c     lrho = ldslk 
       lwrk3 = lwrk2 + nctotl
-c     lslk1 = lwrk3 
-c     lslk = lslk1 
 
-c     lcjac = lslk 
-      lgrad = lwrk2 + nctotl
+      lgrad = lwrk3
 
       litotl = liperm + nctotl - 1
       lwtotl = lgrad + n - 1
@@ -544,14 +531,12 @@ c     lcjac = lslk
       lax = lwtotl + 1
       lwtotl = lwtotl + nclin
       lax = min(lax,lwtotl)
-c     ldcj = 1
 
       tolrnk = 0d0
       rcndbd = sqrt(hcndbd)
 c                                 load feasibility tolerances.
       w(lfeatl:lfeatl+nctotl-1) = tolfea
 
-      fdchk = fdint
       nfun = 0
       ngrad = 0
 
@@ -641,7 +626,8 @@ c                                 use work2 as the multiplier vector.
       if (nlperr.gt.0) return
 c                                get finite difference increments
 c                                at initial point, no need to save
-c                                the point as already computed.
+c                                the point as already been output
+c                                by resub
       outrpc = .false.
 c                                compute objective function
       mode = 2
@@ -697,10 +683,10 @@ c                                 signal gsol2 to save g
       outrpc = .true.
 c                                 solve the problem.
       call npcore (unitq,inform,iter,n,nclin,nctotl,
-     *                nactiv,nfree,nz,ldaqp,ldr,nfun,ngrad,
-     *                istate,iw(lkactv),iw(lkx),objf,fdnorm,xnorm,
-     *                objfun,a,w(lax),bl,bu,c,clamda,
-     *                w(lfeatl),w(lgrad),gradu,r,x,iw,w,lenw)
+     *             nactiv,nfree,nz,ldaqp,ldr,nfun,ngrad,
+     *             istate,iw(lkactv),iw(lkx),objf,fdnorm,xnorm,
+     *             objfun,a,w(lax),bl,bu,clamda,
+     *             w(lfeatl),w(lgrad),gradu,r,x,iw,w,lenw)
 
       end
 
@@ -1189,7 +1175,6 @@ c        planes (1, j), (2, j), ..., (j-1, j).
 c                                 end of cmr1md
       end
 
-
       subroutine lpcolr(nrz,ldr,r,rzz)
 c----------------------------------------------------------------------
 c     lpcolr  loads the last column of the  nrz x nrz  triangular factor
@@ -1206,8 +1191,6 @@ c----------------------------------------------------------------------
       r(nrz,nrz) = rzz
 c                                 end of lpcolr
       end
-
-
 
       subroutine npalf (inform,n,nclin,alfa,alfmin,alfmax,bigbnd,
      *                  dxnorm,anorm,adx,ax,bl,bu,dx,x)
@@ -1564,7 +1547,7 @@ c           swap columns nrz1 and jart of r.
 c                                 end of lsdel
       end
 
-      subroutine npsetx(unitq,ncqp,nactiv,nfree,nz,n,nctotl,ldzy,
+      subroutine npsetx (unitq,nclin,nactiv,nfree,nz,n,nctotl,ldzy,
      *                  ldaqp,ldr,ldt,istate,kactiv,kx,dxnorm,gdx,aqp,
      *                  adx,bl,bu,rpq,rpq0,dx,gq,r,t,zy,work)
 c----------------------------------------------------------------------
@@ -1577,9 +1560,9 @@ c----------------------------------------------------------------------
 
       logical unitq
 
-      integer ldaqp, ldr, ldt, ldzy, n, nactiv, ncqp, nctotl,
+      integer ldaqp, ldr, ldt, ldzy, n, nactiv, nctotl,
      *        nfree, nz, istate(nctotl), kactiv(n), kx(n),
-     *        i, j, k, nfixed, nr
+     *        i, j, k, nfixed, nr, nclin
 
       double precision adx(*), aqp(ldaqp,*), bl(nctotl), bu(nctotl),
      *                 dx(n), gq(n), r(ldr,*), rpq(n), rpq0(n),
@@ -1654,7 +1637,7 @@ c     compute the 2-norm of  dx.
 c     initialize  a*dx.
 
       dxnorm = dnrm2 (n,dx,1)
-      if (ncqp.gt.0) call dgemv ('n',ncqp,n,1d0,aqp,ldaqp,dx,0d0,adx)
+      if (nclin.gt.0) call dgemv ('n',nclin,n,1d0,aqp,ldaqp,dx,0d0,adx)
 c                                 end of npsetx
       end
 
@@ -3801,8 +3784,8 @@ c----------------------------------------------------------------------
       double precision asize, dtmax, dtmin
       common/ ngg008 /asize, dtmax, dtmin
 
-      integer itmax1, itmax2, lprob, nn, nnclin
-      common/ ngg016 /itmax1, itmax2, lprob, nn, nnclin
+      integer itmax1, itmax2, lprob
+      common/ ngg016 /itmax1, itmax2, lprob
 
       double precision rcndbd, rfrobn, drmax, drmin
       common/ ngg018 /rcndbd, rfrobn, drmax, drmin
@@ -3853,9 +3836,8 @@ c     violations.
 
          weight = 1d0
 
-            if (abs(blj).le.qptol(j)) blj = 0d0
-            if (abs(buj).le.qptol(j)) buj = 0d0
-
+         if (abs(blj).le.qptol(j)) blj = 0d0
+         if (abs(buj).le.qptol(j)) buj = 0d0
 
          wtinf(j) = weight
          qpbl(j) = blj
@@ -3934,8 +3916,6 @@ c           count the violated linear constraints.
 
       nlnact = 0
       linact = nactiv - nlnact
-
-c     extract various useful quantities from the qp solution.
 
 c     compute  hpq = r'r(pq)  from the transformed gradient of the qp
 c     objective function and  r(pq)  from the transformed residual.
@@ -4622,7 +4602,6 @@ c----------------------------------------------------------------------
 c                                 end of cmprt
       end
 
-
       subroutine rzadd (unitq,rset,inform,ifix,iadd,jadd,it,nactiv,nz,
      *                  nfree,nrz,ngq,n,lda,ldq,ldr,ldt,kx,condmx,drzz,
      *                  a,r,t,gqm,q,w,c,s)
@@ -4912,7 +4891,7 @@ c                                 end of rzadd
 
 
       subroutine npfeas(n,nclin,istate,bigbnd,cvnorm,errmax,jmax,
-     *                  nviol,ax,bl,bu,c,featol,x,work)
+     *                  nviol,ax,bl,bu,featol,x,work)
 c----------------------------------------------------------------------
 c     npfeas  computes the following...
 c     (1)  the number of constraints that are violated by more
@@ -4924,8 +4903,8 @@ c----------------------------------------------------------------------
       integer jmax, n, nclin, nviol
 
       double precision ax(*), bl(n+nclin), bu(n+nclin),
-     *                  c(*), featol(n+nclin),
-     *                  work(n+nclin), x(n)
+     *                 featol(n+nclin), work(n+nclin), x(n)
+
       integer istate(n+nclin)
 
       double precision biglow, bigupp, con, feasj, res, tolj
@@ -4944,13 +4923,10 @@ c     violations and residuals of the constraints in the qp working set.
 
       nviol = 0
 
-      do 40 j = 1, n + nclin 
+      do j = 1, n + nclin
+
          feasj = featol(j)
          res = 0d0
-
-         if (j.le.n+nclin) then
-
-c           bound or general linear constraint.
 
             if (j.le.n) then
                con = x(j)
@@ -4959,13 +4935,6 @@ c           bound or general linear constraint.
             end if
 c
             tolj = feasj
-         else
-
-c           nonlinear constraint.
-
-            con = c(j-n-nclin)
-            tolj = 0d0
-         end if
 
 c        check for constraint violations.
 
@@ -4999,7 +4968,8 @@ c        violation if the constraint is in the working set.
 c        set the array of violations.
 
    20    work(j) = res
-   40 continue
+
+      end do
 
       jmax = idamax(n+nclin,work)
       errmax = abs(work(jmax))
@@ -6273,7 +6243,7 @@ c                                 end of lpcore
       subroutine npcore (unitq,inform,majits,n,nclin,
      *                  nctotl,nactiv,nfree,nz,ldaqp,ldr,
      *                  nfun,ngrad,istate,kactiv,kx,objf,fdnorm,xnorm,
-     *                  objfun,aqp,ax,bl,bu,c,clamda,
+     *                  objfun,aqp,ax,bl,bu,clamda,
      *                  featol,grad,gradu,r,x,iw,w,lenw)
 c----------------------------------------------------------------------
 c     npcore  is the core routine for  nlpopt,  a sequential quadratic
@@ -6285,14 +6255,15 @@ c----------------------------------------------------------------------
 
       double precision fdnorm, objf, xnorm
 
-      integer inform, ldaqp, ldr, lenw, majits, 
+      integer inform, ldaqp, ldr, lenw, majits,
      *        n, nactiv, nclin, nctotl, nfree, nfun, ngrad, nz
 
       logical unitq
 
       double precision aqp(ldaqp,*), ax(*), bl(nctotl), bu(nctotl),
-     *                  c(*), clamda(nctotl), featol(nctotl), grad(n),
-     *                  gradu(n), r(ldr,*), w(lenw), x(n)
+     *                 clamda(nctotl), featol(nctotl), grad(n),
+     *                 gradu(n), r(ldr,*), w(lenw), x(n)
+
       integer istate(*), iw(*), kactiv(n), kx(n)
 
       external objfun
@@ -6304,18 +6275,14 @@ c----------------------------------------------------------------------
      *                  grdalf, gtest, gznorm, obj, objalf, objsiz,
      *                  qpcurv, rootn, rtftol, rtmax, xsize
 
-      integer info, jmax, 
-     *                  linact, lvioln, majit0, minits, mnr,
-     *                  mnrsum, mode, ncqp, 
-     *                  nlnact, nlserr, nmajor, nminor, nqperr,
-     *                  nqpinf, numinf, nviol
+      integer info, jmax, linact, lvioln, majit0, minits, mnr,
+     *        mnrsum, mode,nlnact, nlserr, nmajor, nminor, nqperr,
+     *        nqpinf, numinf, nviol
 
       logical convpt, convrg, done, error, feasqp,
-     *                  goodgq, infeas, needfd, newgq, optiml, overfl
+     *        goodgq, infeas, needfd, newgq, optiml, overfl
 
-      character*5       mjrmsg
-
-      logical ktcond(2)
+      character*5 mjrmsg
 
       double precision ddot, dnrm2, sdiv 
       external ddot, dnrm2, sdiv 
@@ -6372,9 +6339,7 @@ c                                 initialize
       mjrmsg = '     '
       nqpinf = 0
       mnrsum = 0
-
       majit0 = majits
-      ncqp = nclin
 
       needfd = lvlder.ne.3
 
@@ -6384,7 +6349,6 @@ c                                 initialize
       rootn = sqrt(dble(n))
 c                                 information from the feasibility phase will be used to generate a
 c                                 hot start for the first qp subproblem.
-
       call dcopy (nctotl,featol,1,w(lqptol),1)
 
       objalf = objf
@@ -6425,13 +6389,8 @@ c                                 and multipliers.
             call npiqp (feasqp,unitq,nqperr,mnr,n,nclin,
      *            ldaqp,ldr,linact,nlnact,nactiv,nfree,nz,numinf,istate,
      *            kactiv,kx,dxnorm,gdx,qpcurv,aqp,w(ladx),ax,
-     *            bl,bu,clamda
-     *            ,w(ldx),w(lbl),w(lbu),w(lqptol),r,x,w(lwtinf),w)
-c            call npiqp (feasqp,unitq,nqperr,mnr,n,nclin,
-c     *            ldaqp,ldr,linact,nlnact,nactiv,nfree,nz,numinf,istate,
-c     *            kactiv,kx,dxnorm,gdx,qpcurv,aqp,w(ladx),ax,
-c     *            bl,bu,clamda,w(ldx),w(lbl),w(lbu),w(lqptol),r,
-c     *            x,w(lwtinf),w)
+     *            bl,bu,clamda,w(ldx),w(lbl),w(lbu),w(lqptol),r,
+     *            x,w(lwtinf),w)
 c
             minits = minits + mnr
             mnrsum = mnrsum + mnr
@@ -6485,7 +6444,7 @@ c     (2) compute the 2-norm of the residuals of the constraints in
 c         the qp working set.
 
       call npfeas(n,nclin,istate,bigbnd,cvnorm,errmax,jmax,nviol,
-     *            ax,bl,bu,c,featol,x,w(lwrk2))
+     *            ax,bl,bu,featol,x,w(lwrk2))
 
 c     define small quantities that reflect the magnitude of objf and
 c     the norm of grad(free).
@@ -6537,9 +6496,7 @@ c     point or after a large change in x.
          convpt = dxnorm .le. epspt8*gtest .and. nviol.eq.0 .and.
      *         nqperr .le. 1
 
-         ktcond(1) = gznorm.lt.dinky
-         ktcond(2) = nviol.eq.0
-         optiml = ktcond(1) .and. ktcond(2)
+         optiml = gznorm.lt.dinky .and. nviol.eq.0
 
          convrg = majits.gt.0 .and. alfdx .le. rtftol*xsize
 
@@ -6555,6 +6512,7 @@ c     point or after a large change in x.
          error = majits .ge. nmajor
 
          if (.not. (done .or. error)) then
+
             majits = majits + 1
 
 c        make copies of information needed for the bfgs update.
@@ -6573,9 +6531,10 @@ c        alfmax is the largest feasible steplength subject to a user-
 c        defined limit alflim on the change in x.
 
             alfmax = sdiv (bigdx,dxnorm,overfl)
+
             call npalf(info,n,nclin,alfa,alfmin,alfmax,bigbnd,
-     *                  dxnorm,w(lanorm),w(ladx),ax,bl,bu,
-     *                  w(ldx),x)
+     *                 dxnorm,w(lanorm),w(ladx),ax,bl,bu,w(ldx),x)
+
             alfmax = alfa
             if (alfmax.lt.1d0+epspt3 .and. feasqp) alfmax = 1d0
 
@@ -6604,8 +6563,7 @@ c        compute the steplength using safeguarded interpolation.
             call npsrch(needfd,nlserr,n,nfun,ngrad,
      *               objfun,alfa,alfmax,alfsml,
      *               dxnorm,epsrf,eta,gdx,grdalf,glf2,objf,objalf,
-     *               xnorm,w(ldx),grad,gradu,
-     *               w(lx1),x,bl,bu)
+     *               xnorm,w(ldx),grad,gradu,w(lx1),x,bl,bu)
 
 c           npsrch  sets nlserr to the following values...
 c           < 0  if the user wants to stop.
@@ -6653,7 +6611,7 @@ c           switch to central differences and solve the qp again.
 
             else
 
-               if (lvldif.ne.3) then
+               if (lvlder.ne.3) then
 c                                 compute the missing gradients.
                   mode = 1
                   ngrad = ngrad + 1
@@ -6670,12 +6628,13 @@ c                                 compute the missing gradients.
                      lvlder = 3
                      needfd = .false.
                   end if
+
                end if
 
                call dcopy (n,grad,1,w(lgq),1)
 
                call cmqmul (6,n,nz,nfree,ldzy,unitq,kx,w(lgq),w(lzy),
-     *                  w(lwrk1))
+     *                      w(lwrk1))
 
                xnorm = dnrm2 (n,x,1)
 
@@ -6700,15 +6659,17 @@ c              partition of q'hq.
 
                   call nprset (unitq,n,nfree,nz,ldzy,ldr,iw(liperm),kx,
      *                     w(lgq),r,w(lzy),w(lwrk1),w(lqrwrk))
+
                end if
             end if
+         
+         else 
+
+            exit 
+
          end if
 
-         if (done .or. error) exit
-
       end do
-
-c     ======================end of main loop============================
 
       if (done) then
          if (convrg .and. optiml) then
@@ -6727,16 +6688,10 @@ c     ======================end of main loop============================
             inform = 6
          end if
       end if
-
-c     set clamda
-
+c                                 set clamda
    60 call cmprt (nfree,n,nctotl,nactiv,kactiv,kx,clamda,w(lrlam))
 c                                 end of npcore
       end
-
-
-
-
 
       subroutine cmsetx (rowerr,unitq,nclin,nactiv,nfree,nz,n,ldq,lda,
      *                  ldt,istate,kactiv,kx,jmax,errmax,xnorm,a,ax,bl,
@@ -7338,18 +7293,19 @@ c        set  wrk  =  relevant part of  zy * v.
 c        expand  wrk  into  v  as a full n-vector.
 
          call sload (n,0d0,v,1)
-         do 20 k = 1, nfree
+
+         do k = 1, nfree
             j = kx(k)
             v(j) = wrk(k)
-   20    continue
+          end do
 
 c        copy  wrk(fixed)  into the appropriate parts of  v.
 
          if (mode.gt.1) then
-            do 40 l = 1, nfixed
+            do l = 1, nfixed
                j = kx(nfree+l)
                v(j) = wrk(nfree+l)
-   40       continue
+            end do
          end if
 
       else
@@ -7358,19 +7314,19 @@ c        mode = 4, 5, 6, 7  or  8.
 c        put the fixed components of  v  into the end of  wrk.
 
          if (mode.eq.5 .or. mode.eq.6) then
-            do 60 l = 1, nfixed
+            do l = 1, nfixed
                j = kx(nfree+l)
                wrk(nfree+l) = v(j)
-   60       continue
+            end do
          end if
 
 c        put the free  components of  v  into the beginning of  wrk.
 
          if (nfree.gt.0) then
-            do 80 k = 1, nfree
+            do k = 1, nfree
                j = kx(k)
                wrk(k) = v(j)
-   80       continue
+            end do
 
 c           set  v  =  relevant part of  zy' * wrk.
 
@@ -7388,6 +7344,7 @@ c        copy the fixed components of  wrk  into the end of  v.
 
          if (nfixed.gt.0 .and. (mode.eq.5 .or. mode.eq.6))
      *       call dcopy (nfixed,wrk(nfree+1),1,v(nfree+1),1)
+
       end if
 c                                 end of cmqmul
       end
@@ -7843,7 +7800,8 @@ c
       end if
 c                                 set clamda
 
-      call cmprt (nfree,n,nctotl,nactiv,kactiv,kx,clamda,w(lrlam))
+      call cmprt (nfree,n,nctotl,
+     *            nactiv,kactiv,kx,clamda,w(lrlam))
 
 c                                 end of lscore
       end
@@ -7879,7 +7837,6 @@ c     into the  clamda  array.
       end do
 c                                 end of cmprnt
       end
-
 
       subroutine lsbnds (unitq,inform,nz,nfree,nrank,nres,ngq,n,ldzy,lda
      *                  ,ldr,ldt,istate,kx,condmx,a,r,t,res,gq,zy,w,c,s)
@@ -10335,20 +10292,20 @@ c----------------------------------------------------------------------
             end if
    20    continue
       else if (side.eq.'r') then
-         do 40 j = k2 - 1, k1, -1
+         do j = k2 - 1, k1, -1
             subh = s(j)
             call srotgc(a(j + 1, j+1), subh, ctemp, stemp)
             stemp = -stemp
             s(j) = stemp
             c(j) = ctemp
             if ((ctemp.ne.1d0).or.(stemp.ne.0d0)) then
-               do 30 i = j, 1, -1
+               do i = j, 1, -1
                   temp = a(i, j+1)
                   a(i, j+1) = ctemp*temp - stemp*a(i,j)
                   a(i,j) = stemp*temp + ctemp*a(i,j)
-   30          continue
+               end do
             end if
-   40    continue
+         end do 
       end if
 c                                 end of suhqr
       end
