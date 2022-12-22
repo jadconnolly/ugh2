@@ -1550,7 +1550,7 @@ c           swap columns nrz1 and jart of r.
 c                                 end of lsdel
       end
 
-      subroutine npsetx(unitq,ncqp,nactiv,nfree,nz,n,nctotl,ldzy,
+      subroutine npsetx (unitq,ncqp,nactiv,nfree,nz,n,nctotl,ldzy,
      *                  ldaqp,ldr,ldt,istate,kactiv,kx,dxnorm,gdx,aqp,
      *                  adx,bl,bu,rpq,rpq0,dx,gq,r,t,zy,work)
 c----------------------------------------------------------------------
@@ -3759,8 +3759,7 @@ c----------------------------------------------------------------------
 
       integer ldaqp, ldr, linact, minits, n, nactiv, nclin,
      *        nfree, nlnact, nqperr, numinf, nz, istate(*), kactiv(n), 
-     *        kx(n), j, jinf,
-     *        ncqp, nctotl, ngq, nmajor, nminor, nrank,
+     *        kx(n), j, jinf, nctotl, ngq, nmajor, nminor, nrank,
      *        nrejtd, nrpq, ntry, nviol, nz1
 
       double precision adx(*), aqp(ldaqp,*), ax(*), bl(*),
@@ -3787,8 +3786,8 @@ c----------------------------------------------------------------------
       double precision asize, dtmax, dtmin
       common/ ngg008 /asize, dtmax, dtmin
 
-      integer itmax1, itmax2, lprob, nn, nnclin
-      common/ ngg016 /itmax1, itmax2, lprob, nn, nnclin
+      integer itmax1, itmax2, lprob
+      common/ ngg016 /itmax1, itmax2, lprob
 
       double precision rcndbd, rfrobn, drmax, drmin
       common/ ngg018 /rcndbd, rfrobn, drmax, drmin
@@ -3814,7 +3813,6 @@ c----------------------------------------------------------------------
       ssq1 = 0d0
 
       nctotl = n + nclin
-      ncqp = nclin 
       nrank = n
       nrejtd = 0
 
@@ -3839,9 +3837,8 @@ c     violations.
 
          weight = 1d0
 
-            if (abs(blj).le.qptol(j)) blj = 0d0
-            if (abs(buj).le.qptol(j)) buj = 0d0
-
+         if (abs(blj).le.qptol(j)) blj = 0d0
+         if (abs(buj).le.qptol(j)) buj = 0d0
 
          wtinf(j) = weight
          qpbl(j) = blj
@@ -3870,7 +3867,7 @@ c     working set is used to start the qp iterations.
 c     solve for dx, the vector of minimum two-norm that satisfies the
 c     constraints in the working set.
 
-      call npsetx(unitq,ncqp,nactiv,nfree,nz,n,nctotl,ldzy,ldaqp,
+      call npsetx(unitq,nclin,nactiv,nfree,nz,n,nctotl,ldzy,ldaqp,
      *            ldr,ldt,istate,kactiv,kx,dxnorm,gdx,aqp,adx,qpbl,qpbu,
      *            w(lrpq),w(lrpq0),dx,w(lgq),r,w(lt),w(lzy),w(lwrk1))
 
@@ -3887,8 +3884,8 @@ c     (1  thru  jinf)  being satisfied.
 
       do
 
-         call lscore('qp subproblem',linobj,unitq,nqperr,
-     *            minits,jinf,ncqp,nctotl,nactiv,nfree,nrank,nz,nz1,n,
+         call lscore ('qp subproblem',linobj,unitq,nqperr,
+     *            minits,jinf,nclin,nctotl,nactiv,nfree,nrank,nz,nz1,n,
      *            ldaqp,ldr,istate,kactiv,kx,gdx,ssq,ssq1,suminf,numinf,
      *            dxnorm,qpbl,qpbu,aqp,clamda,adx,qptol,r,dx,w)
 
@@ -3909,7 +3906,7 @@ c           count the violated linear constraints.
             nz = n
             call iload (nctotl,0,istate,1)
 
-            call npsetx (unitq,ncqp,nactiv,nfree,nz,n,nctotl,ldzy,
+            call npsetx (unitq,nclin,nactiv,nfree,nz,n,nctotl,ldzy,
      *                  ldaqp,ldr,ldt,istate,kactiv,kx,dxnorm,gdx,aqp,
      *                  adx,qpbl,qpbu,w(lrpq),w(lrpq0),dx,w(lgq),r,w(lt)
      *                  ,w(lzy),w(lwrk1))
@@ -6282,7 +6279,7 @@ c----------------------------------------------------------------------
 
       integer info, jmax, 
      *                  linact, lvioln, majit0, minits, mnr,
-     *                  mnrsum, mode, ncqp, 
+     *                  mnrsum, mode, 
      *                  nlnact, nlserr, nmajor, nminor, nqperr,
      *                  nqpinf, numinf, nviol
 
@@ -6290,8 +6287,6 @@ c----------------------------------------------------------------------
      *                  goodgq, infeas, needfd, newgq, optiml, overfl
 
       character*5       mjrmsg
-
-      logical ktcond(2)
 
       double precision ddot, dnrm2, sdiv 
       external ddot, dnrm2, sdiv 

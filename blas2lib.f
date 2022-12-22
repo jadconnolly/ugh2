@@ -359,7 +359,7 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical cold, linobj, needfd, rowerr, vertex, swap
+      logical cold, linobj, rowerr, vertex, swap
 
       integer iter, lda, ldr, leniw, lenw, n, nclin, 
      *        i, ianrmj, ikx, inform, maxnz, minact,
@@ -379,7 +379,7 @@ c----------------------------------------------------------------------
      *                 fdnorm, feamax, feamin, obj, rootn, ssq1,
      *                 suminf, xnorm, dnrm2
 
-      external objfun
+      external objfun, gsol6
 
       integer lkactv, lanorm, lap, lqpdx, lres, lres0, lqphz,
      *        lqpgq, lgq, lrlam, lt, lq, lwtinf, lwrk1, lqptol
@@ -427,6 +427,9 @@ c----------------------------------------------------------------------
       common/ ngg021 /cdint, ctol, dxlim, epsrf, eta,
      *                fdint, ftol, hcndbd
 
+      logical fdchk, cntrl, needfd, fdincs
+      common/ cstfds /fdchk, cntrl, needfd, fdincs
+
       logical outrpc, maxs
       common/ ngg015 /outrpc, maxs
 
@@ -448,14 +451,7 @@ c                                 f(n) parameters
       inform = 0
 c                                 constraint feasibility tolerance
       tolfea = ctol
-
-      lfdset = 1
-
-      needfd = lvlder.eq.0 .or. lvlder.eq.2
       cold = .true.
-c                                 forward diff = 1, central = 2
-      lvldif = 0
-      if (needfd) lvldif = 1
 
       minact = 0
       minfxd = 0
@@ -637,44 +633,17 @@ c                                compute objective function
       if (mode.lt.0) then 
          write (*,*) 'wtf first call to objfun failed'
          return
-      end if 
-
-      if (lverfy.eq.1.or.lvlder.eq.0) then
-c                                save the gradient
-         if (lvlder.eq.3) then
-            swap = .true.
-c                                set lvlder so that objfun
-c                                doesn't bother with analytics
-            lvlder = 0
-         else
-            swap = .false.
-         end if
-c                                 forward increments are in w(1:n)
-c                                 central increments are in w(lhctrl:+n)
-c                                 w(ldx) is just space for an extra point? check
-         call chfd (mode,n,fdnorm,objf,objfun,bl,bu,w(lgrad),x,w(ldx))
-c                                 chfd failed, use fixed increments, fdint/cdint
-         if (mode.lt.0)  lfdset = 1
-c                                 chfd will return the numeric grad and may return
-c                                 nonsense in gradu, if analytics were ok, copy back
-c                                 into w(lgrd)
-         if (swap) then 
-
-            lvlder = 3
-
-         else 
-
-            gradu(1:n) = w(lgrad:lgrad+n-1)
-
-         end if
-
-         if (mode.lt.0) then
-             write (*,*) 'wtf chf failed'
-             lfdset = 1
-         end if
-
       end if
 
+      if (needfd.and.fdchk) then
+c                                a model w/o derivatives, or
+c                                a model w/bad derivatives
+c                                ---------------------------------
+         call chfd (mode,n,fdnorm,objf,gsol6,bl,bu,gradu,x)
+c                                forward increments are in hfwd
+c                                central increments are in hctl
+      end if
+c                                copy the gradient
       w(lgrad:lgrad+n-1) = gradu(1:n)
       w(lgq:lgq+n-1) = gradu(1:n)
 c                                 transform grad (w(lgq))
@@ -4978,7 +4947,7 @@ c        set the array of violations.
 c                                 end of npfeas
       end
 
-      subroutine npsrch (needfd,inform,n,nfun,ngrad,
+      subroutine npsrch (inform,n,nfun,ngrad,
      *                  objfun,alfa,alfmax,alfsml,
      *                  dxnorm,epsrf,eta,gdx,grdalf,glf,objf,
      *                  objalf,xnorm,dx,grad,gradu,x1,x,bl,bu)
@@ -5011,7 +4980,7 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical needfd, done, first, imprvd
+      logical done, first, imprvd
 
       integer inform, n, nfun, ngrad, j, maxf, mode, numf
 
@@ -5029,8 +4998,8 @@ c----------------------------------------------------------------------
       double precision wmach
       common/ cstmch /wmach(10)
 
-      integer lfdset, lvldif
-      common/ ngg014 /lvldif, lfdset
+      logical fdchk, cntrl, needfd, fdincs
+      common/ cstfds /fdchk, cntrl, needfd, fdincs
 
       double precision epspt3, epspt5, epspt8, epspt9
       common/ ngg006 /epspt3, epspt5, epspt8, epspt9
@@ -6280,7 +6249,7 @@ c----------------------------------------------------------------------
      *        nqpinf, numinf, nviol
 
       logical convpt, convrg, done, error, feasqp,
-     *        goodgq, infeas, needfd, newgq, optiml, overfl
+     *        goodgq, infeas, newgq, optiml, overfl
 
       character*5 mjrmsg
 
@@ -6303,8 +6272,8 @@ c----------------------------------------------------------------------
       integer ldt, ncolt, ldzy
       common/ ngg004 /ldt, ncolt, ldzy
 
-      integer lfdset, lvldif
-      common/ ngg014 /lvldif, lfdset
+      logical fdchk, cntrl, needfd, fdincs
+      common/ cstfds /fdchk, cntrl, needfd, fdincs
 
       double precision epspt3, epspt5, epspt8, epspt9
       common/ ngg006 /epspt3, epspt5, epspt8, epspt9
@@ -6341,8 +6310,6 @@ c                                 initialize
       mnrsum = 0
       majit0 = majits
 
-      needfd = lvlder.ne.3
-
       alfa = 0d0
       alfdx = 0d0
       rtftol = sqrt(ftol)
@@ -6365,13 +6332,14 @@ c                                       loop to follow the gradient
                if (needfd) then
 
                   call objfun (mode,n,x,objf,grad,fdnorm,bl,bu)
-                 inform = mode
-                 if (mode.lt.0) go to 60
 
-                 if (deriv(rids)) then
-                    lvlder = 3
-                    needfd = .false.
-                 end if
+                  inform = mode
+
+                  if (mode.lt.0) go to 60
+
+                  if (deriv(rids)) then
+                     needfd = .false.
+                  end if
 
                end if
 
@@ -6414,7 +6382,7 @@ c                                 are small, switch to central differences
 c                                 and re-solve the qp.
             goodgq = .true.
 
-            if (needfd .and. .not. (lvldif.eq.2)) then
+            if (needfd .and. .not. cntrl) then
 
                glnorm = dnrm2 (n,w(lhpq),1)
                cnorm = 0d0
@@ -6422,13 +6390,13 @@ c                                 and re-solve the qp.
 
                if (isnan(gltest).or.glnorm.le.gltest) then
 
+                  cntrl = .true.
                   goodgq = .false.
+
                   mjrmsg(3:3) = 'central differences'
-c                            this makes an extra calculation at 
-c                            x, see 12/15/2022 save for the
-c                            getgrd version.
-                  lvldif = 2
+
                   call objfun (mode,n,x,obj,grad,fdnorm,bl,bu)
+
                   newgq = .true.
 
                end if
@@ -6550,7 +6518,8 @@ c        trial steplength falls below alfsml, the linesearch is
 c        terminated.
 
             alfsml = 0d0
-            if (needfd .and. .not. (lvldif.ne.2)) then
+
+            if (needfd .and. .not. cntrl) then
                alfsml = sdiv (fdnorm,dxnorm,overfl)
                alfsml = min(alfsml,alfmax)
             end if
@@ -6560,10 +6529,9 @@ c        compute the steplength using safeguarded interpolation.
             alflim = sdiv ((1d0+xnorm)*dxlim,dxnorm,overfl)
             alfa = min(alflim,1d0)
 
-            call npsrch(needfd,nlserr,n,nfun,ngrad,
-     *               objfun,alfa,alfmax,alfsml,
-     *               dxnorm,epsrf,eta,gdx,grdalf,glf2,objf,objalf,
-     *               xnorm,w(ldx),grad,gradu,w(lx1),x,bl,bu)
+            call npsrch (nlserr,n,nfun,ngrad,objfun,alfa,alfmax,alfsml,
+     *                   dxnorm,epsrf,eta,gdx,grdalf,glf2,objf,objalf,
+     *                   xnorm,w(ldx),grad,gradu,w(lx1),x,bl,bu)
 
 c           npsrch  sets nlserr to the following values...
 c           < 0  if the user wants to stop.
@@ -6600,13 +6568,19 @@ c           if exact gradients or central differences are being used,
 c           or the kt conditions are satisfied, stop.  otherwise,
 c           switch to central differences and solve the qp again.
 
-               if (needfd .and. .not. (lvldif.ne.2)) then
+               if (needfd .and. .not. cntrl) then
+
                   if (.not. optiml) then
+
                      error = .false.
+                     cntrl = .true.
+
                      mjrmsg(3:3) = 'central differences'
-                     lvldif = 2
+
                      newgq = .true.
+
                   end if
+
                end if
 
             else
@@ -6624,10 +6598,9 @@ c                                 compute the missing gradients.
                   gdx = ddot (n,grad,1,w(ldx))
                   glf2 = gdx
 
-                  if (deriv(rids)) then
-                     lvlder = 3
-                     needfd = .false.
-                  end if
+c                 if (deriv(rids)) then
+c                    needfd = .false.
+c                 end if
 
                end if
 
@@ -6663,11 +6636,9 @@ c              partition of q'hq.
                end if
             end if
          
-         else 
-
-            exit 
-
          end if
+
+         if (done .or. error) exit
 
       end do
 

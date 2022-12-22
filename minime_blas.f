@@ -55,8 +55,8 @@ c-----------------------------------------------------------------------
       double precision wmach
       common/ cstmch /wmach(10)
 
-      integer itmxnp, lvlder, lverfy
-      common/ ngg020 /itmxnp, lvlder, lverfy
+      logical fdchk, cntrl, needfd, fdincs
+      common/ cstfds /fdchk, cntrl, needfd, fdincs
 c-----------------------------------------------------------------------
       yt = pa
 
@@ -129,19 +129,19 @@ c                                 closure for molecular models
          lapz(nclin,1:nvar) = 1d0
 
       end if
+c                               fdchk causes chfd to be called to
+c                               compute increments the first time
+c                               they are needed.
+      fdchk = .true.
+c                               fdincs: computed increments available
+      fdincs = .false.
+c                               cntrl: use 2nd order estimate
+      cntrl = .false.
 
       if (deriv(rids)) then
-c                                 LVLDER = 3, all derivatives available
-         lvlder = 3
-c                                 LVERFY = 0, use input differences
-c                                 LVERFY = 1, compute finite difference increments 
-c                                 LVERFY = 2, check analytical against numerical derivatives
-         lverfy = 1
-
+         needfd = .false.
       else
-c                                 LVLDER = 0, no derivatives
-         lvlder = 0
-
+         needfd = .true.
       end if
 
       call nlpsol (nvar,nclin,m20,m19,lapz,bl,bu,gsol2,iter,
@@ -267,7 +267,7 @@ c-----------------------------------------------------------------------
      *                 gsol1, g, bsum, zsite(m10,m11),
      *                 bl(*), bu(*), fdnorm
 
-      external gsol1, zbad
+      external gsol1, gsol6, zbad
 
       logical mus
       double precision mu
@@ -290,8 +290,8 @@ c-----------------------------------------------------------------------
       logical outrpc
       common/ ngg015 /outrpc
 
-      integer itmxnp, lvlder, lverfy
-      common/ ngg020 /itmxnp, lvlder, lverfy
+      logical fdchk, cntrl, needfd, fdincs
+      common/ cstfds /fdchk, cntrl, needfd, fdincs
 c-----------------------------------------------------------------------
       if (lopt(61)) call begtim (2)
 c                                 reconstruct pa array
@@ -301,23 +301,29 @@ c                                 reconstruct pa array
 c                                 get the bulk composition from pa
       call getscp (rcp,rsum,rids,rids)
 
-      if (deriv(rids).and.lvlder.eq.3) then
+      if (.not.needfd) then
 
-         call getder (g,dgdp,rids,bad,badp)
+         call getder (g,dgdp,rids,needfd,badp)
 
-         if (bad) then
+         if (needfd) then
 c                                 get numeric derivatives:
-c                                 -------------------------------------
-c                                 set derivative flag for nlpsol
-            lvlder = 0
 c                                 compute the leveled g, gval
             call gsol5 (g,gval)
+c                                 -------------------------------------
+            if (fdchk) then
+c                                 first call for numerics, call chfd
+c                                 to compute optimal gradients
+               call chfd (mode,nvar,fdnorm,gval,gsol6,bl,bu,dgdp,ppp)
+
+            else
 c                                 set bad to force numder to evaluate
 c                                 all derivatives
-            bad = .false.
+               bad = .false.
 c                                 numder compute dg'dp
-            call numder (gval,dgdp,ppp,fdnorm,bl,bu,psum,nvar,bad,badp,
-     *                   mode)
+               call numder (gval,dgdp,ppp,fdnorm,bl,bu,psum,nvar,bad,
+     *                      badp,mode)
+
+            end if
 
          else 
 c                                 analytical derivatives:
@@ -359,9 +365,8 @@ c                                  compute derivatives
 c                                 if numeric derivatives were
 c                                 evaluated reset composition
 c                                 data
-      if (lvlder.ne.3) then
+      if (needfd) then
          call getscp (rcp,rsum,rids,rids)
-c        if (deriv(rids)) lvlder = 3
       end if
 
       if (lopt(57).and.outrpc) then 
@@ -613,8 +618,8 @@ c-----------------------------------------------------------------------
       common/ ngg021 /cdint, ctol, dxlim, epsrf, eta,
      *                fdint, ftol, hcndbd
 
-      integer lfdset, lvldif
-      common/ ngg014 /lvldif, lfdset
+      logical fdchk, cntrl, needfd, fdincs
+      common/ cstfds /fdchk, cntrl, needfd, fdincs
 c-----------------------------------------------------------------------
 c                                 one or more derivatives are singular
 c                                 because of ln(0) entropy term, evaluate
@@ -632,27 +637,27 @@ c                                choose direction away from closest bound
          dbl = bl(i) - ppp(i)
          dbu = bu(i) - ppp(i)
 c                                 2nd or 1st order
-         if (lvldif.eq.2) then
+         if (cntrl) then
 c                                 2nd
-            if (lfdset.eq.1) then
-               dpp = cdint
-            else
+            if (fdincs) then
                dpp = hctl(i)
+            else
+               dpp = cdint
             end if
 
          else
 c                                1st
-            if (lfdset.eq.1) then 
-               dpp = fdint
-            else 
+            if (fdincs) then
                dpp = hfwd(i)
+            else
+               dpp = fdint
             end if
 
          end if
 c                                 rel/abs scaling
          dpp = dpp * (1d0 + dabs(ppp(i)))
 c                                 first increment, doubled for central
-         if (lvldif.eq.2) dpp = 2d0*dpp
+         if (cntrl) dpp = 2d0*dpp
 c                                 try to avoid invalid values (z<=0)
          if (pa(i).gt.bu(i)-dpp) then 
 
@@ -687,7 +692,7 @@ c                                 apply the increment
 
          if (dabs(dpp).gt.fdnorm) fdnorm = dabs(dpp)
 
-         if (lvldif.eq.2) then
+         if (cntrl) then
 c                                 g at the double increpent
 
             call gsol6 (g3,ppp,nvar)
@@ -1330,22 +1335,7 @@ c                                 solution model index
       xp(1:nvar) = ppp(1:nvar)
 
 c                                 EPSRF, function precision
-10    if (itic.lt.2) then
-c                                 LVLDER = 3, all derivatives available
-         lvlder = 3
-c                                 LVERFY = 1, verify derivatives 
-         lverfy = itic
-
-      else
-c                                 Derivatives not available; or failed once:
-c                                 LVERFY = 0, don't verify
-         lverfy = 0
-c                                 LVLDER = 0, no derivatives
-         lvlder = 0
-
-      end if
-
-      call nlpsol (nvar,nclin,m20,m19,lapz,bl,bu,gsol4,iter,
+10    call nlpsol (nvar,nclin,m20,m19,lapz,bl,bu,gsol4,iter,
      *            istate,clamda,gfinal,ggrd,r,ppp,iwork,m22,work,m23)
 c                                 if nlpsol returns iter = 0
 c                                 it's likely failed, make 2 additional 
@@ -1391,7 +1381,7 @@ c                                 the mechanical component?
 
       end
 
-      subroutine chfd (mode,n,fdnorm,objf,objfun,bl,bu,grad,x,dummy)
+      subroutine chfd (mode,n,fdnorm,objf,numfun,bl,bu,grad,x)
 c----------------------------------------------------------------------
 c     chfd  computes difference intervals for gradients of
 c     f(x). intervals are computed using a procedure that
@@ -1409,13 +1399,15 @@ c----------------------------------------------------------------------
 
       integer n, info, iter, itmax, j, mode
 
-      double precision fdnorm, objf, bl(n), bu(n), dummy(n), 
-     *                 grad(n), x(n), cdest, epsa,
-     *                 errbnd, errmax, errmin, f1, f2, fdest, fx,
+      double precision fdnorm, objf, bl(n), bu(n), grad(n), x(n), cdest,
+     *                 epsa, errbnd, errmax, errmin, f1, f2, fdest, fx,
      *                 h, hcd, hfd, hmax, hmin, hopt, hphi,
      *                 sdest, signh, sumeps, sumsd, xj
 
-      external objfun
+      external numfun
+
+      logical fdchk, cntrl, needfd, fdincs
+      common/ cstfds /fdchk, cntrl, needfd, fdincs
 
       integer lfdset, lvldif
       common/ ngg014 /lvldif, lfdset
@@ -1466,12 +1458,10 @@ c                                 find a finite-difference interval by iteration
          do
 
             x(j) = xj + h
-            call objfun (mode,n,x,f1,dummy,fdnorm,bl,bu)
-            if (mode.lt.0) go to 200
+            call numfun (f1,x,n)
 
             x(j) = xj + h + h
-            call objfun(mode,n,x,f2,dummy,fdnorm,bl,bu)
-            if (mode.lt.0) go to 200
+            call numfun (f2,x,n)
 
             call chcore (done,first,epsa,epsrf,fx,info,iter,itmax,cdest,
      *                   fdest,sdest,errbnd,f1,f2,h,hopt,hphi)
@@ -1522,10 +1512,8 @@ c                                 find a finite-difference interval by iteration
 
       end do
 c                                 signal individual increments available:
-      lfdset = 2
+      fdincs = .true.
 
-      return
-c                                 sommat agly
-200   lfdset = 1
+200   return
 c                                 end of chfd
       end
