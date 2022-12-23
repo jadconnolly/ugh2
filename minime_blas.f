@@ -292,6 +292,9 @@ c-----------------------------------------------------------------------
 
       integer itmxnp, lvlder, lverfy
       common/ ngg020 /itmxnp, lvlder, lverfy
+
+      logical fdchk, cntrl, needfd, fdincs
+      common/ cstfds /fdchk, cntrl, needfd, fdincs
 c-----------------------------------------------------------------------
       if (lopt(61)) call begtim (2)
 c                                 reconstruct pa array
@@ -303,9 +306,9 @@ c                                 get the bulk composition from pa
 
       if (deriv(rids).and.lvlder.eq.3) then
 
-         call getder (g,dgdp,rids,bad,badp)
+         call getder (g,dgdp,rids,needfd,badp)
 
-         if (bad) then
+         if (needfd) then
 c                                 get numeric derivatives:
 c                                 -------------------------------------
 c                                 set derivative flag for nlpsol
@@ -361,7 +364,6 @@ c                                 evaluated reset composition
 c                                 data
       if (lvlder.ne.3) then
          call getscp (rcp,rsum,rids,rids)
-c        if (deriv(rids)) lvlder = 3
       end if
 
       if (lopt(57).and.outrpc) then 

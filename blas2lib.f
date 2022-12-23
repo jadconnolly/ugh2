@@ -359,7 +359,7 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical cold, linobj, needfd, rowerr, vertex, swap
+      logical cold, linobj, rowerr, vertex, swap
 
       integer iter, lda, ldr, leniw, lenw, n, nclin, 
      *        i, ianrmj, ikx, inform, maxnz, minact,
@@ -405,6 +405,9 @@ c----------------------------------------------------------------------
 
       integer lvrfyc, jverfy
       common/ ngg015 /lvrfyc, jverfy(4)
+
+      logical fdchk, cntrl, needfd, fdincs
+      common/ cstfds /fdchk, cntrl, needfd, fdincs
 
       double precision asize, dtmax, dtmin
       common/ ngg008 /asize, dtmax, dtmin
@@ -639,7 +642,7 @@ c                                compute objective function
          return
       end if 
 
-      if (lverfy.eq.1.or.lvlder.eq.0) then
+      if (lverfy.eq.1.or.needfd) then
 c                                save the gradient
          if (lvlder.eq.3) then
             swap = .true.
@@ -4978,7 +4981,7 @@ c        set the array of violations.
 c                                 end of npfeas
       end
 
-      subroutine npsrch (needfd,inform,n,nfun,ngrad,
+      subroutine npsrch (inform,n,nfun,ngrad,
      *                  objfun,alfa,alfmax,alfsml,
      *                  dxnorm,epsrf,eta,gdx,grdalf,glf,objf,
      *                  objalf,xnorm,dx,grad,gradu,x1,x,bl,bu)
@@ -5011,7 +5014,7 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical needfd, done, first, imprvd
+      logical done, first, imprvd
 
       integer inform, n, nfun, ngrad, j, maxf, mode, numf
 
@@ -5031,6 +5034,9 @@ c----------------------------------------------------------------------
 
       integer lfdset, lvldif
       common/ ngg014 /lvldif, lfdset
+
+      logical fdchk, cntrl, needfd, fdincs
+      common/ cstfds /fdchk, cntrl, needfd, fdincs
 
       double precision epspt3, epspt5, epspt8, epspt9
       common/ ngg006 /epspt3, epspt5, epspt8, epspt9
@@ -6280,7 +6286,7 @@ c----------------------------------------------------------------------
      *        nqpinf, numinf, nviol
 
       logical convpt, convrg, done, error, feasqp,
-     *        goodgq, infeas, needfd, newgq, optiml, overfl
+     *        goodgq, infeas, newgq, optiml, overfl
 
       character*5 mjrmsg
 
@@ -6323,6 +6329,9 @@ c----------------------------------------------------------------------
 
       integer itmxnp, lvlder, lverfy
       common/ ngg020 /itmxnp, lvlder, lverfy
+
+      logical fdchk, cntrl, needfd, fdincs
+      common/ cstfds /fdchk, cntrl, needfd, fdincs
 
       double precision cdint, ctol, dxlim, epsrf, eta, fdint, ftol,
      *                 hcndbd
@@ -6560,7 +6569,7 @@ c        compute the steplength using safeguarded interpolation.
             alflim = sdiv ((1d0+xnorm)*dxlim,dxnorm,overfl)
             alfa = min(alflim,1d0)
 
-            call npsrch(needfd,nlserr,n,nfun,ngrad,
+            call npsrch(nlserr,n,nfun,ngrad,
      *               objfun,alfa,alfmax,alfsml,
      *               dxnorm,epsrf,eta,gdx,grdalf,glf2,objf,objalf,
      *               xnorm,w(ldx),grad,gradu,w(lx1),x,bl,bu)
