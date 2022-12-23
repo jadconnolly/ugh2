@@ -57,6 +57,9 @@ c-----------------------------------------------------------------------
 
       integer itmxnp, lvlder, lverfy
       common/ ngg020 /itmxnp, lvlder, lverfy
+
+      logical fdchk, cntrl, needfd, fdincs
+      common/ cstfds /fdchk, cntrl, needfd, fdincs
 c-----------------------------------------------------------------------
       yt = pa
 
@@ -132,7 +135,7 @@ c                                 closure for molecular models
 
       if (deriv(rids)) then
 c                                 LVLDER = 3, all derivatives available
-         lvlder = 3
+         needfd = .false.
 c                                 LVERFY = 0, use input differences
 c                                 LVERFY = 1, compute finite difference increments 
 c                                 LVERFY = 2, check analytical against numerical derivatives
@@ -140,7 +143,7 @@ c                                 LVERFY = 2, check analytical against numerical
 
       else
 c                                 LVLDER = 0, no derivatives
-         lvlder = 0
+         needfd = .true.
 
       end if
 
@@ -304,7 +307,7 @@ c                                 reconstruct pa array
 c                                 get the bulk composition from pa
       call getscp (rcp,rsum,rids,rids)
 
-      if (deriv(rids).and.lvlder.eq.3) then
+      if (deriv(rids).and..not.needfd) then
 
          call getder (g,dgdp,rids,needfd,badp)
 
@@ -362,7 +365,7 @@ c                                  compute derivatives
 c                                 if numeric derivatives were
 c                                 evaluated reset composition
 c                                 data
-      if (lvlder.ne.3) then
+      if (needfd) then
          call getscp (rcp,rsum,rids,rids)
       end if
 
@@ -1208,6 +1211,9 @@ c-----------------------------------------------------------------------
       integer itmxnp, lvlder, lverfy
       common/ ngg020 /itmxnp, lvlder, lverfy
 
+      logical fdchk, cntrl, needfd, fdincs
+      common/ cstfds /fdchk, cntrl, needfd, fdincs
+
       logical outrpc, maxs
       common/ ngg015 /outrpc, maxs
 
@@ -1334,7 +1340,7 @@ c                                 solution model index
 c                                 EPSRF, function precision
 10    if (itic.lt.2) then
 c                                 LVLDER = 3, all derivatives available
-         lvlder = 3
+         needfd = .false.
 c                                 LVERFY = 1, verify derivatives 
          lverfy = itic
 
@@ -1343,7 +1349,7 @@ c                                 Derivatives not available; or failed once:
 c                                 LVERFY = 0, don't verify
          lverfy = 0
 c                                 LVLDER = 0, no derivatives
-         lvlder = 0
+         needfd = .true.
 
       end if
 

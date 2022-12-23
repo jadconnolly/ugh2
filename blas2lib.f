@@ -454,7 +454,6 @@ c                                 constraint feasibility tolerance
 
       lfdset = 1
 
-      needfd = lvlder.eq.0 .or. lvlder.eq.2
       cold = .true.
 c                                 forward diff = 1, central = 2
       lvldif = 0
@@ -644,13 +643,16 @@ c                                compute objective function
 
       if (lverfy.eq.1.or.needfd) then
 c                                save the gradient
-         if (lvlder.eq.3) then
+         if (needfd) then
+
+            swap = .false.
+
+         else
+
             swap = .true.
 c                                set lvlder so that objfun
 c                                doesn't bother with analytics
-            lvlder = 0
-         else
-            swap = .false.
+            needfd = .true.
          end if
 c                                 forward increments are in w(1:n)
 c                                 central increments are in w(lhctrl:+n)
@@ -663,7 +665,7 @@ c                                 nonsense in gradu, if analytics were ok, copy 
 c                                 into w(lgrd)
          if (swap) then 
 
-            lvlder = 3
+            needfd = .false.
 
          else 
 
@@ -6349,8 +6351,6 @@ c                                 initialize
       nqpinf = 0
       mnrsum = 0
       majit0 = majits
-
-      needfd = lvlder.ne.3
 
       alfa = 0d0
       alfdx = 0d0
