@@ -455,9 +455,6 @@ c                                 constraint feasibility tolerance
       lfdset = 1
 
       cold = .true.
-c                                 forward diff = 1, central = 2
-      lvldif = 0
-      if (needfd) lvldif = 1
 
       minact = 0
       minfxd = 0
@@ -6423,7 +6420,7 @@ c                                 are small, switch to central differences
 c                                 and re-solve the qp.
             goodgq = .true.
 
-            if (needfd .and. .not. (lvldif.eq.2)) then
+            if (needfd .and. .not. cntrl) then
 
                glnorm = dnrm2 (n,w(lhpq),1)
                cnorm = 0d0
@@ -6432,11 +6429,11 @@ c                                 and re-solve the qp.
                if (isnan(gltest).or.glnorm.le.gltest) then
 
                   goodgq = .false.
+
                   mjrmsg(3:3) = 'central differences'
-c                            this makes an extra calculation at 
-c                            x, see 12/15/2022 save for the
-c                            getgrd version.
-                  lvldif = 2
+
+                  cntrl = .true.
+
                   call objfun (mode,n,x,obj,grad,fdnorm,bl,bu)
                   newgq = .true.
 
@@ -6559,7 +6556,7 @@ c        trial steplength falls below alfsml, the linesearch is
 c        terminated.
 
             alfsml = 0d0
-            if (needfd .and. .not. (lvldif.ne.2)) then
+            if (needfd .and. .not. cntrl) then
                alfsml = sdiv (fdnorm,dxnorm,overfl)
                alfsml = min(alfsml,alfmax)
             end if
@@ -6603,19 +6600,25 @@ c                (alfmax le toltny  or  uphill).
             error = nlserr .ge. 4
 
             if (error) then
+c                                 linesearch failed to find a better point.
+c                                 if exact or central difference gradients
+c                                 are in use or the kt conditions are satisfied, 
+c                                 stop.  otherwise, switch to central differences 
+c                                 and solve the qp again.
+               if (needfd .and. .not. cntrl) then
 
-c           the linesearch failed to find a better point.
-c           if exact gradients or central differences are being used,
-c           or the kt conditions are satisfied, stop.  otherwise,
-c           switch to central differences and solve the qp again.
-
-               if (needfd .and. .not. (lvldif.ne.2)) then
                   if (.not. optiml) then
+
                      error = .false.
+
                      mjrmsg(3:3) = 'central differences'
-                     lvldif = 2
+
+                     cntrl = .true.
+
                      newgq = .true.
+
                   end if
+
                end if
 
             else

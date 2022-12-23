@@ -132,6 +132,10 @@ c                                 closure for molecular models
          lapz(nclin,1:nvar) = 1d0
 
       end if
+c                                 settings for numeric derivatives:
+c                                 -----------------------------------
+c                                 cntrl: use 2nd order estimate
+      cntrl = .false.
 
       if (deriv(rids)) then
 c                                 LVLDER = 3, all derivatives available
@@ -636,9 +640,9 @@ c                                 all derivatives
 c                                choose direction away from closest bound
          dbl = bl(i) - ppp(i)
          dbu = bu(i) - ppp(i)
-c                                 2nd or 1st order
-         if (lvldif.eq.2) then
-c                                 2nd
+
+         if (cntrl) then
+c                                 2nd order
             if (lfdset.eq.1) then
                dpp = cdint
             else
@@ -646,7 +650,7 @@ c                                 2nd
             end if
 
          else
-c                                1st
+c                                1st order
             if (lfdset.eq.1) then 
                dpp = fdint
             else 
@@ -657,7 +661,7 @@ c                                1st
 c                                 rel/abs scaling
          dpp = dpp * (1d0 + dabs(ppp(i)))
 c                                 first increment, doubled for central
-         if (lvldif.eq.2) dpp = 2d0*dpp
+         if (cntrl) dpp = 2d0*dpp
 c                                 try to avoid invalid values (z<=0)
          if (pa(i).gt.bu(i)-dpp) then 
 
@@ -692,7 +696,7 @@ c                                 apply the increment
 
          if (dabs(dpp).gt.fdnorm) fdnorm = dabs(dpp)
 
-         if (lvldif.eq.2) then
+         if (cntrl) then
 c                                 g at the double increpent
 
             call gsol6 (g3,ppp,nvar)
