@@ -406,8 +406,8 @@ c----------------------------------------------------------------------
       integer lvrfyc, jverfy
       common/ ngg015 /lvrfyc, jverfy(4)
 
-      logical fdchk, cntrl, needfd, fdincs
-      common/ cstfds /fdchk, cntrl, needfd, fdincs
+      logical fdset, cntrl, needfd, fdincs
+      common/ cstfds /fdset, cntrl, needfd, fdincs
 
       double precision asize, dtmax, dtmin
       common/ ngg008 /asize, dtmax, dtmin
@@ -451,8 +451,6 @@ c                                 f(n) parameters
       inform = 0
 c                                 constraint feasibility tolerance
       tolfea = ctol
-
-      lfdset = 1
 
       cold = .true.
 
@@ -655,8 +653,6 @@ c                                 forward increments are in w(1:n)
 c                                 central increments are in w(lhctrl:+n)
 c                                 w(ldx) is just space for an extra point? check
          call chfd (mode,n,fdnorm,objf,objfun,bl,bu,w(lgrad),x,w(ldx))
-c                                 chfd failed, use fixed increments, fdint/cdint
-         if (mode.lt.0)  lfdset = 1
 c                                 chfd will return the numeric grad and may return
 c                                 nonsense in gradu, if analytics were ok, copy back
 c                                 into w(lgrd)
@@ -670,10 +666,7 @@ c                                 into w(lgrd)
 
          end if
 
-         if (mode.lt.0) then
-             write (*,*) 'wtf chf failed'
-             lfdset = 1
-         end if
+         if (mode.lt.0) write (*,*) 'wtf chf failed'
 
       end if
 
@@ -5034,8 +5027,8 @@ c----------------------------------------------------------------------
       integer lfdset, lvldif
       common/ ngg014 /lvldif, lfdset
 
-      logical fdchk, cntrl, needfd, fdincs
-      common/ cstfds /fdchk, cntrl, needfd, fdincs
+      logical fdset, cntrl, needfd, fdincs
+      common/ cstfds /fdset, cntrl, needfd, fdincs
 
       double precision epspt3, epspt5, epspt8, epspt9
       common/ ngg006 /epspt3, epspt5, epspt8, epspt9
@@ -6329,8 +6322,8 @@ c----------------------------------------------------------------------
       integer itmxnp, lvlder, lverfy
       common/ ngg020 /itmxnp, lvlder, lverfy
 
-      logical fdchk, cntrl, needfd, fdincs
-      common/ cstfds /fdchk, cntrl, needfd, fdincs
+      logical fdset, cntrl, needfd, fdincs
+      common/ cstfds /fdset, cntrl, needfd, fdincs
 
       double precision cdint, ctol, dxlim, epsrf, eta, fdint, ftol,
      *                 hcndbd

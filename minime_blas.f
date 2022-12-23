@@ -58,8 +58,8 @@ c-----------------------------------------------------------------------
       integer itmxnp, lvlder, lverfy
       common/ ngg020 /itmxnp, lvlder, lverfy
 
-      logical fdchk, cntrl, needfd, fdincs
-      common/ cstfds /fdchk, cntrl, needfd, fdincs
+      logical fdset, cntrl, needfd, fdincs
+      common/ cstfds /fdset, cntrl, needfd, fdincs
 c-----------------------------------------------------------------------
       yt = pa
 
@@ -134,8 +134,13 @@ c                                 closure for molecular models
       end if
 c                                 settings for numeric derivatives:
 c                                 -----------------------------------
+c                                 fdset: compute increments the 1st
+c                                 time numeric derivatives are computed.
+      fdset = .true. 
 c                                 cntrl: use 2nd order estimate
       cntrl = .false.
+c                                 fdincs: computed increments available
+      fdincs = .false.
 
       if (deriv(rids)) then
 c                                 LVLDER = 3, all derivatives available
@@ -300,8 +305,8 @@ c-----------------------------------------------------------------------
       integer itmxnp, lvlder, lverfy
       common/ ngg020 /itmxnp, lvlder, lverfy
 
-      logical fdchk, cntrl, needfd, fdincs
-      common/ cstfds /fdchk, cntrl, needfd, fdincs
+      logical fdset, cntrl, needfd, fdincs
+      common/ cstfds /fdset, cntrl, needfd, fdincs
 c-----------------------------------------------------------------------
       if (lopt(61)) call begtim (2)
 c                                 reconstruct pa array
@@ -622,8 +627,8 @@ c-----------------------------------------------------------------------
       common/ ngg021 /cdint, ctol, dxlim, epsrf, eta,
      *                fdint, ftol, hcndbd
 
-      integer lfdset, lvldif
-      common/ ngg014 /lvldif, lfdset
+      logical fdset, cntrl, needfd, fdincs
+      common/ cstfds /fdset, cntrl, needfd, fdincs
 c-----------------------------------------------------------------------
 c                                 one or more derivatives are singular
 c                                 because of ln(0) entropy term, evaluate
@@ -643,18 +648,18 @@ c                                choose direction away from closest bound
 
          if (cntrl) then
 c                                 2nd order
-            if (lfdset.eq.1) then
-               dpp = cdint
-            else
+            if (fdincs) then
                dpp = hctl(i)
+            else
+               dpp = cdint
             end if
 
          else
 c                                1st order
-            if (lfdset.eq.1) then 
-               dpp = fdint
-            else 
+            if (fdincs) then
                dpp = hfwd(i)
+            else 
+               dpp = fdint
             end if
 
          end if
@@ -1215,8 +1220,8 @@ c-----------------------------------------------------------------------
       integer itmxnp, lvlder, lverfy
       common/ ngg020 /itmxnp, lvlder, lverfy
 
-      logical fdchk, cntrl, needfd, fdincs
-      common/ cstfds /fdchk, cntrl, needfd, fdincs
+      logical fdset, cntrl, needfd, fdincs
+      common/ cstfds /fdset, cntrl, needfd, fdincs
 
       logical outrpc, maxs
       common/ ngg015 /outrpc, maxs
@@ -1429,8 +1434,8 @@ c----------------------------------------------------------------------
 
       external objfun
 
-      integer lfdset, lvldif
-      common/ ngg014 /lvldif, lfdset
+      logical fdset, cntrl, needfd, fdincs
+      common/ cstfds /fdset, cntrl, needfd, fdincs
 
       integer itmxnp, lvlder, lverfy
       common/ ngg020 /itmxnp, lvlder, lverfy
@@ -1534,10 +1539,8 @@ c                                 find a finite-difference interval by iteration
 
       end do
 c                                 signal individual increments available:
-      lfdset = 2
+      fdincs = .true.
 
-      return
-c                                 sommat agly
-200   lfdset = 1
-c                                 end of chfd
+200   return
+
       end
