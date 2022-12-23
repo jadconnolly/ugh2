@@ -316,15 +316,13 @@ c                                 reconstruct pa array
 c                                 get the bulk composition from pa
       call getscp (rcp,rsum,rids,rids)
 
-      if (deriv(rids).and..not.needfd) then
+      if (.not.needfd) then
 
          call getder (g,dgdp,rids,needfd,badp)
 
          if (needfd) then
 c                                 get numeric derivatives:
 c                                 -------------------------------------
-c                                 set derivative flag for nlpsol
-            lvlder = 0
 c                                 compute the leveled g, gval
             call gsol5 (g,gval)
 c                                 set bad to force numder to evaluate

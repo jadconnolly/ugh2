@@ -6367,11 +6367,6 @@ c                                       loop to follow the gradient
                  inform = mode
                  if (mode.lt.0) go to 60
 
-                 if (deriv(rids)) then
-                    lvlder = 3
-                    needfd = .false.
-                 end if
-
                end if
 
                w(lgq:lgq+n-1) = grad(1:n)
@@ -6629,11 +6624,6 @@ c                                 compute the missing gradients.
                   gdx = ddot (n,grad,1,w(ldx))
                   glf2 = gdx
 
-                  if (deriv(rids)) then
-                     lvlder = 3
-                     needfd = .false.
-                  end if
-
                end if
 
                call dcopy (n,grad,1,w(lgq),1)
@@ -6667,12 +6657,9 @@ c              partition of q'hq.
 
                end if
             end if
-         
-         else 
-
-            exit 
-
          end if
+
+         if (.not. (done .or. error)) exit
 
       end do
 
