@@ -6659,7 +6659,7 @@ c              partition of q'hq.
             end if
          end if
 
-         if (.not. (done .or. error)) exit
+         if (done .or. error) exit
 
       end do
 
