@@ -307,7 +307,18 @@ c-----------------------------------------------------------------------
 
       logical fdset, cntrl, needfd, fdincs
       common/ cstfds /fdset, cntrl, needfd, fdincs
+
+      integer count
+      data count/0/
+      save count
 c-----------------------------------------------------------------------
+      if (rids.eq.1) then 
+         count = count + 1
+c        write (*,*) count, fdnorm
+      end if
+
+c     if (rids.eq.2) needfd = .true.
+
       if (lopt(61)) call begtim (2)
 c                                 reconstruct pa array
       call ppp2pa (ppp,psum,nvar)
@@ -318,14 +329,14 @@ c                                 get the bulk composition from pa
 
       if (.not.needfd) then
 
-         call getder (g,dgdp,rids,needfd,badp)
+         call getder (g,dgdp,rids,bad,badp)
 
-         if (needfd) then
+         if (bad) then
 c                                 get numeric derivatives:
-c                                 -------------------------------------
+            needfd = .true.
 c                                 compute the leveled g, gval
             call gsol5 (g,gval)
-c                                 set bad to force numder to evaluate
+c                                 set bad to false to force numder to evaluate
 c                                 all derivatives
             bad = .false.
 c                                 numder compute dg'dp

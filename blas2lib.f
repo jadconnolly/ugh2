@@ -12,10 +12,10 @@ c    problems by succesive quadratic programming. Both after
 
 c    Gill P E, Murray W, Saunders M A and Wright M H (1984) 
 c    Procedures for optimization problems with a mixture of bounds and 
-c    general linear constraints ACM Trans. Math. Software 10 282–298
+c    general linear constraints ACM Trans. Math. Software 10 282ï¿½298
 
 c    Gill PE, Hammarling S, Murray W, Saunders MA and Wright MH (1986) 
-c    User’s Guide for LSSOL (version 1.0) Report SOL 86–1 
+c    Userï¿½s Guide for LSSOL (version 1.0) Report SOL 86ï¿½1 
 c    Department of Operations Research, Stanford University.
 
       subroutine lpsol (n,nclin,a,lda,bl,bu,cvec,istate,x,iter,obj,ax,
@@ -4973,7 +4973,7 @@ c        set the array of violations.
 c                                 end of npfeas
       end
 
-      subroutine npsrch (inform,n,nfun,ngrad,
+      subroutine npsrch (numric,inform,n,nfun,ngrad,
      *                  objfun,alfa,alfmax,alfsml,
      *                  dxnorm,epsrf,eta,gdx,grdalf,glf,objf,
      *                  objalf,xnorm,dx,grad,gradu,x1,x,bl,bu)
@@ -5006,7 +5006,7 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical done, first, imprvd
+      logical done, first, imprvd, numric
 
       integer inform, n, nfun, ngrad, j, maxf, mode, numf
 
@@ -5073,7 +5073,7 @@ c
       targtg = (1d-4 - eta)*oldg
       g0 = gbest
 
-      if (needfd) then
+      if (numric) then
          mode = 0
       else
          mode = 2
@@ -5102,7 +5102,7 @@ c                (alfmax le toltny  or  oldg ge 0).
 
       do
 
-         if (needfd) then
+         if (numric) then
             call srchq (first,done,imprvd,inform,maxf,numf,
      *               alfmax,alfsml,epsaf,g0,targtg,ftry,tolabs,tolrel,
      *               toltny,alfa,alfbst,fbest)
@@ -5117,7 +5117,7 @@ c                (alfmax le toltny  or  oldg ge 0).
             objf = tobj
             objalf = tobjm
 
-           if (.not. needfd) then
+           if (.not.numric) then
 
                call dcopy (n,gradu,1,grad,1)
                gdx = tgdx
@@ -5148,7 +5148,7 @@ c        compute the value and gradient of the objective function.
 
 c        compute auxiliary gradient information.
 
-            if (.not. needfd) then
+            if (.not.numric) then
 
                gtry = ddot (n,gradu,1,dx)
                tgdx = gtry
@@ -6256,7 +6256,7 @@ c----------------------------------------------------------------------
       integer inform, ldaqp, ldr, lenw, majits,
      *        n, nactiv, nclin, nctotl, nfree, nfun, ngrad, nz
 
-      logical unitq
+      logical unitq, numric
 
       double precision aqp(ldaqp,*), ax(*), bl(nctotl), bu(nctotl),
      *                 clamda(nctotl), featol(nctotl), grad(n),
@@ -6267,7 +6267,7 @@ c----------------------------------------------------------------------
       external objfun
 
       double precision alfa, alfbnd, alfdx, alflim, alfmax, alfmin,
-     *                  alfsml, cnorm, cond, condh, condhz, condt,
+     *                  alfsml, cond, condh, condhz, condt,
      *                  cvnorm, dinky, drzmax, drzmin, dxnorm, errmax,
      *                  flmax, gdx, gfnorm, glf1, glf2, glnorm, gltest,
      *                  grdalf, gtest, gznorm, obj, objalf, objsiz,
@@ -6346,6 +6346,11 @@ c                                 initialize
       alfdx = 0d0
       rtftol = sqrt(ftol)
       rootn = sqrt(dble(n))
+c                                 initialization for npsrch is specific to whether 
+c                                 numeric or analytic derivatives are in use, to 
+c                                 prevent objfun from resetting the derivative flag
+c                                 set a local flag for numerics
+      numric = needfd
 c                                 information from the feasibility phase will be used to generate a
 c                                 hot start for the first qp subproblem.
       call dcopy (nctotl,featol,1,w(lqptol),1)
@@ -6361,11 +6366,18 @@ c                                       loop to follow the gradient
 
             if (newgq) then
 
-               if (needfd) then
+               if (numric) then
 
                   call objfun (mode,n,x,objf,grad,fdnorm,bl,bu)
-                 inform = mode
-                 if (mode.lt.0) go to 60
+
+                  if (.not.numric.and.needfd) then
+                     numric = .true.
+                  else if (numric.and..not.needfd) then 
+                     numric = .false.
+                  end if
+
+                  inform = mode
+                  if (mode.lt.0) go to 60
 
                end if
 
@@ -6400,36 +6412,37 @@ c                                 compute norms of projected gradient and
 c                                 gradient of the free variables.
             gznorm = 0d0
             if (nz.gt.0) gznorm = dnrm2 (nz,w(lgq),1)
+
             gfnorm = gznorm
             if (nfree.gt.0.and.nactiv.gt.0) 
      *         gfnorm = dnrm2 (nfree,w(lgq),1)
+
 c                                 if the forward-difference estimates
 c                                 are small, switch to central differences
 c                                 and re-solve the qp.
             goodgq = .true.
 
-            if (needfd .and. .not. cntrl) then
+            if (numric .and. .not. cntrl) then
 
                glnorm = dnrm2 (n,w(lhpq),1)
-               cnorm = 0d0
                gltest = (1d0+abs(objf))*epsrf/fdnorm
 
-               if (isnan(gltest).or.glnorm.le.gltest) then
-
-                  goodgq = .false.
-
+               if (glnorm.le.gltest) then
+c                                 up the ante:
                   mjrmsg(3:3) = 'central differences'
 
+                  goodgq = .false.
                   cntrl = .true.
-
-                  call objfun (mode,n,x,obj,grad,fdnorm,bl,bu)
                   newgq = .true.
+c                                 this call does nothing at all
+c                 call objfun (mode,n,x,obj,grad,fdnorm,bl,bu)
 
                end if
+
             end if
 
             if (goodgq) exit
-
+c                                 end of inner loop
          end do
 
 c     (1) compute the number of constraints that are violated by more
@@ -6437,51 +6450,51 @@ c         than featol.
 c     (2) compute the 2-norm of the residuals of the constraints in
 c         the qp working set.
 
-      call npfeas(n,nclin,istate,bigbnd,cvnorm,errmax,jmax,nviol,
+         call npfeas(n,nclin,istate,bigbnd,cvnorm,errmax,jmax,nviol,
      *            ax,bl,bu,featol,x,w(lwrk2))
 
 c     define small quantities that reflect the magnitude of objf and
 c     the norm of grad(free).
 
-      objsiz = 1d0 + abs(objf)
-      if (isnan(objsiz)) objsiz = 1d0
-      if (isnan(gfnorm)) gfnorm = 1d0
-      if (isnan(gznorm)) gznorm = 1d0
+         objsiz = 1d0 + abs(objf)
+c         if (isnan(objsiz)) objsiz = 1d0
+c         if (isnan(gfnorm)) gfnorm = 1d0
+c         if (isnan(gznorm)) gznorm = 1d0
 
-      xsize = 1d0 + xnorm
-      gtest = max(objsiz,gfnorm)
-      dinky = rtftol*gtest
+         xsize = 1d0 + xnorm
+         gtest = max(objsiz,gfnorm)
+         dinky = rtftol*gtest
 
-      if (nactiv.eq.0) then
-         condt = 0d0
-      else if (nactiv.eq.1) then
-         condt = dtmin
-      else
-         condt = sdiv (dtmax,dtmin,overfl)
-      end if
-
-      call scond (n,r,ldr+1,drmax,drmin)
-
-      condh = sdiv (drmax,drmin,overfl)
-      if (condh.lt.rtmax) then
-         condh = condh*condh
-      else
-         condh = flmax
-      end if
-
-      if (nz.eq.0) then
-         condhz = 1d0
-      else if (nz.eq.n) then
-         condhz = condh
-      else
-         call scond (nz,r,ldr+1,drzmax,drzmin)
-         condhz = sdiv (drzmax,drzmin,overfl)
-         if (condhz.lt.rtmax) then
-            condhz = condhz*condhz
+         if (nactiv.eq.0) then
+            condt = 0d0
+         else if (nactiv.eq.1) then
+            condt = dtmin
          else
-            condhz = flmax
+            condt = sdiv (dtmax,dtmin,overfl)
          end if
-      end if
+
+         call scond (n,r,ldr+1,drmax,drmin)
+
+         condh = sdiv (drmax,drmin,overfl)
+         if (condh.lt.rtmax) then
+            condh = condh*condh
+         else
+            condh = flmax
+         end if
+
+         if (nz.eq.0) then
+            condhz = 1d0
+         else if (nz.eq.n) then
+            condhz = condh
+         else
+            call scond (nz,r,ldr+1,drzmax,drzmin)
+            condhz = sdiv (drzmax,drzmin,overfl)
+            if (condhz.lt.rtmax) then
+               condhz = condhz*condhz
+            else
+               condhz = flmax
+            end if
+         end if
 
 c     test for convergence.
 c     the point test convpt checks for a k-t point at the initial
@@ -6544,7 +6557,7 @@ c        trial steplength falls below alfsml, the linesearch is
 c        terminated.
 
             alfsml = 0d0
-            if (needfd .and. .not. cntrl) then
+            if (numric .and. cntrl) then
                alfsml = sdiv (fdnorm,dxnorm,overfl)
                alfsml = min(alfsml,alfmax)
             end if
@@ -6554,10 +6567,10 @@ c        compute the steplength using safeguarded interpolation.
             alflim = sdiv ((1d0+xnorm)*dxlim,dxnorm,overfl)
             alfa = min(alflim,1d0)
 
-            call npsrch(nlserr,n,nfun,ngrad,
-     *               objfun,alfa,alfmax,alfsml,
-     *               dxnorm,epsrf,eta,gdx,grdalf,glf2,objf,objalf,
-     *               xnorm,w(ldx),grad,gradu,w(lx1),x,bl,bu)
+            call npsrch (numric,nlserr,n,nfun,ngrad,
+     *                   objfun,alfa,alfmax,alfsml,
+     *                   dxnorm,epsrf,eta,gdx,grdalf,glf2,objf,objalf,
+     *                   xnorm,w(ldx),grad,gradu,w(lx1),x,bl,bu)
 
 c           npsrch  sets nlserr to the following values...
 c           < 0  if the user wants to stop.
@@ -6582,7 +6595,6 @@ c                (alfmax le toltny  or  uphill).
                inform = nlserr
                go to 60
             end if
-
             if (alfa.gt.alflim) mjrmsg(4:4) = 'l'
 
             error = nlserr .ge. 4
@@ -6593,15 +6605,13 @@ c                                 if exact or central difference gradients
 c                                 are in use or the kt conditions are satisfied, 
 c                                 stop.  otherwise, switch to central differences 
 c                                 and solve the qp again.
-               if (needfd .and. .not. cntrl) then
+               if (numric .and. cntrl) then
 
                   if (.not. optiml) then
 
                      error = .false.
 
                      mjrmsg(3:3) = 'central differences'
-
-                     cntrl = .true.
 
                      newgq = .true.
 
@@ -6611,15 +6621,24 @@ c                                 and solve the qp again.
 
             else
 
-               if (needfd) then
+               if (numric) then
 c                                 compute the missing gradients.
                   mode = 1
                   ngrad = ngrad + 1
-
+c                                 and i can't see how this call
+c                                 does anything either, but it does.
                   call objfun (mode,n,x,obj,grad,fdnorm,bl,bu)
 
                   inform = mode
                   if (mode.lt.0) go to 60
+
+c                 if (.not.numric.and.needfd) then
+c                    numric = .true.
+c                 else if (numric.and..not.needfd) then 
+c                    numric = .false.
+c                 end if
+
+
 
                   gdx = ddot (n,grad,1,w(ldx))
                   glf2 = gdx

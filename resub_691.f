@@ -617,35 +617,35 @@ c                                  normal solution
 
             if (lopt(61)) call endtim (15,.false.,'minfrc')
 
-            !if (ifail.eq.0) then
-            !   
-            !   igood(ids) = igood(ids) + 1
-            !
-            !   if (iter.eq.1.and..not.ststbl(id)) then
-            !      write (*,*) 'not good now good ',id,ids
-            !   end if 
-            !
-            !else
-            !
-            !   ibad(ids) = ibad(ids) + 1
-            !
-            !   if (ifail.eq.1) then
-            !      write (*,*) 'and i am outta here 0 iter',ids
-            !   else if (ifail.eq.2) then
-            !      write (*,*) 'bounded w/<0 fraction',ids
-            !   else if (ifail.eq.3) then 
-            !      write (*,*) 'bad site fraction',ids
-            !   else if (ifail.eq.4) then 
-            !      write (*,*) 'never happens',ids
-            !   end if
-            !
-            !   if (iter.eq.1.and.ststbl(id)) then
-            !      write (*,*) 'not good',id,ids
-            !   else if (iter.eq.1.and..not.ststbl(id)) then
-            !      write (*,*) 'not good & not good',id,ids
-            !   end if 
-            !
-            !end if
+            if (ifail.eq.0) then
+               
+               igood(ids) = igood(ids) + 1
+            
+               if (iter.eq.1.and..not.ststbl(id)) then
+                  write (*,*) 'not good now good ',id,ids
+               end if 
+            
+            else
+            
+               ibad(ids) = ibad(ids) + 1
+            
+               if (ifail.eq.1) then
+                  write (*,*) 'and i am outta here 0 iter',ids
+               else if (ifail.eq.2) then
+                  write (*,*) 'bounded w/<0 fraction',ids
+               else if (ifail.eq.3) then 
+                  write (*,*) 'bad site fraction',ids
+               else if (ifail.eq.4) then 
+                  write (*,*) 'never happens',ids
+               end if
+            
+               if (iter.eq.1.and.ststbl(id)) then
+                  write (*,*) 'not good',id,ids
+               else if (iter.eq.1.and..not.ststbl(id)) then
+                  write (*,*) 'not good & not good',id,ids
+               end if 
+            
+            end if
 
          end if
 
