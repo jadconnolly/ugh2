@@ -20,8 +20,8 @@ c-----------------------------------------------------------------------
 
       logical tic, zbad, swap, xref
 
-      integer i, nvar, iter, iwork(m22), idif,
-     *        istate(m21), nclin, ntot, ifail
+      integer i, nvar, iter, iwork(m22), idif, idead,
+     *        istate(m21), nclin, ntot, ifail, itic 
 
       double precision ggrd(m19), lapz(m20,m19),gsol1, pinc,
      *                 bl(m21), bu(m21), gfinal, ppp(m19),
@@ -60,6 +60,9 @@ c-----------------------------------------------------------------------
 
       logical fdset, cntrl, needfd, fdincs
       common/ cstfds /fdset, cntrl, needfd, fdincs
+
+      data itic/0/
+      save itic
 c-----------------------------------------------------------------------
       yt = pa
 
@@ -142,6 +145,8 @@ c                                 cntrl: use 2nd order estimate
 c                                 fdincs: computed increments available
       fdincs = .false.
 
+      if (rids.eq.2) deriv(rids) = .false.
+
       if (deriv(rids)) then
 c                                 LVLDER = 3, all derivatives available
          needfd = .false.
@@ -156,12 +161,20 @@ c                                 LVLDER = 0, no derivatives
 
       end if
 
-      call nlpsol (nvar,nclin,m20,m19,lapz,bl,bu,gsol2,iter,
-     *            istate,clamda,gfinal,ggrd,r,ppp,iwork,m22,work,m23)
+      call nlpsol (nvar,nclin,m20,m19,lapz,bl,bu,gsol2,iter,istate,
+     *            clamda,gfinal,ggrd,r,ppp,iwork,m22,work,m23,idead)
 
-      if (iter.eq.0) then
-         ifail = 1
-         return
+      itic = itic + 1
+
+      if (idead.eq.1) then
+c        write (*,*) 'starting point is as good as it gets',rids,idead
+      else if (idead.eq.6) then
+c        write (*,*) 'starting point is as good as it gets',rids,idead
+      else if (idead.eq.4) then
+c         write (*,*) 'ran out of time',rids
+      else if (idead.lt.0.or.idead.eq.3) then 
+c           write (*,*) 'and i am outta here ',rids, idead
+            return
       end if
 
 c                                 reconstruct pa-array, necessary? yes
@@ -185,6 +198,8 @@ c                                 a near solution rpc would prevent gsol2 from
 c                                 saving the final composition. here the replicate
 c                                 threshold is reduced to zero (sqrt(eps)).
       call makepp (rids)
+
+      if (needfd) call getscp (rcp,rsum,rids,rids)
 c                                 if logical arg = T use implicit ordering
       gfinal = gsol1 (rids,.false.)
 
@@ -218,6 +233,8 @@ c                                 exit
 c                                 degeneracy test removed
 c                                 if logical arg = T use implicit ordering
             gfinal = gsol1 (rids,.true.)
+
+            call getscp (rcp,rsum,rids,rids)
 c                                 save the scatter point
             call savrpc (gfinal,nopt(48)/2d0,swap,idif)
 
@@ -237,8 +254,6 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical neg
-
       integer i, nvar
 
       double precision ppp(*), sum
@@ -248,7 +263,6 @@ c-----------------------------------------------------------------------
      *              wl(m17,m18),pp(m4)
 c-----------------------------------------------------------------------
       sum = 0d0
-      neg = .false.
 
       do i = 1, nvar
 
@@ -312,7 +326,7 @@ c-----------------------------------------------------------------------
       data count/0/
       save count
 c-----------------------------------------------------------------------
-      if (rids.eq.1) then 
+      if (rids.eq.2) then 
          count = count + 1
 c        write (*,*) count, fdnorm
       end if
@@ -327,13 +341,13 @@ c                                 reconstruct pa array
 c                                 get the bulk composition from pa
       call getscp (rcp,rsum,rids,rids)
 
-      if (.not.needfd) then
+      if (deriv(rids)) then
 
          call getder (g,dgdp,rids,bad,badp)
 
          if (bad) then
 c                                 get numeric derivatives:
-            needfd = .true.
+c           needfd = .true.
 c                                 compute the leveled g, gval
             call gsol5 (g,gval)
 c                                 set bad to false to force numder to evaluate
@@ -347,6 +361,8 @@ c                                 numder compute dg'dp
 c                                 analytical derivatives:
 c                                 ------------------------------------
             gval = g
+
+c           needfd = .false.
 
             do j = 1, icp
 c                                 degenerate sys, mu undefined:
@@ -377,17 +393,13 @@ c                                  compute derivatives
 
       end if
 
-      if (mode.lt.0) then
-         return
-      end if
+      if (mode.lt.0) return
+
+      if (lopt(57).and.outrpc) then
 c                                 if numeric derivatives were
 c                                 evaluated reset composition
 c                                 data
-      if (needfd) then
-         call getscp (rcp,rsum,rids,rids)
-      end if
-
-      if (lopt(57).and.outrpc) then 
+         if (needfd) call getscp (rcp,rsum,rids,rids)
 c                                 try to eliminate bad results
          if (psum.lt.one.or.psum.gt.1d0+zero.or.bsum.lt.zero) return
          if (zbad(pa,rids,zsite,'a',.false.,'a')) return
@@ -1184,7 +1196,7 @@ c-----------------------------------------------------------------------
       logical mxs
 
       integer ids, i, j, k, nvar, iter, iwork(m22), itic,
-     *        istate(m21), nclin, lord
+     *        istate(m21), nclin, lord, idead
 
       double precision ggrd(m19), gordp0, g0, 
      *                 bl(m21), bu(m21), gfinal, ppp(m19), 
@@ -1371,8 +1383,8 @@ c                                 LVLDER = 0, no derivatives
 
       end if
 
-      call nlpsol (nvar,nclin,m20,m19,lapz,bl,bu,gsol4,iter,
-     *            istate,clamda,gfinal,ggrd,r,ppp,iwork,m22,work,m23)
+      call nlpsol (nvar,nclin,m20,m19,lapz,bl,bu,gsol4,iter,istate,
+     *            clamda,gfinal,ggrd,r,ppp,iwork,m22,work,m23,idead)
 c                                 if nlpsol returns iter = 0
 c                                 it's likely failed, make 2 additional 
 c                                 attempts, 1st try numerical verification of 
@@ -1419,13 +1431,15 @@ c                                 the mechanical component?
 
       subroutine chfd (mode,n,fdnorm,objf,objfun,bl,bu,grad,x,dummy)
 c----------------------------------------------------------------------
-c     chfd  computes difference intervals for gradients of
-c     f(x). intervals are computed using a procedure that
-c     usually requires about two function evaluations if the function
-c     is well scaled.  central-difference gradients are obtained as a
-c     by-product of the algorithm.
+c chfd  computes difference intervals for gradients of f(x). intervals 
+c are computed using a procedure that usually requires about two 
+c function evaluations if the function is well scaled. fdest and cdest 
+c are the 1st and 2nd order forward differences, sdest is the 2nd order
+c centered difference.
 
-c    assumes the function at x (objf) has been computed on entry.
+c because npcore expects 1st order numerics, grad is set to fdest here.
+
+c assumes the function at x (objf) has been computed on entry.
 c----------------------------------------------------------------------
       implicit none
 

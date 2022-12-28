@@ -18,3 +18,15 @@ bfast.tof
 *.exe
 
 intel/
+
+kbug.arf
+
+kbug.blk
+
+kbug.plt
+
+kbug.ps
+
+kbug.tim
+
+kbug.tof

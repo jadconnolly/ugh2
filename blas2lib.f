@@ -12,10 +12,10 @@ c    problems by succesive quadratic programming. Both after
 
 c    Gill P E, Murray W, Saunders M A and Wright M H (1984) 
 c    Procedures for optimization problems with a mixture of bounds and 
-c    general linear constraints ACM Trans. Math. Software 10 282ï¿½298
+c    general linear constraints ACM Trans. Math. Software 10 282–298
 
 c    Gill PE, Hammarling S, Murray W, Saunders MA and Wright MH (1986) 
-c    Userï¿½s Guide for LSSOL (version 1.0) Report SOL 86ï¿½1 
+c    User’s Guide for LSSOL (version 1.0) Report SOL 86–1 
 c    Department of Operations Research, Stanford University.
 
       subroutine lpsol (n,nclin,a,lda,bl,bu,cvec,istate,x,iter,obj,ax,
@@ -343,7 +343,7 @@ c                                 end of lpsol
 
       subroutine nlpsol (n,nclin,lda,ldr,a,bl,bu,
      *                  objfun,iter,istate,clamda,objf,gradu,r,
-     *                  x,iw,leniw,w,lenw)
+     *                  x,iw,leniw,w,lenw,idead)
 c----------------------------------------------------------------------
 c     nlpsol minimizes f(x)
 c                                    (   x )
@@ -361,7 +361,7 @@ c----------------------------------------------------------------------
 
       logical cold, linobj, rowerr, vertex, swap
 
-      integer iter, lda, ldr, leniw, lenw, n, nclin, 
+      integer iter, lda, ldr, leniw, lenw, n, nclin, idead, 
      *        i, ianrmj, ikx, inform, maxnz, minact,
      *        itmxsv, itns, j, jinf, jmax, lax, mode,
      *        lclam, ldaqp, litotl,
@@ -372,7 +372,7 @@ c----------------------------------------------------------------------
 
       integer lenaqp, lent, lenzy, lfeatl, lgrad, lkx
 
-      double precision a(lda,*), bl(n+nclin), bu(n+nclin),
+      double precision a(lda,*), bl(n+nclin), bu(n+nclin), g0,
      *                 clamda(n+nclin), 
      *                 gradu(n), r(ldr,*), w(lenw), x(n), objf,
      *                 amin, condmx, ctx, errmax, 
@@ -447,6 +447,8 @@ c                                 f(n) parameters
       jverfy(4) = n
 
       rootn = sqrt(dble(n))
+
+      idead = -1
 
       inform = 0
 c                                 constraint feasibility tolerance
@@ -631,6 +633,8 @@ c                                compute objective function
 
       call objfun (mode,n,x,objf,gradu,fdnorm,bl,bu)
 
+      g0 = objf
+
       if (mode.lt.0) then 
          write (*,*) 'wtf first call to objfun failed'
          return
@@ -651,7 +655,10 @@ c                                doesn't bother with analytics
          end if
 c                                 forward increments are in w(1:n)
 c                                 central increments are in w(lhctrl:+n)
-c                                 w(ldx) is just space for an extra point? check
+c                                 w(ldx) is used as a dummy for grad when
+c                                 objfun is called, this could be obviated
+c                                 by passing the function name used by 
+c                                 numder.
          call chfd (mode,n,fdnorm,objf,objfun,bl,bu,w(lgrad),x,w(ldx))
 c                                 chfd will return the numeric grad and may return
 c                                 nonsense in gradu, if analytics were ok, copy back
@@ -660,7 +667,7 @@ c                                 into w(lgrd)
 
             needfd = .false.
 
-         else 
+         else
 
             gradu(1:n) = w(lgrad:lgrad+n-1)
 
@@ -682,6 +689,12 @@ c                                 solve the problem.
      *             istate,iw(lkactv),iw(lkx),objf,fdnorm,xnorm,
      *             objfun,a,w(lax),bl,bu,clamda,
      *             w(lfeatl),w(lgrad),gradu,r,x,iw,w,lenw)
+
+      if (g0-objf.gt.ftol) then 
+       idead = inform
+      else
+       idead = -2
+      end if
 
       end
 
@@ -6595,6 +6608,7 @@ c                (alfmax le toltny  or  uphill).
                inform = nlserr
                go to 60
             end if
+
             if (alfa.gt.alflim) mjrmsg(4:4) = 'l'
 
             error = nlserr .ge. 4
@@ -7545,10 +7559,7 @@ c        the condition number of  rz1.
          dinky = 0d0
       else
          objsiz = 1d0 + abs(ssq+ctx)
-c DEBUG DEBUG
-         if (isnan(ctx)) objsiz = 1d0
-         if (isnan(gfnorm)) gfnorm = 1d0
-         if (isnan(grznrm)) grznrm = 0d0
+
 
          wssize = 0d0
          if (nactiv.gt.0) wssize = dtmax
