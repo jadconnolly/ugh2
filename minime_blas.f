@@ -82,12 +82,15 @@ c-----------------------------------------------------------------------
       if (boundd(rids)) then
 c                                 make the composition non-degenerate
          sum = 0d0
+
          do i = 1, ntot
-            if (pa(i).le.0d0) then 
+
+            if (pa(i).lt.0d0) then 
                pa(i) = zero
             end if
 
             sum = sum + pa(i)
+
          end do 
 
          if (sum.ne.1d0) then
