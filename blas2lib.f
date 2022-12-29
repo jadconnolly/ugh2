@@ -3691,10 +3691,9 @@ c                                 end of cmmul1
       end
 
       subroutine npiqp (feasqp,unitq,nqperr,minits,n,nclin,
-     *                  ldaqp,ldr,linact,nlnact,nactiv,nfree,nz,
-     *                  numinf,istate,kactiv,kx,dxnorm,gdx,qpcurv,aqp,
-     *                  adx,ax,bl,bu,clamda,
-     *                  dx,qpbl,qpbu,qptol,r,x,wtinf,w)
+     *              ldaqp,ldr,linact,nlnact,nactiv,nfree,nz,
+     *              numinf,istate,kactiv,kx,dxnorm,gdx,qpcurv,aqp,
+     *              adx,ax,bl,bu,clamda, dx,qpbl,qpbu,qptol,r,x,wtinf,w)
 c----------------------------------------------------------------------
 c     npiqp    does the following:
 
@@ -3734,9 +3733,8 @@ c----------------------------------------------------------------------
 
       integer ldaqp, ldr, linact, minits, n, nactiv, nclin,
      *        nfree, nlnact, nqperr, numinf, nz, istate(*), kactiv(n), 
-     *        kx(n), j, jinf,
-     *        ncqp, nctotl, ngq, nmajor, nminor, nrank,
-     *        nrejtd, nrpq, ntry, nviol, nz1
+     *        kx(n), j, jinf, nctotl, nmajor, nminor, nrank,
+     *        nrejtd, ntry, nviol, nz1
 
       double precision adx(*), aqp(ldaqp,*), ax(*), bl(*),
      *                 bu(*), clamda(*), dx(n), qpbl(*),
@@ -3778,9 +3776,6 @@ c----------------------------------------------------------------------
 
       equivalence (itmxnp,nmajor), (itmax2,nminor)
 c----------------------------------------------------------------------
-      nrpq = 0
-      ngq = 1
-
       feasqp = .true.
       linobj = .true.
 
@@ -3789,7 +3784,6 @@ c----------------------------------------------------------------------
       ssq1 = 0d0
 
       nctotl = n + nclin
-      ncqp = nclin 
       nrank = n
       nrejtd = 0
 
@@ -3844,7 +3838,7 @@ c     working set is used to start the qp iterations.
 c     solve for dx, the vector of minimum two-norm that satisfies the
 c     constraints in the working set.
 
-      call npsetx(unitq,ncqp,nactiv,nfree,nz,n,nctotl,ldzy,ldaqp,
+      call npsetx(unitq,nclin,nactiv,nfree,nz,n,nctotl,ldzy,ldaqp,
      *            ldr,ldt,istate,kactiv,kx,dxnorm,gdx,aqp,adx,qpbl,qpbu,
      *            w(lrpq),w(lrpq0),dx,w(lgq),r,w(lt),w(lzy),w(lwrk1))
 
@@ -3862,7 +3856,7 @@ c     (1  thru  jinf)  being satisfied.
       do
 
          call lscore('qp subproblem',linobj,unitq,nqperr,
-     *            minits,jinf,ncqp,nctotl,nactiv,nfree,nrank,nz,nz1,n,
+     *            minits,jinf,nclin,nctotl,nactiv,nfree,nrank,nz,nz1,n,
      *            ldaqp,ldr,istate,kactiv,kx,gdx,ssq,ssq1,suminf,numinf,
      *            dxnorm,qpbl,qpbu,aqp,clamda,adx,qptol,r,dx,w)
 
@@ -3883,7 +3877,7 @@ c           count the violated linear constraints.
             nz = n
             call iload (nctotl,0,istate,1)
 
-            call npsetx (unitq,ncqp,nactiv,nfree,nz,n,nctotl,ldzy,
+            call npsetx (unitq,nclin,nactiv,nfree,nz,n,nctotl,ldzy,
      *                  ldaqp,ldr,ldt,istate,kactiv,kx,dxnorm,gdx,aqp,
      *                  adx,qpbl,qpbu,w(lrpq),w(lrpq0),dx,w(lgq),r,w(lt)
      *                  ,w(lzy),w(lwrk1))
