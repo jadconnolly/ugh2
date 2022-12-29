@@ -58,8 +58,8 @@ c-----------------------------------------------------------------------
       integer itmxnp, lvlder, lverfy
       common/ ngg020 /itmxnp, lvlder, lverfy
 
-      logical fdset, cntrl, needfd, fdincs
-      common/ cstfds /fdset, cntrl, needfd, fdincs
+      logical fdset, cntrl, numric, fdincs
+      common/ cstfds /fdset, cntrl, numric, fdincs
 
       data itic/0/
       save itic
@@ -146,16 +146,12 @@ c                                 fdincs: computed increments available
       fdincs = .false.
 
       if (deriv(rids)) then
-c                                 LVLDER = 3, all derivatives available
-         needfd = .false.
-c                                 LVERFY = 0, use input differences
-c                                 LVERFY = 1, compute finite difference increments 
-c                                 LVERFY = 2, check analytical against numerical derivatives
-         lverfy = 1
+
+         numric = .false.
 
       else
-c                                 LVLDER = 0, no derivatives
-         needfd = .true.
+
+         numric = .true.
 
       end if
 
@@ -198,7 +194,7 @@ c                                 saving the final composition. here the replica
 c                                 threshold is reduced to zero (sqrt(eps)).
       call makepp (rids)
 
-      if (needfd) call getscp (rcp,rsum,rids,rids)
+      call getscp (rcp,rsum,rids,rids)
 c                                 if logical arg = T use implicit ordering
       gfinal = gsol1 (rids,.false.)
 
@@ -274,7 +270,7 @@ c-----------------------------------------------------------------------
 
       end
 
-      subroutine gsol2 (mode,nvar,ppp,gval,dgdp,fdnorm,bl,bu)
+      subroutine gsol2 (nvar,ppp,gval,dgdp,fdnorm,bl,bu)
 c-----------------------------------------------------------------------
 c function to evaluate gibbs energy of a solution for minfrc. can call 
 c either gsol1 with order true or false, true seems to give better results
@@ -284,9 +280,9 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical zbad, saved, bad, badp(m14)
+      logical zbad, saved
 
-      integer i, j, nvar, mode, idif
+      integer i, j, nvar, idif
 
       double precision ppp(*), gval, dgdp(*), psum, 
      *                 gsol1, g, bsum, zsite(m10,m11),
@@ -318,8 +314,8 @@ c-----------------------------------------------------------------------
       integer itmxnp, lvlder, lverfy
       common/ ngg020 /itmxnp, lvlder, lverfy
 
-      logical fdset, cntrl, needfd, fdincs
-      common/ cstfds /fdset, cntrl, needfd, fdincs
+      logical fdset, cntrl, numric, fdincs
+      common/ cstfds /fdset, cntrl, numric, fdincs
 
       integer count
       data count/0/
@@ -332,8 +328,6 @@ c        ppp(1:7) = 0.125d0
 c        write (*,*) count, fdnorm
       end if
 
-c     if (rids.eq.2) needfd = .true.
-
       if (lopt(61)) call begtim (2)
 c                                 reconstruct pa array
       call ppp2pa (ppp,psum,nvar)
@@ -343,41 +337,22 @@ c                                 get the bulk composition from pa
       call getscp (rcp,rsum,rids,rids)
 
       if (deriv(rids)) then
-
-         call getder (g,dgdp,rids,bad,badp)
-
-         if (bad.and.rids.eq.99) then
-c                                 get numeric derivatives:
-c           needfd = .true.
-c                                 compute the leveled g, gval
-            call gsol5 (g,gval)
-c                                 set bad to false to force numder to evaluate
-c                                 all derivatives
-            bad = .false.
-c                                 numder compute dg'dp
-            call numder (gval,dgdp,ppp,fdnorm,bl,bu,psum,nvar,bad,badp,
-     *                   mode)
-
-         else 
 c                                 analytical derivatives:
+         call getder (g,dgdp,rids)
 c                                 ------------------------------------
-            gval = g
+         gval = g
 
-c           needfd = .false.
-
-            do j = 1, icp
+         do j = 1, icp
 c                                 degenerate sys, mu undefined:
-               if (isnan(mu(j))) cycle
+            if (isnan(mu(j))) cycle
 c                                 convert g to g'
-               gval = gval - rcp(j)*mu(j)
+            gval = gval - rcp(j)*mu(j)
 c                                 convert dgdp to dg'dp
-               do i = 1, nvar
-                  dgdp(i) = dgdp(i) - dcdp(j,i,rids)*mu(j)
-               end do
-
+            do i = 1, nvar
+               dgdp(i) = dgdp(i) - dcdp(j,i,rids)*mu(j)
             end do
 
-         end if
+         end do
 
       else
 c                                 only numeric derivatives are
@@ -385,24 +360,22 @@ c                                 available, get g at the composition
          g = gsol1(rids,.false.)
 c                                 level it
          call gsol5 (g,gval)
-c                                 set bad to force numder to do all
-c                                 derivatives
-         bad = .false.
 c                                  compute derivatives
-         call numder (gval,dgdp,ppp,fdnorm,bl,bu,psum,nvar,bad,badp,
-     *                mode)
+         call numder (gval,dgdp,ppp,fdnorm,bl,bu,nvar)
 
       end if
 
-      if (mode.lt.0) return
-
       if (lopt(57).and.outrpc) then
+
+         if (numric) then
 c                                 if numeric derivatives were
 c                                 evaluated reset composition
 c                                 data
-         call makepp (rids)
+            call makepp (rids)
 c                                 get the bulk composition from pa
-         call getscp (rcp,rsum,rids,rids)
+            call getscp (rcp,rsum,rids,rids)
+
+          end if
 c                                 try to eliminate bad results
          if (psum.lt.one.or.psum.gt.1d0+zero.or.bsum.lt.zero) return
          if (zbad(pa,rids,zsite,'a',.false.,'a')) return
@@ -622,7 +595,7 @@ c                                 and normalized bulk fractions if o/d
 
       end 
 
-      subroutine numder (g,dgdp,ppp,fdnorm,bl,bu,sum,nvar,bad,badp,mode)
+      subroutine numder (g,dgdp,ppp,fdnorm,bl,bu,nvar)
 c-----------------------------------------------------------------------
 c subroutine to evaluate the gradient numerically for minfrc/minfxc
 c on input sum is the total of the fractions, for bounded models this
@@ -632,15 +605,10 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical zbad, bad, badp(m14)
+      integer i, nvar
 
-      integer i, nvar, mode
-
-      double precision ppp(*), dgdp(*), oldpa(m14), sum,
-     *            dpp, gsol1, g, zsite(m10,m11), g1, g3,
-     *            bl(*), bu(*), dbl, dbu, fdnorm
-
-      external gsol1, zbad
+      double precision ppp(*), dgdp(*), oldpa(m14), 
+     *            dpp, g, g1, g3, bl(*), bu(*), fdnorm
 
       double precision z, pa, p0a, x, w, y, wl, pp
       common/ cxt7 /y(m4),z(m4),pa(m4),p0a(m4),x(h4,mst,msp),w(m1),
@@ -651,8 +619,8 @@ c-----------------------------------------------------------------------
       common/ ngg021 /cdint, ctol, dxlim, epsrf, eta,
      *                fdint, ftol, hcndbd
 
-      logical fdset, cntrl, needfd, fdincs
-      common/ cstfds /fdset, cntrl, needfd, fdincs
+      logical fdset, cntrl, numric, fdincs
+      common/ cstfds /fdset, cntrl, numric, fdincs
 c-----------------------------------------------------------------------
 c                                 one or more derivatives are singular
 c                                 because of ln(0) entropy term, evaluate
@@ -662,13 +630,6 @@ c                                 by finite difference, save old 0 values:
       fdnorm = 0d0
 
       do i = 1, nvar
-c                                 if bad, numder is being called to supplement
-c                                 analytical derivatives, otherwise evaluate 
-c                                 all derivatives
-         if (bad.and..not.badp(i)) cycle
-c                                choose direction away from closest bound
-         dbl = bl(i) - ppp(i)
-         dbu = bu(i) - ppp(i)
 
          if (cntrl) then
 c                                 2nd order
@@ -697,27 +658,8 @@ c                                 try to avoid invalid values (z<=0)
             dpp = -dpp
 
          else if (pa(i).gt.bl(i)+2d0*dpp) then
-
-           if (dbl+dbu.lt.0d0) then 
-
-              dpp = -dpp
-
-           end if
-
-!            if (boundd(rids)) then
-!c                                 bounded compositions
-!               if (sum.gt.1d0-dpp) then
-!c                                 only a negative increment is possible
-!                  if (pa(i).lt.dpp) then 
-!                     mode = -1
-!                     return
-!                  end if
-!
-!               end if
-!
-!               dpp = -dpp
-!
-!            end if
+c                                 choose direction away from closest bound
+           if (bl(i) + bu(i) - 2d0*ppp(i).lt.0d0) dpp = -dpp
 
          end if
 c                                 apply the increment
@@ -726,8 +668,7 @@ c                                 apply the increment
          if (dabs(dpp).gt.fdnorm) fdnorm = dabs(dpp)
 
          if (cntrl) then
-c                                 g at the double increpent
-
+c                                 g at the double increment
             call gsol6 (g3,ppp,nvar)
 c                                 single increment
             ppp(i) = oldpa(i) + dpp/2d0
@@ -754,7 +695,7 @@ c                                 reset pa and make pp:
 
       end
 
-      subroutine gsol4 (mode,nvar,ppp,gval,dgdp,fdnorm,bl,bu)
+      subroutine gsol4 (nvar,ppp,gval,dgdp,fdnorm,bl,bu)
 c-----------------------------------------------------------------------
 c gsol4 - a shell to call gsol1 from minfxc, ingsol must be called
 c         prior to minfxc to initialize solution specific paramters. only
@@ -768,7 +709,7 @@ c-----------------------------------------------------------------------
 
       logical error 
 
-      integer ids, i, nvar, mode
+      integer ids, i, nvar
 
       double precision ppp(*), gval, dgdp(*), d2s(j3,j3), 
      *                 gord, ddq(j3), norm, fdnorm, bl(*), bu(*)
@@ -1244,8 +1185,8 @@ c-----------------------------------------------------------------------
       integer itmxnp, lvlder, lverfy
       common/ ngg020 /itmxnp, lvlder, lverfy
 
-      logical fdset, cntrl, needfd, fdincs
-      common/ cstfds /fdset, cntrl, needfd, fdincs
+      logical fdset, cntrl, numric, fdincs
+      common/ cstfds /fdset, cntrl, numric, fdincs
 
       logical outrpc, maxs
       common/ ngg015 /outrpc, maxs
@@ -1370,21 +1311,7 @@ c                                 solution model index
 
       xp(1:nvar) = ppp(1:nvar)
 
-c                                 EPSRF, function precision
-10    if (itic.lt.2) then
-c                                 LVLDER = 3, all derivatives available
-         needfd = .false.
-c                                 LVERFY = 1, verify derivatives 
-         lverfy = itic
-
-      else
-c                                 Derivatives not available; or failed once:
-c                                 LVERFY = 0, don't verify
-         lverfy = 0
-c                                 LVLDER = 0, no derivatives
-         needfd = .true.
-
-      end if
+10    numric = .true.
 
       call nlpsol (nvar,nclin,m20,m19,lapz,bl,bu,gsol4,iter,istate,
      *            clamda,gfinal,ggrd,r,ppp,iwork,m22,work,m23,idead)
@@ -1432,7 +1359,7 @@ c                                 the mechanical component?
 
       end
 
-      subroutine chfd (mode,n,fdnorm,objf,objfun,bl,bu,grad,x,dummy)
+      subroutine chfd (n,fdnorm,objf,objfun,bl,bu,grad,x,dummy)
 c----------------------------------------------------------------------
 c chfd  computes difference intervals for gradients of f(x). intervals 
 c are computed using a procedure that usually requires about two 
@@ -1450,7 +1377,7 @@ c----------------------------------------------------------------------
 
       logical done, first
 
-      integer n, info, iter, itmax, j, mode
+      integer n, info, iter, itmax, j
 
       double precision fdnorm, objf, bl(n), bu(n), dummy(n), 
      *                 grad(n), x(n), cdest, epsa,
@@ -1460,8 +1387,8 @@ c----------------------------------------------------------------------
 
       external objfun
 
-      logical fdset, cntrl, needfd, fdincs
-      common/ cstfds /fdset, cntrl, needfd, fdincs
+      logical fdset, cntrl, numric, fdincs
+      common/ cstfds /fdset, cntrl, numric, fdincs
 
       integer itmxnp, lvlder, lverfy
       common/ ngg020 /itmxnp, lvlder, lverfy
@@ -1475,7 +1402,7 @@ c----------------------------------------------------------------------
       common/ ngg006 /epspt3, epspt5, epspt8, epspt9
 c----------------------------------------------------------------------
       itmax = 3
-      mode = 0
+
       fdnorm = 0d0
 
       do j = 1, n
@@ -1509,12 +1436,10 @@ c                                 find a finite-difference interval by iteration
          do
 
             x(j) = xj + h
-            call objfun (mode,n,x,f1,dummy,fdnorm,bl,bu)
-            if (mode.lt.0) go to 200
+            call objfun (n,x,f1,dummy,fdnorm,bl,bu)
 
             x(j) = xj + h + h
-            call objfun(mode,n,x,f2,dummy,fdnorm,bl,bu)
-            if (mode.lt.0) go to 200
+            call objfun (n,x,f2,dummy,fdnorm,bl,bu)
 
             call chcore (done,first,epsa,epsrf,fx,info,iter,itmax,cdest,
      *                   fdest,sdest,errbnd,f1,f2,h,hopt,hphi)

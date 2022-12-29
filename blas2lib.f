@@ -359,11 +359,11 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical cold, linobj, rowerr, vertex, swap
+      logical cold, linobj, rowerr, vertex
 
-      integer iter, lda, ldr, leniw, lenw, n, nclin, idead, 
-     *        i, ianrmj, ikx, inform, maxnz, minact,
-     *        itmxsv, itns, j, jinf, jmax, lax, mode,
+      integer iter, lda, ldr, leniw, lenw, n, nclin, idead, i, ianrmj,
+     *        ikx, inform, maxnz, minact,
+     *        itmxsv, itns, j, jinf, jmax, lax, 
      *        lclam, ldaqp, litotl,
      *        lwtotl, maxact, minfxd, mxfree, nact1, 
      *        nartif, nctotl, nfun, ngq, ngrad,nres, numinf,
@@ -406,8 +406,8 @@ c----------------------------------------------------------------------
       integer lvrfyc, jverfy
       common/ ngg015 /lvrfyc, jverfy(4)
 
-      logical fdset, cntrl, needfd, fdincs
-      common/ cstfds /fdset, cntrl, needfd, fdincs
+      logical fdset, cntrl, numric, fdincs
+      common/ cstfds /fdset, cntrl, numric, fdincs
 
       double precision asize, dtmax, dtmin
       common/ ngg008 /asize, dtmax, dtmin
@@ -472,8 +472,6 @@ c                                 constraint feasibility tolerance
          ldt = max(maxnz,maxact)
          ncolt = mxfree
       end if
-
-c     m = 1
 
       ldaqp = max(nclin,1)
       if (nclin.gt.0) ldaqp = lda
@@ -629,51 +627,22 @@ c                                the point as already been output
 c                                by resub
       outrpc = .false.
 c                                compute objective function
-      mode = 2
-
-      call objfun (mode,n,x,objf,gradu,fdnorm,bl,bu)
+      call objfun (n,x,objf,gradu,fdnorm,bl,bu)
 
       g0 = objf
 
-      if (mode.lt.0) then 
-         write (*,*) 'wtf first call to objfun failed'
-         return
-      end if 
-
-      if (lverfy.eq.1.or.needfd) then
-c                                save the gradient
-         if (needfd) then
-
-            swap = .false.
-
-         else
-
-            swap = .true.
-c                                set lvlder so that objfun
-c                                doesn't bother with analytics
-            needfd = .true.
-         end if
+      if (numric) then
 c                                 forward increments are in w(1:n)
 c                                 central increments are in w(lhctrl:+n)
 c                                 w(ldx) is used as a dummy for grad when
 c                                 objfun is called, this could be obviated
 c                                 by passing the function name used by 
 c                                 numder.
-         call chfd (mode,n,fdnorm,objf,objfun,bl,bu,w(lgrad),x,w(ldx))
+         call chfd (n,fdnorm,objf,objfun,bl,bu,w(lgrad),x,w(ldx))
 c                                 chfd will return the numeric grad and may return
 c                                 nonsense in gradu, if analytics were ok, copy back
 c                                 into w(lgrd)
-         if (swap) then 
-
-            needfd = .false.
-
-         else
-
-            gradu(1:n) = w(lgrad:lgrad+n-1)
-
-         end if
-
-         if (mode.lt.0) write (*,*) 'wtf chf failed'
+         gradu(1:n) = w(lgrad:lgrad+n-1)
 
       end if
 
@@ -1766,7 +1735,8 @@ c        the working set at its upper bound.
          if (is.eq.3) rlam = abs(rlam)
          if (is.eq.4) rlam = -abs(rlam)
 c DEBUG DEBUG
-         if (is.ne.3.and..not.isnan(rlam)) then
+c        if (is.ne.3.and..not.isnan(rlam)) then
+         if (is.ne.3) then
             scdlam = rlam*anormj
             if (scdlam.lt.smllst) then
                smllst = scdlam
@@ -1777,8 +1747,8 @@ c DEBUG DEBUG
                jtiny = j
             end if
          end if
-
-         if (numinf.gt.0 .and. j.gt.jinf.and..not.isnan(rlam)) then
+c        if (numinf.gt.0 .and. j.gt.jinf.and..not.isnan(rlam)) then
+         if (numinf.gt.0 .and. j.gt.jinf) then
             scdlam = rlam/wtinf(j)
             if (scdlam.gt.biggst) then
                biggst = scdlam
@@ -4986,7 +4956,7 @@ c        set the array of violations.
 c                                 end of npfeas
       end
 
-      subroutine npsrch (numric,inform,n,nfun,ngrad,
+      subroutine npsrch (inform,n,nfun,ngrad,
      *                  objfun,alfa,alfmax,alfsml,
      *                  dxnorm,epsrf,eta,gdx,grdalf,glf,objf,
      *                  objalf,xnorm,dx,grad,gradu,x1,x,bl,bu)
@@ -5019,7 +4989,7 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical done, first, imprvd, numric
+      logical done, first, imprvd
 
       integer inform, n, nfun, ngrad, j, maxf, mode, numf
 
@@ -5040,13 +5010,13 @@ c----------------------------------------------------------------------
       integer lfdset, lvldif
       common/ ngg014 /lvldif, lfdset
 
-      logical fdset, cntrl, needfd, fdincs
-      common/ cstfds /fdset, cntrl, needfd, fdincs
+      logical fdset, cntrl, numric, fdincs
+      common/ cstfds /fdset, cntrl, numric, fdincs
 
       double precision epspt3, epspt5, epspt8, epspt9
       common/ ngg006 /epspt3, epspt5, epspt8, epspt9
 c-----------------------------------------------------------------------
-      if (needfd) then
+      if (numric) then
          maxf = 15
       else
          maxf = 10
@@ -5151,9 +5121,7 @@ c     if done = .true.,   this is the last time through.
 
 c        compute the value and gradient of the objective function.
 
-            call objfun (mode,n,x,tobj,gradu,fdnorm,bl,bu)
-
-            if (mode.lt.0) go to 60
+            call objfun (n,x,tobj,gradu,fdnorm,bl,bu)
 
             tobjm = tobj
 
@@ -5179,7 +5147,7 @@ c        compute auxiliary gradient information.
       end do
 
       nfun = nfun + numf
-      if (.not. needfd) ngrad = ngrad + numf
+      if (.not. numric) ngrad = ngrad + numf
       alfa = alfbst
 
       if (.not. imprvd) then
@@ -6269,7 +6237,7 @@ c----------------------------------------------------------------------
       integer inform, ldaqp, ldr, lenw, majits,
      *        n, nactiv, nclin, nctotl, nfree, nfun, ngrad, nz
 
-      logical unitq, numric
+      logical unitq
 
       double precision aqp(ldaqp,*), ax(*), bl(nctotl), bu(nctotl),
      *                 clamda(nctotl), featol(nctotl), grad(n),
@@ -6335,8 +6303,8 @@ c----------------------------------------------------------------------
       integer itmxnp, lvlder, lverfy
       common/ ngg020 /itmxnp, lvlder, lverfy
 
-      logical fdset, cntrl, needfd, fdincs
-      common/ cstfds /fdset, cntrl, needfd, fdincs
+      logical fdset, cntrl, numric, fdincs
+      common/ cstfds /fdset, cntrl, numric, fdincs
 
       double precision cdint, ctol, dxlim, epsrf, eta, fdint, ftol,
      *                 hcndbd
@@ -6345,6 +6313,7 @@ c----------------------------------------------------------------------
 
       equivalence       (itmxnp,nmajor), (itmax2,nminor)
 c----------------------------------------------------------------------
+      mode = 2
 c                                 specify machine-dependent parameters.
       flmax = wmach(7)
       rtmax = wmach(8)
@@ -6359,11 +6328,6 @@ c                                 initialize
       alfdx = 0d0
       rtftol = sqrt(ftol)
       rootn = sqrt(dble(n))
-c                                 initialization for npsrch is specific to whether 
-c                                 numeric or analytic derivatives are in use, to 
-c                                 prevent objfun from resetting the derivative flag
-c                                 set a local flag for numerics
-      numric = needfd
 c                                 information from the feasibility phase will be used to generate a
 c                                 hot start for the first qp subproblem.
       call dcopy (nctotl,featol,1,w(lqptol),1)
@@ -6376,23 +6340,9 @@ c                                 hot start for the first qp subproblem.
 c                                       loop to find good gradient
          do
 c                                       loop to follow the gradient
-
             if (newgq) then
 
-               if (numric) then
-
-                  call objfun (mode,n,x,objf,grad,fdnorm,bl,bu)
-
-c                 if (.not.numric.and.needfd) then
-c                    numric = .true.
-c                 else if (numric.and..not.needfd) then 
-c                    numric = .false.
-c                 end if
-
-                  inform = mode
-                  if (mode.lt.0) go to 60
-
-               end if
+               if (numric) call objfun (n,x,objf,grad,fdnorm,bl,bu)
 
                w(lgq:lgq+n-1) = grad(1:n)
 
@@ -6429,7 +6379,6 @@ c                                 gradient of the free variables.
             gfnorm = gznorm
             if (nfree.gt.0.and.nactiv.gt.0) 
      *         gfnorm = dnrm2 (nfree,w(lgq),1)
-
 c                                 if the forward-difference estimates
 c                                 are small, switch to central differences
 c                                 and re-solve the qp.
@@ -6448,7 +6397,7 @@ c                                 up the ante:
                   cntrl = .true.
                   newgq = .true.
 c                                 this call does nothing at all
-c                 call objfun (mode,n,x,obj,grad,fdnorm,bl,bu)
+c                 call objfun (n,x,obj,grad,fdnorm,bl,bu)
 
                end if
 
@@ -6470,9 +6419,6 @@ c     define small quantities that reflect the magnitude of objf and
 c     the norm of grad(free).
 
          objsiz = 1d0 + abs(objf)
-c         if (isnan(objsiz)) objsiz = 1d0
-c         if (isnan(gfnorm)) gfnorm = 1d0
-c         if (isnan(gznorm)) gznorm = 1d0
 
          xsize = 1d0 + xnorm
          gtest = max(objsiz,gfnorm)
@@ -6574,14 +6520,11 @@ c        terminated.
                alfsml = sdiv (fdnorm,dxnorm,overfl)
                alfsml = min(alfsml,alfmax)
             end if
-
-c        compute the steplength using safeguarded interpolation.
-
+c                                 compute the steplength
             alflim = sdiv ((1d0+xnorm)*dxlim,dxnorm,overfl)
             alfa = min(alflim,1d0)
 
-            call npsrch (numric,nlserr,n,nfun,ngrad,
-     *                   objfun,alfa,alfmax,alfsml,
+            call npsrch (nlserr,n,nfun,ngrad,objfun,alfa,alfmax,alfsml,
      *                   dxnorm,epsrf,eta,gdx,grdalf,glf2,objf,objalf,
      *                   xnorm,w(ldx),grad,gradu,w(lx1),x,bl,bu)
 
@@ -6641,18 +6584,7 @@ c                                 compute the missing gradients.
                   ngrad = ngrad + 1
 c                                 and i can't see how this call
 c                                 does anything either, but it does.
-                  call objfun (mode,n,x,obj,grad,fdnorm,bl,bu)
-
-                  inform = mode
-                  if (mode.lt.0) go to 60
-
-c                 if (.not.numric.and.needfd) then
-c                    numric = .true.
-c                 else if (numric.and..not.needfd) then 
-c                    numric = .false.
-c                 end if
-
-
+                  call objfun (n,x,obj,grad,fdnorm,bl,bu)
 
                   gdx = ddot (n,grad,1,w(ldx))
                   glf2 = gdx

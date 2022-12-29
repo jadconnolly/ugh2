@@ -20232,15 +20232,13 @@ c                                 excess function derivatives
 
       end
 
-      subroutine getder (g,dgdp,ids,bad,badp)
+      subroutine getder (g,dgdp,ids)
 c---------------------------------------------------------------------
 c compute g(p') and diff(g,p') for minfrc.
 c---------------------------------------------------------------------
       implicit none
 
       include 'perplex_parameters.h'
-
-      logical bad, badp(*)
 
       integer ids, l, ntot, nvar
 
@@ -20259,7 +20257,7 @@ c----------------------------------------------------------------------
       g = 0d0
       dgdp(1:nvar) = 0d0
 c                                 configurational negentropy and derivatives
-      call p2sds (g,dgdp,nvar,ids,bad,badp)
+      call p2sds (g,dgdp,nvar,ids)
 c                                 correct derivatives for mechanical configurational 
 c                                 negentropy, multiply by t to convert to configurational
 c                                 gibbs energy
@@ -20426,7 +20424,7 @@ c----------------------------------------------------------------------
 
       end
 
-      subroutine p2sds (s,dsdp,nvar,ids,bad,badp)
+      subroutine p2sds (s,dsdp,nvar,ids)
 c----------------------------------------------------------------------
 c subroutine to configurational negentropy  and its derivatives with
 c respect to the endmember fractions p
@@ -20434,8 +20432,6 @@ c----------------------------------------------------------------------
       implicit none
 
       include 'perplex_parameters.h'
-
-      logical bad, badp(*)
 
       double precision zt, z(m11), dsdp(*), dzlnz, s, zlnz, lnz, dndp
 
@@ -20451,8 +20447,6 @@ c----------------------------------------------------------------------
       integer lterm, ksub
       common/ cxt1i /lterm(m11,m10,h9),ksub(m0,m11,m10,h9)
 c----------------------------------------------------------------------
-      bad = .false.
-      badp(1:nvar) = .false.
 c                                 for each site
       do i = 1, msite(ids)
 
@@ -20480,13 +20474,6 @@ c                                 for each term:
 
                   dsdp(l) = dsdp(l) + dzdp(j,i,l,ids) * lnz
 
-                  if (z(j).eq.nopt(50).and.dzdp(j,i,l,ids).ne.0d0) then
-
-                     bad = .true.
-                     badp(l) = .true.
-
-                  end if
-
                end do
 
             end do
@@ -20502,13 +20489,6 @@ c                                 for non-temkin sites dzdp is already scaled by
             do l = 1, nvar
 
                dsdp(l) = dsdp(l) + dzdp(j,i,l,ids) * lnz
-
-               if (zt.eq.nopt(50).and.dzdp(j,i,l,ids).ne.0d0) then
-
-                  bad = .true.
-                  badp(l) = .true.
-
-               end if
 
             end do
 
@@ -20545,13 +20525,6 @@ c                                 for each species
                do j = 1, zsp(ids,i)
 
                   dzlnz = dzlnz +  dzdp(j,i,l,ids) * dlog(z(j))
-
-                  if (z(j).eq.nopt(50).and.dndp.ne.0d0) then
-
-                     bad = .true.
-                     badp(l) = .true.
-
-                  end if
 
                end do
 

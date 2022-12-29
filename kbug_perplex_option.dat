@@ -24,8 +24,8 @@
 
 |----------------------------------------------------------------------
 
-dynamic_LP_start          warm
-static_LP_start           warm
+dynamic_LP_start          cold warm
+static_LP_start           hot warm
 optimization_max_it       default  | [20] maximum number of sucessive LP optimizations
 optimization_precision    default  | [1e-4 energy unit] absolute precision for succesive LP optimization
 replicate_threshold       default  | nopt(35) savdyn => smaller values may cause failed optimization
