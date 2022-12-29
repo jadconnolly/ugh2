@@ -191,7 +191,7 @@ c                                 feasibility tolerance (often used as numeric z
       nopt(53) = wmach(1)
 c                                 infinite log + 1, for configurational entropy derivatives
       nopt(50) = wmach(1)
-      nopt(54) = 1d0 + dlog(nopt(50))
+
       nopt(55) = 1d0 + nopt(50)
       nopt(56) = 1d0 - nopt(50)
 

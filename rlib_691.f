@@ -9195,17 +9195,15 @@ c                                 for each term:
 c                                 sdzdp is (dz(i,j)/dp(l))
             dzdy = sdzdp(l,j,i,id)
 
-            if (zl.lt.nopt(50)) then
-               zl = nopt(50)
-               lnz = nopt(54)
-            else
-               zt = zt + zl
-               lnz = (1d0 + dlog(zl))
+            if (zl.lt.nopt(50)) zl = nopt(50)
+
+            zt = zt + zl
+
+            lnz = dlog(zl)
 c                                 the entropy
-               sy = sy + zl*dlog(zl)
-            end if
+            sy = sy + zl * lnz
 c                                 the first derivative
-            dzy = dzy - dzdy * lnz
+            dzy = dzy - dzdy * (1d0 + lnz)
 c                                 the second
             dzyy = dzyy  - dzdy**2 / zl
 
@@ -9216,16 +9214,13 @@ c                                 species:
 
          dzdy = sdzdp(l,j,i,id)
 
-         if (zl.lt.nopt(50)) then
-            zl = nopt(50)
-            lnz = nopt(54)
-         else
-            lnz = (1d0 + dlog(zl))
+         if (zl.lt.nopt(50)) zl = nopt(50)
+
+         lnz = dlog(zl)
 c                                 the entropy
-            sy = sy + zl*dlog(zl)
-         end if
+         sy = sy + zl * lnz
 c                                 the first derivative is
-         dzy = dzy - dzdy * lnz
+         dzy = dzy - dzdy * (1d0 + lnz)
 c                                 and the second is
          dzyy = dzyy  - dzdy**2 / zl
 
@@ -20146,8 +20141,6 @@ c----------------------------------------------------------------------
 c                                 configurational negentropy derivatives:
 c                                 for each site
       do i = 1, msite(ids)
-c                                 multiplicity derivatives (for temkin models)
-         dmdp(i,1:nvar,ids) = 0d0
 c                                 site fraction derivatives
          dzdp(1:zsp1(ids,i),i,1:nvar,ids) = 0d0
 c                                 for each species
@@ -20170,10 +20163,6 @@ c                                  to all remaining endmembers
                   end do
 
                end if
-
-               do l = 1, nvar
-                  dmdp(i,l,ids) = dmdp(i,l,ids) + dzdp(j,i,l,ids)
-               end do
 
             end do
 
@@ -20448,7 +20437,7 @@ c----------------------------------------------------------------------
 
       logical bad, badp(*)
 
-      double precision zt, z(m11), dsdp(*), dzlnz, s, zlnz, lnz
+      double precision zt, z(m11), dsdp(*), dzlnz, s, zlnz, lnz, dndp
 
       integer i, j, k, l, ids, nvar
 
@@ -20489,13 +20478,10 @@ c                                 for each term:
 
                do l = 1, nvar
 
-                  if (lnz.ne.nopt(54)) then
+                  dsdp(l) = dsdp(l) + dzdp(j,i,l,ids) * lnz
 
-                     dsdp(l) = dsdp(l) + dzdp(j,i,l,ids) * lnz
+                  if (z(j).eq.nopt(50).and.dzdp(j,i,l,ids).ne.0d0) then
 
-                  else if (dzdp(j,i,l,ids).ne.0d0) then
-
-c                    dsdp(l) = dsdp(l) + dzdp(j,i,l,ids) * nopt(54)
                      bad = .true.
                      badp(l) = .true.
 
@@ -20515,13 +20501,10 @@ c                                 for non-temkin sites dzdp is already scaled by
 
             do l = 1, nvar
 
-               if (lnz.ne.nopt(54)) then
+               dsdp(l) = dsdp(l) + dzdp(j,i,l,ids) * lnz
 
-                  dsdp(l) = dsdp(l) + dzdp(j,i,l,ids) * lnz
+               if (zt.eq.nopt(50).and.dzdp(j,i,l,ids).ne.0d0) then
 
-               else if (dzdp(j,i,l,ids).ne.0d0) then
-
-c                 dsdp(l) = dsdp(l) + dzdp(j,i,l,ids) * nopt(54)
                   bad = .true.
                   badp(l) = .true.
 
@@ -20548,7 +20531,9 @@ c                                 convert molar amounts to fractions
             z(1:zsp(ids,i)) = z(1:zsp(ids,i)) / zt
 
             do j = 1, zsp(ids,i)
+c                                 ckzlnz sets z < nopt(50) = nopt(50)
                call ckzlnz (z(j),zlnz)
+
             end do
 c                                 site negentropy
             zlnz = r * zt * zlnz
@@ -20559,24 +20544,18 @@ c                                 derivatives
 c                                 for each species
                do j = 1, zsp(ids,i)
 
-                  lnz = 1d0 + dlog(z(j))
+                  dzlnz = dzlnz +  dzdp(j,i,l,ids) * dlog(z(j))
 
-                  if (lnz.ne.nopt(54)) then
+                  if (z(j).eq.nopt(50).and.dndp.ne.0d0) then
 
-                     dzlnz = dzlnz + dzdp(j,i,l,ids) * lnz
-
-                  else if (dzdp(j,i,l,ids).ne.0d0) then
-
-c                    dsdp(l) = dsdp(l) + dzdp(j,i,l,ids) * nopt(54)
                      bad = .true.
                      badp(l) = .true.
-                     exit
 
                   end if
 
                end do
 
-               dsdp(l) = dsdp(l) + dmdp(i,l,ids)*zlnz + r*zt*dzlnz
+               dsdp(l) = dsdp(l) + r*dzlnz
 
             end do
 

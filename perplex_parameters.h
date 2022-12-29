@@ -446,14 +446,13 @@ c                                 local solution model variables:
       double precision deph,dydy,dnu
       common/ cxt3r /deph(3,j3,h9),dydy(m4,j3,h9),dnu(j3,h9),equimo(h9)
 
-      double precision dzdp, dmdp, ds0dp, dgex, dcdp, gend
+      double precision dzdp, ds0dp, dgex, dcdp, gend
 c                                 derivatives with respect to the p' th endmember fraction:
 c                                 derivative of site fraction (endmember, species, site, model)
-c                                 derivative of site mulitplicity (site,endmember,model) 
 c                                 derivative of the mechanical negentropy (endmember,model)
 c                                 derivative of the excess function (endmember,factor,term,model)
 c                                 derivative of the bulk composition (component,endmember,model)
-      common/ cdzdp /dzdp(m11,m10,m14,h9), dmdp(m19,m14,h9),
+      common/ cdzdp /dzdp(m11,m10,m14,h9),
      *               ds0dp(m14,h9), dgex(m14,m2,m1,h9), 
      *               dcdp(k5,m14,h9), gend(m14)
 

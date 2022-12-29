@@ -145,8 +145,6 @@ c                                 cntrl: use 2nd order estimate
 c                                 fdincs: computed increments available
       fdincs = .false.
 
-      if (rids.eq.2) deriv(rids) = .false.
-
       if (deriv(rids)) then
 c                                 LVLDER = 3, all derivatives available
          needfd = .false.
@@ -187,6 +185,7 @@ c                                 reject bad site populations, necessary?
             return
          end if
       end if
+
       if (zbad(pa,rids,zsite,fname(rids),.false.,fname(rids))) then
          ifail = 3
          return
@@ -327,6 +326,8 @@ c-----------------------------------------------------------------------
       save count
 c-----------------------------------------------------------------------
       if (rids.eq.2) then 
+
+c        ppp(1:7) = 0.125d0
          count = count + 1
 c        write (*,*) count, fdnorm
       end if
@@ -345,7 +346,7 @@ c                                 get the bulk composition from pa
 
          call getder (g,dgdp,rids,bad,badp)
 
-         if (bad) then
+         if (bad.and.rids.eq.99) then
 c                                 get numeric derivatives:
 c           needfd = .true.
 c                                 compute the leveled g, gval
@@ -399,7 +400,9 @@ c                                  compute derivatives
 c                                 if numeric derivatives were
 c                                 evaluated reset composition
 c                                 data
-         if (needfd) call getscp (rcp,rsum,rids,rids)
+         call makepp (rids)
+c                                 get the bulk composition from pa
+         call getscp (rcp,rsum,rids,rids)
 c                                 try to eliminate bad results
          if (psum.lt.one.or.psum.gt.1d0+zero.or.bsum.lt.zero) return
          if (zbad(pa,rids,zsite,'a',.false.,'a')) return

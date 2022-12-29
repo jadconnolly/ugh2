@@ -6383,11 +6383,11 @@ c                                       loop to follow the gradient
 
                   call objfun (mode,n,x,objf,grad,fdnorm,bl,bu)
 
-                  if (.not.numric.and.needfd) then
-                     numric = .true.
-                  else if (numric.and..not.needfd) then 
-                     numric = .false.
-                  end if
+c                 if (.not.numric.and.needfd) then
+c                    numric = .true.
+c                 else if (numric.and..not.needfd) then 
+c                    numric = .false.
+c                 end if
 
                   inform = mode
                   if (mode.lt.0) go to 60
