@@ -1650,7 +1650,7 @@ c                                 FTOL, optimality tolerance
 c                                 CTOL,feasibility tolerance
       ctol = epspt5
 c                                 DXLIM, step limit < nopt(5) leads to bad results
-      dxlim = 0.5d0
+      dxlim = 0.25d0
 c                                 ETA, linesearch tolerance, low values -> more accurate search 
 c                                 -> more function calls, 0.05-.4 seem best
       eta = 0.225d0
@@ -1658,7 +1658,6 @@ c                                 FDINT, finite difference interval, forward.
       fdint = nopt(49)
 c                                 CDINT, 2nd order forward finite difference interval
       cdint = fdint**(0.67d0)
-
 
       end 
 

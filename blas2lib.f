@@ -558,7 +558,7 @@ c                                 are used by lscrsh to define the initial worki
       vertex = .false.
 
       call lscrsh (cold,vertex,nclin,nctotl,nactiv,nartif,nfree,n,lda,
-     *            istate,iw(lkactv),bigbnd,tolact,a,w(lax),bl,bu,x,
+     *            istate,iw(lkactv),tolact,a,w(lax),bl,bu,x,
      *            w(lwrk1),w(lwrk2))
 
       nres = 0
@@ -727,249 +727,6 @@ c                            (0 )
          end if
       end if
 c                                 end of lsmove
-      end
-
-      subroutine chcore (done,first,epsa,epsr,fx,inform,iter,itmax,
-     *                   cdest,fdest,sdest,errbnd,f1,f2,h,hopt,hphi)
-c----------------------------------------------------------------------
-c     chcore  implements algorithm  fd, the method described in
-c     gill, p.e., murray, w., saunders, m.a., and wright, m. h.,
-c     computing forward-difference intervals for numerical optimization,
-c     siam journal on scientific and statistical computing, vol. 4,
-c     pp. 310-321, june 1983.
-
-c     the procedure is based on finding an interval (hphi) that
-c     produces an acceptable estimate of the second derivative, and
-c     then using that estimate to compute an interval that should
-c     produce a reasonable forward-difference approximation.
-
-c     one-sided difference estimates are used to ensure feasibility with
-c     respect to an upper or lower bound on x. if x is close to an upper
-c     bound, the trial intervals will be negative. the final interval is
-c     always positive.
-
-c     chcore has been designed to use a reverse communication
-c     control structure, i.e., all evaluations of the function occur
-c     outside this routine. the calling routine repeatedly calls  chcore
-c     after computing the indicated function values.
-c----------------------------------------------------------------------
-      implicit none
-
-      double precision bndlo, bndup
-      parameter (bndlo=1.0d-3,bndup=1.0d-1)
-
-      logical done, first, ce1big, ce2big, overfl, te2big
-
-      integer inform, iter, itmax
-
-      double precision cdest, epsa, epsr, errbnd, f1, f2, fdest, fx, h,
-     *                 hopt, hphi, sdest, afdmin, cdsave, err1, err2, 
-     *                 fdcerr, fdest2, fdsave, hsave, oldcd, oldh, oldsd
-     *               , rho, sdcerr, sdsave, sdiv
-
-      external sdiv
-
-      save              cdsave, fdsave, hsave, oldh, rho, sdsave,
-     *                  ce1big, ce2big, te2big
-c----------------------------------------------------------------------
-c     bndlo, bndup, and rho control the logic of the routine.
-c     bndlo and bndup are the lower and upper bounds that define an
-c     acceptable value of the bound on the relative condition error in
-c     the second derivative estimate.
-
-c     the scalar rho is the factor by which the interval is multiplied
-c     or divided, and also the multiple of the well-scaled interval
-c     that is used as the initial trial interval.
-
-      iter = iter + 1
-
-c     compute the forward-,  backward-,  central-  and second-order
-c     difference estimates.
-
-      fdest = sdiv (f1-fx,h,overfl)
-      fdest2 = sdiv (f2-fx, 2d0*h,overfl)
-
-      oldcd = cdest
-      cdest = sdiv (4d0*f1- 3d0*fx-f2, 2d0*h,overfl)
-
-      oldsd = sdest
-      sdest = sdiv (fx- 2d0*f1+f2, h*h, overfl)
-
-c     compute  fdcerr  and  sdcerr,  bounds on the relative condition
-c     errors in the first and second derivative estimates.
-
-      afdmin = min(abs(fdest),abs(fdest2))
-      fdcerr = sdiv (epsa, abs(h)/2d0 *afdmin, overfl)
-      sdcerr = sdiv (epsa, abs(sdest)/4d0 *h*h, overfl)
-
-c     select the correct case.
-
-      if (first) then
-
-c        first time through.
-c        check whether sdcerr lies in the acceptable range.
-
-         first = .false.
-         done = sdcerr .ge. bndlo .and. sdcerr .le. bndup
-         te2big = sdcerr.lt.bndlo
-         ce2big = sdcerr.gt.bndup
-         ce1big = fdcerr.gt.bndup
-
-         if (.not. ce1big) then
-            hsave = h
-            fdsave = fdest
-            cdsave = cdest
-            sdsave = sdest
-         end if
-
-         rho = epsr**(-0.16d0)/4d0
-         if (te2big) then
-
-c           the truncation error may be too big  (same as saying
-c           sdcerr is too small).  decrease the trial interval.
-
-            rho = 1d1*rho
-            oldh = h
-            h = h/rho
-         else if (ce2big) then
-
-c           sdcerr is too large.  increase the trial interval.
-
-            oldh = h
-            h = h*rho
-         end if
-      else if (ce2big) then
-
-c        during the last iteration,  the trial interval was
-c        increased in order to decrease sdcerr.
-
-         if (ce1big .and. fdcerr.le.bndup) then
-            ce1big = .false.
-            hsave = h
-            fdsave = fdest
-            cdsave = cdest
-            sdsave = sdest
-         end if
-
-c        if sdcerr is small enough, accept h.  otherwise,
-c        increase h again.
-
-         done = sdcerr .le. bndup
-         if (.not. done) then
-            oldh = h
-            h = h*rho
-         end if
-      else if (te2big) then
-
-c        during the last iteration,  the interval was decreased in order
-c        to reduce the truncation error.
-
-         done = sdcerr.gt.bndup
-         if (done) then
-
-c           sdcerr has jumped from being too small to being too
-c           large.  accept the previous value of h.
-
-            h = oldh
-            sdest = oldsd
-            cdest = oldcd
-         else
-
-c           test whether fdcerr is sufficiently small.
-
-            if (fdcerr.le.bndup) then
-               ce1big = .false.
-               hsave = h
-               fdsave = fdest
-               cdsave = cdest
-               sdsave = sdest
-            end if
-
-c           check whether sdcerr is in range.
-
-            done = sdcerr .ge. bndlo
-
-            if (.not. done) then
-
-c              sdcerr is still too small, decrease h again.
-
-               oldh = h
-               h = h/rho
-            end if
-         end if
-
-      end if
-
-c     either finished or have a new estimate of h.
-
-      if (done) then
-
-c        sufficiently good second-derivative estimate found.
-c        compute the optimal interval.
-
-         hphi = abs(h)
-         hopt = 2d0*sqrt(epsa)/sqrt(abs(sdest))
-
-c        err1 is the error bound on the forward-difference estimate
-c        with the final value of h.  err2 is the difference of fdest
-c        and the central-difference estimate with hphi.
-
-         err1 = hopt*abs(sdest)
-         err2 = abs(fdest-cdest)
-         errbnd = max(err1,err2)
-
-c        set inform = 4  if the forward- and central-difference
-c        estimates are not close.
-
-         inform = 0
-         if (errbnd.gt.abs(fdest)/2d0) inform = 4
-      else
-
-c        check whether the maximum number of iterations has been
-c        exceeded.  if not, exit.
-
-         done = iter .ge. itmax
-         if (done) then
-            if (ce1big) then
-
-c              fdcerr was never small.  probably a constant function.
-
-               inform = 1
-               hphi = hopt
-               fdest = 0d0
-               cdest = 0d0
-               sdest = 0d0
-               errbnd = 0d0
-            else if (ce2big) then
-
-c              fdcerr was small,  but sdcerr was never small.
-c              probably a linear or odd function.
-
-               inform = 2
-               hphi = abs(hsave)
-               hopt = hphi
-               fdest = fdsave
-               cdest = cdsave
-               sdest = 0d0
-               errbnd = 2d0*epsa/hopt
-            else
-
-c              the only remaining case occurs when the second
-c              derivative is changing too rapidly for an adequate
-c              interval to be found (sdcerr remained small even
-c              though h was decreased itmax times).
-
-               inform = 3
-               hphi = abs(hsave)
-               hopt = hphi
-               fdest = fdsave
-               cdest = cdsave
-               sdest = sdsave
-               errbnd = hopt*abs(sdest)/2d0 + 2d0*epsa/hopt
-            end if
-         end if
-      end if
-c                                 end of chcore
       end
 
       subroutine cmalf1(firstv,negstp,bigalf,bigbnd,pnorm,jadd1,jadd2,
@@ -6237,7 +5994,7 @@ c----------------------------------------------------------------------
      *                 clamda(nctotl), featol(nctotl), grad(n),
      *                 gradu(n), r(ldr,*), w(lenw), x(n)
 
-      integer istate(*), iw(*), kactiv(n), kx(n)
+      integer istate(*), iw(*), kactiv(n), kx(n), isum
 
       external objfun
 
@@ -6328,9 +6085,18 @@ c                                 hot start for the first qp subproblem.
 
       objalf = objf
       newgq = .false.
+      isum = 0
       minits = 0
 
       do
+
+         if (rids.eq.3) then
+            isum = isum + minits 
+            write (*,*) isum, objf
+            write (*,*) x
+         end if
+
+         minits = 0
 c                                       loop to find good gradient
          do
 c                                       loop to follow the gradient
@@ -6942,8 +6708,7 @@ c                                 end of rzadds
       end
 
       subroutine lscrsh(cold,vertex,nclin,nctotl,nactiv,nartif,nfree,n,
-     *                  lda,istate,kactiv,bigbnd,tolact,a,ax,bl,bu,x,wx,
-     *                  work)
+     *                  lda,istate,kactiv,tolact,a,ax,bl,bu,x,wx,work)
 c----------------------------------------------------------------------
 c     lscrsh  computes the quantities  istate (optionally), kactiv,
 c     nactiv, nz and nfree  associated with the working set at x.
@@ -6967,8 +6732,8 @@ c----------------------------------------------------------------------
      *        istate(nctotl), kactiv(n), i, imin, is, j, nfixed
 
       double precision a(lda,*), ax(*), bl(nctotl), bu(nctotl),
-     *                 work(n), wx(n), x(n), bigbnd, tolact, b1, b2, 
-     *                 biglow, bigupp, colmin, colsiz, flmax,
+     *                 work(n), wx(n), x(n), tolact, b1, b2, 
+     *                 colmin, colsiz, flmax,
      *                 residl, resl, resmin, resu, toobig, ddot
 
       external ddot
@@ -6977,23 +6742,18 @@ c----------------------------------------------------------------------
       common/ cstmch /wmach(10)
 c----------------------------------------------------------------------
       flmax = wmach(7)
-      biglow = -bigbnd
-      bigupp = bigbnd
 
 c     move the variables inside their bounds.
 
-      do 20 j = 1, n
-         b1 = bl(j)
-         b2 = bu(j)
+      do j = 1, n
 
-         if (b1.gt.biglow) then
-            if (x(j).lt.b1) x(j) = b1
+         if (x(j).lt.bl(j)) then 
+            x(j) = b1
+         else if (x(j).gt.bu(j)) then 
+            x(j) = b2
          end if
 
-         if (b2.lt.bigupp) then
-            if (x(j).gt.b2) x(j) = b2
-         end if
-   20 continue
+      end do
 
       call dcopy (n,x,1,wx,1)
 
@@ -7051,12 +6811,12 @@ c        +       while (j .ge. 1  .and.  nfixed + nactiv.lt.n) do
                b1 = bl(j)
                b2 = bu(j)
                is = 0
-               if (b1.gt.biglow) then
+
                   if (wx(j)-b1.le.(1d0+abs(b1))*tolact) is = 1
-               end if
-               if (b2.lt.bigupp) then
+
+
                   if (b2-wx(j).le.(1d0+abs(b2))*tolact) is = 2
-               end if
+
                if (is.gt.0) then
                   istate(j) = is
                   if (is.eq.1) wx(j) = b1
@@ -7098,10 +6858,8 @@ c           + while (is.gt.0  .and.  nfixed + nactiv.lt.n) do
                      b2 = bu(j)
                      resl = toobig
                      resu = toobig
-                     if (b1.gt.biglow) resl = abs(ax(i)-b1)/(1d0+abs(b1)
-     *                                       )
-                     if (b2.lt.bigupp) resu = abs(ax(i)-b2)/(1d0+abs(b2)
-     *                                       )
+                     resl = abs(ax(i)-b1)/(1d0+abs(b1))
+                     resu = abs(ax(i)-b2)/(1d0+abs(b2))
                      residl = min(resl,resu)
                      if (residl.lt.resmin) then
                         resmin = residl

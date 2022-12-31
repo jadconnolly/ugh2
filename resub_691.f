@@ -472,6 +472,8 @@ c                                  save the old count
 
       end do
 
+c     write (*,*) 'end of reopt'
+
       end
 
       subroutine resub (iter)
@@ -652,6 +654,8 @@ c                 write (*,*) 'not good & not good',id,ids
          lds = ids
 
       end do
+
+      write (*,*) 'end of resub'
 
       end
 

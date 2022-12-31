@@ -85,17 +85,13 @@ c                                 make the composition non-degenerate
 
          do i = 1, ntot
 
-            if (pa(i).lt.0d0) then 
-               pa(i) = zero
-            end if
+            if (pa(i).lt.zero) pa(i) = zero
 
             sum = sum + pa(i)
 
          end do 
 
-         if (sum.ne.1d0) then
-            pa(1:ntot) = pa(1:ntot)/sum
-         end if
+         pa(1:ntot) = pa(1:ntot)/sum
 
       end if
 c                                 finite difference increments
@@ -162,6 +158,8 @@ c                                 fdincs: computed increments available
      *            clamda,gfinal,ggrd,r,ppp,iwork,m22,work,m23,idead)
 
       itic = itic + 1
+
+          write (*,*) rids, gfinal,itic, iter
 
       if (idead.eq.1) then
 c        write (*,*) 'starting point is as good as it gets',rids,idead
@@ -324,12 +322,14 @@ c-----------------------------------------------------------------------
       data count/0/
       save count
 c-----------------------------------------------------------------------
-      if (rids.eq.2) then 
+      if (rids.eq.1) then 
 
 c        ppp(1:7) = 0.125d0
-         count = count + 1
+
 c        write (*,*) count, fdnorm
       end if
+         count = count + 1
+
 
       if (lopt(61)) call begtim (2)
 c                                 reconstruct pa array
@@ -1362,7 +1362,7 @@ c                                 the mechanical component?
 
       end
 
-      subroutine chfd (n,fdnorm,objf,objfun,bl,bu,grad,x,dummy)
+      subroutine chfd (n,fdnorm,fx,objfun,bl,bu,grad,x,dummy)
 c----------------------------------------------------------------------
 c chfd  computes difference intervals for gradients of f(x). intervals 
 c are computed using a procedure that usually requires about two 
@@ -1382,11 +1382,11 @@ c----------------------------------------------------------------------
 
       integer n, info, iter, itmax, j
 
-      double precision fdnorm, objf, bl(n), bu(n), dummy(n), 
+      double precision fdnorm, bl(n), bu(n), dummy(n), 
      *                 grad(n), x(n), cdest, epsa,
      *                 errbnd, errmax, errmin, f1, f2, fdest, fx,
      *                 h, hcd, hfd, hmax, hmin, hopt, hphi,
-     *                 sdest, signh, sumeps, sumsd, xj
+     *                 sdest, sumeps, sumsd, xj
 
       external objfun
 
@@ -1408,6 +1408,8 @@ c----------------------------------------------------------------------
 
       fdnorm = 0d0
 
+      epsa = epsrf*(1d0+abs(fx))
+
       do j = 1, n
 
          xj = x(j)
@@ -1420,18 +1422,17 @@ c----------------------------------------------------------------------
          hmin = 1d0/epspt3
          errmax = 0d0
          errmin = 0d0
+         hopt = 2d0*(1d0+abs(xj))*sqrt(epsrf)
 c                                 set step direction away from the nearest
 c                                 bound (without regard to other constraints,
 c                                 numder may do this better),
-         signh = 1d0
-         if (bu(j) + bl(j)- 2d0*xj.lt.0d0) signh = -1d0
-c                                 get the difference interval for this element.
-         fx = objf
-         epsa = epsrf*(1d0+abs(fx))
-c                                 find a finite-difference interval by iteration.
+         if (bu(j) + bl(j)- 2d0*xj.lt.0d0) then
+            h = -1d1*hopt
+         else
+            h = 1d1*hopt
+         end if
+
          iter = 0
-         hopt = 2d0*(1d0+abs(xj))*sqrt(epsrf)
-         h = signh*1d1*hopt
          cdest = 0d0
          sdest = 0d0
          first = .true.
@@ -1497,4 +1498,230 @@ c                                 signal individual increments available:
 
 200   return
 
+      end
+
+      subroutine chcore (done,first,epsa,epsr,fx,inform,iter,itmax,
+     *                   cdest,fdest,sdest,errbnd,f1,f2,h,hopt,hphi)
+c----------------------------------------------------------------------
+c     chcore  implements algorithm  fd, the method described in
+c     gill, p.e., murray, w., saunders, m.a., and wright, m. h.,
+c     computing forward-difference intervals for numerical optimization,
+c     siam journal on scientific and statistical computing, vol. 4,
+c     pp. 310-321, june 1983.
+
+c     the procedure is based on finding an interval (hphi) that
+c     produces an acceptable estimate of the second derivative, and
+c     then using that estimate to compute an interval that should
+c     produce a reasonable forward-difference approximation.
+
+c     one-sided difference estimates are used to ensure feasibility with
+c     respect to an upper or lower bound on x. if x is close to an upper
+c     bound, the trial intervals will be negative. the final interval is
+c     always positive.
+
+c     chcore has been designed to use a reverse communication
+c     control structure, i.e., all evaluations of the function occur
+c     outside this routine. the calling routine repeatedly calls  chcore
+c     after computing the indicated function values.
+
+c     bndlo, bndup, and rho control the logic of the routine.
+c     bndlo and bndup are the lower and upper bounds that define an
+c     acceptable value of the bound on the relative condition error in
+c     the second derivative estimate.
+
+c     the scalar rho is the factor by which the interval is multiplied
+c     or divided, and also the multiple of the well-scaled interval
+c     that is used as the initial trial interval.
+c----------------------------------------------------------------------
+      implicit none
+
+      double precision bndlo, bndup
+
+      parameter (bndlo=1.0d-3,bndup=1.0d-1)
+
+      logical done, first, ce1big, ce2big, overfl, te2big
+
+      integer inform, iter, itmax
+
+      double precision cdest, epsa, epsr, errbnd, f1, f2, fdest, fx, h,
+     *                 hopt, hphi, sdest, afdmin, cdsave, err1, err2, 
+     *                 fdcerr, fdest2, fdsave, hsave, oldcd, oldh, oldsd
+     *               , rho, sdcerr, sdsave, sdiv
+
+      external sdiv
+
+      save              cdsave, fdsave, hsave, oldh, rho, sdsave,
+     *                  ce1big, ce2big, te2big
+c----------------------------------------------------------------------
+      iter = iter + 1
+c                                 compute forward, backward, central and second-order
+c                                 difference estimates.
+      fdest = sdiv (f1-fx,h,overfl)
+      fdest2 = sdiv (f2-fx, 2d0*h,overfl)
+
+      oldcd = cdest
+      cdest = sdiv (4d0*f1- 3d0*fx-f2, 2d0*h,overfl)
+
+      oldsd = sdest
+      sdest = sdiv (fx- 2d0*f1+f2, h*h, overfl)
+c                                 compute  fdcerr  and  sdcerr,  bounds on relative condition
+c                                 errors in first and second derivative estimates.
+      afdmin = min(abs(fdest),abs(fdest2))
+      fdcerr = sdiv (epsa, abs(h)/2d0 *afdmin, overfl)
+      sdcerr = sdiv (epsa, abs(sdest)/4d0 *h*h, overfl)
+c                                 select the correct case.
+      if (first) then
+c                                 first time through.
+c                                 check that sdcerr is in the acceptable range.
+         first = .false.
+         done = sdcerr .ge. bndlo .and. sdcerr .le. bndup
+         te2big = sdcerr.lt.bndlo
+         ce2big = sdcerr.gt.bndup
+         ce1big = fdcerr.gt.bndup
+
+         if (.not. ce1big) then
+
+            hsave = h
+            fdsave = fdest
+            cdsave = cdest
+            sdsave = sdest
+
+         end if
+
+         rho = epsr**(-0.16d0)/4d0
+
+         if (te2big) then
+c                                 truncation error may be too big 
+c                                 (sdcerr is too small). decrease trial interval.
+            rho = 1d1*rho
+            oldh = h
+            h = h/rho
+
+         else if (ce2big) then
+c                                 sdcerr is too large. increase trial interval.
+            oldh = h
+            h = h*rho
+
+         end if
+
+      else if (ce2big) then
+c                                 during the last iteration, the trial interval was
+c                                 increased in order to decrease sdcerr.
+         if (ce1big .and. fdcerr.le.bndup) then
+
+            ce1big = .false.
+            hsave = h
+            fdsave = fdest
+            cdsave = cdest
+            sdsave = sdest
+
+         end if
+c                               if sdcerr is small, accept h. otherwise,
+c                               increase h
+         done = sdcerr .le. bndup
+
+         if (.not. done) then
+            oldh = h
+            h = h*rho
+         end if
+
+      else if (te2big) then
+c                                 in last iteration, interval was decreased in order
+c                                 to reduce truncation error.
+         done = sdcerr.gt.bndup
+
+         if (done) then
+c                                 sdcerr jumped from too small to too
+c                           l     large. accept the previous value of h.
+            h = oldh
+            sdest = oldsd
+            cdest = oldcd
+
+         else
+c                                 test whether fdcerr is sufficiently small.
+            if (fdcerr.le.bndup) then
+
+               ce1big = .false.
+               hsave = h
+               fdsave = fdest
+               cdsave = cdest
+               sdsave = sdest
+
+            end if
+c                                 check whether sdcerr is in range.
+            done = sdcerr .ge. bndlo
+
+            if (.not. done) then
+c                                 sdcerr is still too small, decrease h again.
+               oldh = h
+               h = h/rho
+
+            end if
+
+         end if
+
+      end if
+c                                 either finished or have a new estimate of h.
+      if (done) then
+c                                 good second-derivative estimate found.
+c                                 compute optimal interval.
+         hphi = abs(h)
+         hopt = 2d0*sqrt(epsa)/sqrt(abs(sdest))
+c                                 err1 is the error bound on the forward estimate
+c                                 with the final value of h. err2 is the difference of fdest
+c                                 and the central-difference estimate with hphi.
+         err1 = hopt*abs(sdest)
+         err2 = abs(fdest-cdest)
+         errbnd = max(err1,err2)
+c                                 inform = 4 if the forward- and central-difference
+c                                 estimates are not close.
+         inform = 0
+         if (errbnd.gt.abs(fdest)/2d0) inform = 4
+
+      else
+
+         done = iter .ge. itmax
+
+         if (done) then
+
+            if (ce1big) then
+c                                 fdcerr was never small.  
+c                                 probably a constant function.
+               inform = 1
+               hphi = hopt
+               fdest = 0d0
+               cdest = 0d0
+               sdest = 0d0
+               errbnd = 0d0
+
+            else if (ce2big) then
+c                                  fdcerr was small,  but sdcerr was 
+c                                  never small probably a linear or odd function.
+               inform = 2
+               hphi = abs(hsave)
+               hopt = hphi
+               fdest = fdsave
+               cdest = cdsave
+               sdest = 0d0
+               errbnd = 2d0*epsa/hopt
+
+            else
+c                                  the remaining case is the second
+c                                  derivative changes too rapidly for an 
+c                                  adequate interval to be found (sdcerr 
+c                                  remained small as h was decreased itmax times).
+               inform = 3
+               hphi = abs(hsave)
+               hopt = hphi
+               fdest = fdsave
+               cdest = cdsave
+               sdest = sdsave
+               errbnd = hopt*abs(sdest)/2d0 + 2d0*epsa/hopt
+
+            end if
+
+         end if
+
+      end if
+c                                 end of chcore
       end
