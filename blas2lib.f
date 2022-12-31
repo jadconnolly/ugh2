@@ -12,10 +12,10 @@ c    problems by succesive quadratic programming. Both after
 
 c    Gill P E, Murray W, Saunders M A and Wright M H (1984) 
 c    Procedures for optimization problems with a mixture of bounds and 
-c    general linear constraints ACM Trans. Math. Software 10 282–298
+c    general linear constraints ACM Trans. Math. Software 10 282ï¿½298
 
 c    Gill PE, Hammarling S, Murray W, Saunders MA and Wright MH (1986) 
-c    User’s Guide for LSSOL (version 1.0) Report SOL 86–1 
+c    Userï¿½s Guide for LSSOL (version 1.0) Report SOL 86ï¿½1 
 c    Department of Operations Research, Stanford University.
 
       subroutine lpsol (n,nclin,a,lda,bl,bu,cvec,istate,x,iter,obj,ax,
@@ -366,7 +366,7 @@ c----------------------------------------------------------------------
      *        itmxsv, itns, j, jinf, jmax, lax, 
      *        lclam, ldaqp, litotl,
      *        lwtotl, maxact, minfxd, mxfree, nact1, 
-     *        nartif, nctotl, nfun, ngq, ngrad,nres, numinf,
+     *        nctotl, nfun, ngq, ngrad,nres, numinf,
      *        nlperr, nmajor, nminor, nrank, nrejtd, 
      *        nz1, istate(n+nclin), iw(leniw)
 
@@ -557,9 +557,9 @@ c                                 input values of x and (optionally) istate
 c                                 are used by lscrsh to define the initial working set.
       vertex = .false.
 
-      call lscrsh (cold,vertex,nclin,nctotl,nactiv,nartif,nfree,n,lda,
+      call lscrsh (nclin,nctotl,nactiv,nfree,n,lda,
      *            istate,iw(lkactv),tolact,a,w(lax),bl,bu,x,
-     *            w(lwrk1),w(lwrk2))
+     *            w(lwrk1))
 
       nres = 0
       ngq = 0
@@ -591,10 +591,11 @@ c                                 factorize the linear constraints in the initia
          nact1 = nactiv
          nactiv = 0
 
-         call lsadds (unitq,vertex,inform,1,nact1,nactiv,nartif,nz,nfree
-     *               ,nrank,nrejtd,nres,ngq,n,ldq,lda,ldr,ldt,istate,
+         call lsadds (unitq,inform,nact1,nactiv,nz,nfree,
+     *                nrank,nrejtd,nres,ngq,n,ldq,lda,ldr,ldt,istate,
      *                iw(lkactv),iw(lkx),condmx,a,r,w(lt),w(lres0),
      *                w(lgq),w(lq),w(lwrk1),w(lwrk2),w(lrlam))
+
       end if
 c                                 move x on to the linear constraints and
 c                                 find a feasible point.
@@ -1966,8 +1967,6 @@ c     exit.
       end if
 c                                 end of srchc
       end
-
-
 
       subroutine lsadd (unitq,inform,ifix,iadd,jadd,nactiv,nz,nfree,
      *                  nrank,nres,ngq,n,lda,ldzy,ldr,ldt,kx,condmx,a,r,
@@ -5386,129 +5385,6 @@ c     residual  pr  -  rq'x = res0  -  rq'x.
 c                                 end of lssetx
       end
 
-      subroutine lsadds (unitq,vertex,inform,k1,k2,nactiv,nartif,nz,
-     *                   nfree,nrank,nrejtd,nres,ngq,n,ldzy,lda,ldr,ldt,
-     *                   istate,kactiv,kx,condmx,a,r,t,res,gq,zy,w,c,s)
-c----------------------------------------------------------------------
-c     lsadds  includes general constraints k1 thru k2 as new rows of
-c     the tq factorization stored in t, zy.  if nrank is nonzero, the
-c     changes in q are reflected in nrank by n triangular factor r such
-c     that
-c                         c  =  p (r) q,
-c                                 (0)
-c     where  p  is orthogonal.
-c----------------------------------------------------------------------
-      implicit none
-
-      logical unitq, vertex
-
-      integer inform, k1, k2, lda, ldr, ldt, ldzy, n, nz, istate(*), k,
-     *        nactiv, nartif, nfree, ngq, nrank, nrejtd, nres, jadd, l,
-     *        i, iadd, iartif, ifix, iswap, nzadd, kactiv(n), kx(n)
-
-      double precision a(lda,*), c(n), gq(n,*), r(ldr,*), res(n,*),
-     *                 s(n), t(ldt,*), w(n), zy(ldzy,*), condmx, cndmax,
-     *                 rnorm, rowmax, rtmax, dnrm2
-
-      external dnrm2
-
-      double precision wmach
-      common/ cstmch /wmach(10)
-
-      double precision asize, dtmax, dtmin
-      common/ ngg008 /asize, dtmax, dtmin
-c----------------------------------------------------------------------
-      rtmax = wmach(8)
-
-c     estimate the condition number of the constraints that are not
-c     to be refactorized.
-
-      if (nactiv.eq.0) then
-         dtmax = 0d0
-         dtmin = 1d0
-      else
-         call scond (nactiv,t(nactiv,nz+1),ldt-1,dtmax,dtmin)
-      end if
-
-      do 20 k = k1, k2
-         iadd = kactiv(k)
-         jadd = n + iadd
-         if (nactiv.lt.nfree) then
-
-            call lsadd (unitq,inform,ifix,iadd,jadd,nactiv,nz,nfree,
-     *                  nrank,nres,ngq,n,lda,ldzy,ldr,ldt,kx,condmx,a,r,
-     *                  t,res,gq,zy,w,c,s)
-
-            if (inform.eq.0) then
-               nactiv = nactiv + 1
-               nz = nz - 1
-            else
-               istate(jadd) = 0
-               kactiv(k) = -kactiv(k)
-            end if
-         end if
-   20 continue
-
-      if (nactiv.lt.k2) then
-
-c        some of the constraints were classed as dependent and not
-c        included in the factorization.  re-order the part of  kactiv
-c        that holds the indices of the general constraints in the
-c        working set.  move accepted indices to the front and shift
-c        rejected indices (with negative values) to the end.
-
-         l = k1 - 1
-         do 40 k = k1, k2
-            i = kactiv(k)
-            if (i.ge.0) then
-               l = l + 1
-               if (l.ne.k) then
-                  iswap = kactiv(l)
-                  kactiv(l) = i
-                  kactiv(k) = iswap
-               end if
-            end if
-   40    continue
-
-c        if a vertex is required, add some temporary bounds.
-c        we must accept the resulting condition number of the working
-c        set.
-
-         if (vertex) then
-            cndmax = rtmax
-            nzadd = nz
-            do 80 iartif = 1, nzadd
-               if (unitq) then
-                  ifix = nfree
-                  jadd = kx(ifix)
-               else
-                  rowmax = 0d0
-                  do 60 i = 1, nfree
-                     rnorm = dnrm2 (nz,zy(i,1),ldzy)
-                     if (rowmax.lt.rnorm) then
-                        rowmax = rnorm
-                        ifix = i
-                     end if
-   60             continue
-                  jadd = kx(ifix)
-
-                  call lsadd (unitq,inform,ifix,iadd,jadd,nactiv,nz,
-     *                        nfree,nrank,nres,ngq,n,lda,ldzy,ldr,ldt,
-     *                        kx,cndmax,a,r,t,res,gq,zy,w,c,s)
-
-               end if
-               nfree = nfree - 1
-               nz = nz - 1
-               nartif = nartif + 1
-               istate(jadd) = 4
-   80       continue
-         end if
-      end if
-
-      nrejtd = k2 - nactiv
-c                                 end of lsadds
-      end
-
       subroutine lpcore (prbtyp,msg,cset,rset,unitq,iter,
      *                   itmax,jinf,nviol,n,nclin,lda,nactiv,nfree,nrz,
      *                   nz,istate,kactiv,kx,obj,numinf,xnorm,a,
@@ -6090,11 +5966,11 @@ c                                 hot start for the first qp subproblem.
 
       do
 
-         if (rids.eq.3) then
-            isum = isum + minits 
-            write (*,*) isum, objf
-            write (*,*) x
-         end if
+c        if (rids.eq.3) then
+c           isum = isum + minits 
+c           write (*,*) isum, objf
+c           write (*,*) x
+c        end if
 
          minits = 0
 c                                       loop to find good gradient
@@ -6707,11 +6583,11 @@ c           the top of the array  t.
 c                                 end of rzadds
       end
 
-      subroutine lscrsh(cold,vertex,nclin,nctotl,nactiv,nartif,nfree,n,
+      subroutine xlscrsh(cold,vertex,nclin,nctotl,nactiv,nartif,nfree,n,
      *                  lda,istate,kactiv,tolact,a,ax,bl,bu,x,wx,work)
 c----------------------------------------------------------------------
 c     lscrsh  computes the quantities  istate (optionally), kactiv,
-c     nactiv, nz and nfree  associated with the working set at x.
+c     nactiv, nz and nfree associated with the working set at x.
 c     the computation depends upon the value of the input parameter
 c     cold,  as follows...
 c     cold = true.  an initial working set will be selected. first,

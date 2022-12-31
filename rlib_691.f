@@ -20433,7 +20433,7 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      double precision zt, z(m11), dsdp(*), dzlnz, s, zlnz, lnz, dndp
+      double precision zt, z(m11), dsdp(*), dzlnz, s, zlnz, lnz
 
       integer i, j, k, l, ids, nvar
 

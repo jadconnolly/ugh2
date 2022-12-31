@@ -655,7 +655,7 @@ c                 write (*,*) 'not good & not good',id,ids
 
       end do
 
-      write (*,*) 'end of resub'
+c     write (*,*) 'end of resub'
 
       end
 

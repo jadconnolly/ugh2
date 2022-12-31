@@ -1636,21 +1636,24 @@ c----------------------------------------------------------------------
 
       double precision epspt3, epspt5, epspt8, epspt9
       common/ ngg006 /epspt3, epspt5, epspt8, epspt9
+
+      integer count
+      common/ cstcnt /count
 c----------------------------------------------------------------------
       rhomax = 1d0/wmach(3)
       tolact = 1d-2
       bigbnd = 0.99999d20
       bigdx  = bigbnd
-c                                 fac = 1d-2 was being used:
+c                                 fac = 1d-2 was being used in 691:
       fac = 1d0
 c                                 EPSRF, function precision
       epsrf = (wmach(3)*fac)**(0.9)
 c                                 FTOL, optimality tolerance
       ftol = (wmach(3)*fac)**(0.8)
-c                                 CTOL,feasibility tolerance
+c                                 CTOL, feasibility tolerance
       ctol = epspt5
 c                                 DXLIM, step limit < nopt(5) leads to bad results
-      dxlim = 0.25d0
+      dxlim = 0.5d0
 c                                 ETA, linesearch tolerance, low values -> more accurate search 
 c                                 -> more function calls, 0.05-.4 seem best
       eta = 0.225d0
@@ -1658,6 +1661,8 @@ c                                 FDINT, finite difference interval, forward.
       fdint = nopt(49)
 c                                 CDINT, 2nd order forward finite difference interval
       cdint = fdint**(0.67d0)
+c                                 objective function calls for minfrc
+      count = 0
 
       end 
 

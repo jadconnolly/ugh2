@@ -159,7 +159,7 @@ c                                 fdincs: computed increments available
 
       itic = itic + 1
 
-          write (*,*) rids, gfinal,itic, iter
+c         write (*,*) rids, gfinal,itic, iter
 
       if (idead.eq.1) then
 c        write (*,*) 'starting point is as good as it gets',rids,idead
@@ -319,8 +319,7 @@ c-----------------------------------------------------------------------
       common/ cstfds /fdset, cntrl, numric, fdincs
 
       integer count
-      data count/0/
-      save count
+      common/ cstcnt /count
 c-----------------------------------------------------------------------
       if (rids.eq.1) then 
 
@@ -444,7 +443,11 @@ c----------------------------------------------------------------------
       double precision ppp(*), gval, gsol1, g, psum
 
       external gsol1
+
+      integer count
+      common/ cstcnt /count
 c-----------------------------------------------------------------------
+      count = count + 1
 c                                 reconstruct pa array from ppp
       call ppp2pa (ppp,psum,nvar)
 c                                 make the pp array for gsol1
@@ -1314,7 +1317,7 @@ c                                 solution model index
 
       xp(1:nvar) = ppp(1:nvar)
 
-10    numric = .true.
+      numric = .false.
 
       call nlpsol (nvar,nclin,m20,m19,lapz,bl,bu,gsol4,iter,istate,
      *            clamda,gfinal,ggrd,r,ppp,iwork,m22,work,m23,idead)
@@ -1323,24 +1326,19 @@ c                                 it's likely failed, make 2 additional
 c                                 attempts, 1st try numerical verification of 
 c                                 the derivatives, 2nd try use only numerical 
 c                                 derivatives.
-      if (iter.eq.0.and.itic.le.1.and.deriv(ids)) then 
 
-         ppp(1:nvar) = xp(1:nvar)
-         itic = itic + 1
+c                                 need error testing on idead here! 
+c                                 on failure could switch to numeric
 
-         goto 10
-
-      else if (iter.gt.0) then
-c                                   set pa to correspond to the final 
-c                                   values in ppp.
-         call ppp2p0 (ppp,ids)
-
-      end if
+c                                 if ok:
+c                                 set pa to correspond to the final 
+c                                 values in ppp.
+      call ppp2p0 (ppp,ids)
 
       if (.not.maxs) then
 
          if (itic.gt.0) then 
-c                                   check for fuck-ups
+c                                 check for fuck-ups
             ppp(1:nstot(ids)) = p0a(1:nstot(ids))
 
             p0a(1:nstot(ids)) = pa(1:nstot(ids))
@@ -1724,4 +1722,257 @@ c                                  remained small as h was decreased itmax times
 
       end if
 c                                 end of chcore
+      end
+
+      subroutine lscrsh (nclin,nctotl,nactiv,nfree,n,
+     *                  lda,istate,kactiv,tolact,a,ax,bl,bu,x,wx)
+c----------------------------------------------------------------------
+c     lscrsh  computes the quantities  istate (optionally), kactiv,
+c     nactiv, nz and nfree associated with the working set at x.
+
+c     an initial working set will be selected. first,
+c     nearly-satisfied or violated bounds are added.
+c     next,  general linear constraints are added that have small residuals.
+
+c     values of istate(j)....
+c        - 2         - 1         0           1          2         3
+c     a'x lt bl   a'x gt bu   a'x free   a'x = bl   a'x = bu   bl = bu
+c----------------------------------------------------------------------
+      implicit none
+
+      integer lda, n, nactiv, nclin, nctotl, nfree, 
+     *        istate(nctotl), kactiv(n), i, imin, is, j, nfixed
+
+      double precision a(lda,*), ax(*), bl(nctotl), bu(nctotl),
+     *                 wx(n), x(n), tolact,  residl, resl, resmin, 
+     *                 resu, toobig, ddot
+
+      external ddot
+
+      double precision wmach
+      common/ cstmch /wmach(10)
+c----------------------------------------------------------------------
+      call dcopy (n,x,1,wx,1)
+
+      nfixed = 0
+      nactiv = 0
+c                                 initialize istate for equality constraints
+      do j = 1, nctotl
+         istate(j) = 0
+         if (bl(j).eq.bu(j)) istate(j) = 3
+      end do
+c                                 initialize nfixed, nfree and kactiv.
+c                                 ensure that the number of bounds and 
+c                                 general constraints in the working set does 
+c                                 not exceed n.
+      do j = 1, nctotl
+
+         if (nfixed+nactiv.eq.n) istate(j) = 0
+
+         if (istate(j).gt.0) then
+
+            if (j.le.n) then
+               nfixed = nfixed + 1
+               if (istate(j).eq.1) wx(j) = bl(j)
+               if (istate(j).ge.2) wx(j) = bu(j)
+            else
+               nactiv = nactiv + 1
+               kactiv(nactiv) = j - n
+            end if
+
+         end if
+
+      end do
+c                                 attempt to add as many constraints as possible to 
+c                                 the working set.
+c                                 -----------------------
+c                                 check if any bounds are violated or nearly 
+c                                 satisfied. if so, add these bounds to the working set and set the
+c                                 variables exactly on their bounds.
+      j = n
+
+      do 
+
+         if (j.ge.1 .and. nfixed+nactiv.lt.n) then
+
+            if (istate(j).eq.0) then
+
+               is = 0
+
+               if (wx(j)-bl(j).le.(1d0+abs(bl(j)))*tolact) is = 1
+
+               if (bu(j)-wx(j).le.(1d0+abs(bu(j)))*tolact) is = 2
+
+               if (is.gt.0) then
+                  istate(j) = is
+                  if (is.eq.1) wx(j) = bl(j)
+                  if (is.eq.2) wx(j) = bu(j)
+                  nfixed = nfixed + 1
+               end if
+
+            end if
+
+            j = j - 1
+
+         else
+
+            exit
+
+         end if
+
+      end do
+c                                 find the linear constraint with
+c                                 smallest residual <= tolact and add it
+c                                 to the working set. repeat until the working set
+c                                 is complete or all remaining residuals are too large.
+      if (nclin.gt.0 .and. nactiv+nfixed.lt.n) then
+c                                 compute residuals for all constraints not in
+c                                 working set.
+         do i = 1, nclin
+            if (istate(n+i).le.0) ax(i) = ddot (n,a(i,1),lda,wx)
+         end do
+
+         is = 1
+
+         toobig = tolact + tolact
+
+         do
+
+            if (is.gt.0 .and. nfixed+nactiv.lt.n) then
+
+               is = 0
+               resmin = tolact
+
+               do i = 1, nclin
+
+                  j = n + i
+
+                  if (istate(j).eq.0) then
+
+                     resl = toobig
+                     resu = toobig
+                     resl = abs(ax(i)-bl(j))/(1d0+abs(bl(j)))
+                     resu = abs(ax(i)-bu(j))/(1d0+abs(bu(j)))
+                     residl = min(resl,resu)
+
+                     if (residl.lt.resmin) then
+                        resmin = residl
+                        imin = i
+                        is = 1
+                           if (resl.gt.resu) is = 2
+                     end if
+                  end if
+
+               end do
+
+               if (is.gt.0) then
+                  nactiv = nactiv + 1
+                  kactiv(nactiv) = imin
+                  j = n + imin
+                  istate(j) = is
+               end if
+
+            else
+
+               exit
+
+            end if
+
+         end do
+
+      end if
+
+      nfree = n - nfixed
+c                                 end of lscrsh
+      end
+
+      subroutine lsadds (unitq,inform,k2,nactiv,nz,nfree,nrank,nrejtd,
+     *                   nres,ngq,n,ldzy,lda,ldr,ldt,istate,kactiv,kx,
+     *                   condmx,a,r,t,res,gq,zy,w,c,s)
+c----------------------------------------------------------------------
+c     lsadds  includes general constraints 1 thru k2 as new rows of
+c     the tq factorization stored in t, zy.  if nrank is nonzero, the
+c     changes in q are reflected in nrank by n triangular factor r such
+c     that
+c                         c  =  p (r) q,
+c                                 (0)
+c     where  p  is orthogonal.
+c----------------------------------------------------------------------
+      implicit none
+
+      logical unitq
+
+      integer inform, k2, lda, ldr, ldt, ldzy, n, nz, istate(*), k,
+     *        nactiv, nfree, ngq, nrank, nrejtd, nres, jadd, l,
+     *        i, iadd, ifix, iswap, kactiv(n), kx(n)
+
+      double precision a(lda,*), c(n), gq(n,*), r(ldr,*), res(n,*),
+     *                 s(n), t(ldt,*), w(n), zy(ldzy,*), condmx, 
+     *                 dnrm2
+
+      external dnrm2
+
+      double precision wmach
+      common/ cstmch /wmach(10)
+
+      double precision asize, dtmax, dtmin
+      common/ ngg008 /asize, dtmax, dtmin
+c----------------------------------------------------------------------
+c     estimate the condition number of the constraints that are not
+c     to be refactorized.
+
+      if (nactiv.eq.0) then
+         dtmax = 0d0
+         dtmin = 1d0
+      else
+         call scond (nactiv,t(nactiv,nz+1),ldt-1,dtmax,dtmin)
+      end if
+
+      do k = 1, k2
+
+         iadd = kactiv(k)
+         jadd = n + iadd
+
+         if (nactiv.lt.nfree) then
+
+            call lsadd (unitq,inform,ifix,iadd,jadd,nactiv,nz,nfree,
+     *                  nrank,nres,ngq,n,lda,ldzy,ldr,ldt,kx,condmx,a,r,
+     *                  t,res,gq,zy,w,c,s)
+
+            if (inform.eq.0) then
+               nactiv = nactiv + 1
+               nz = nz - 1
+            else
+               istate(jadd) = 0
+               kactiv(k) = -kactiv(k)
+            end if
+         end if
+      end do
+
+      if (nactiv.lt.k2) then
+
+c        some of the constraints were classed as dependent and not
+c        included in the factorization.  re-order the part of  kactiv
+c        that holds the indices of the general constraints in the
+c        working set.  move accepted indices to the front and shift
+c        rejected indices (with negative values) to the end.
+
+         l = 0
+
+         do k = 1, k2
+            i = kactiv(k)
+            if (i.ge.0) then
+               l = l + 1
+               if (l.ne.k) then
+                  iswap = kactiv(l)
+                  kactiv(l) = i
+                  kactiv(k) = iswap
+               end if
+            end if
+         end do
+
+      end if
+
+      nrejtd = k2 - nactiv
+c                                 end of lsadds
       end
