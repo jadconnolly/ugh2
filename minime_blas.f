@@ -18,7 +18,7 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical tic, zbad, swap, xref
+      logical zbad, xref, swap
 
       integer i, nvar, iter, iwork(m22), idif, idead,
      *        istate(m21), nclin, ntot, ifail, itic 
@@ -55,9 +55,6 @@ c-----------------------------------------------------------------------
       double precision wmach
       common/ cstmch /wmach(10)
 
-      integer itmxnp, lvlder, lverfy
-      common/ ngg020 /itmxnp, lvlder, lverfy
-
       logical fdset, cntrl, numric, fdincs
       common/ cstfds /fdset, cntrl, numric, fdincs
 
@@ -65,10 +62,6 @@ c-----------------------------------------------------------------------
       save itic
 c-----------------------------------------------------------------------
       yt = pa
-
-      ifail = 0
-
-      tic = .true.
 
       nclin = nz(rids)
       ntot = nstot(rids)
@@ -79,25 +72,6 @@ c-----------------------------------------------------------------------
          nvar = ntot
       end if
 
-      if (boundd(rids)) then
-c                                 make the composition non-degenerate
-         sum = 0d0
-
-         do i = 1, ntot
-
-            if (pa(i).lt.zero) pa(i) = zero
-
-            sum = sum + pa(i)
-
-         end do 
-
-         pa(1:ntot) = pa(1:ntot)/sum
-
-      end if
-c                                 finite difference increments
-c                                 will be estimated at this 
-c                                 coordinate, so choose a feasible 
-c                                 composition
       ppp(1:nvar) = pa(1:nvar)
 c                                 initialize bounds
       if (boundd(rids)) then
@@ -134,15 +108,6 @@ c                                 closure for molecular models
          lapz(nclin,1:nvar) = 1d0
 
       end if
-c                                 settings for numeric derivatives:
-c                                 -----------------------------------
-c                                 fdset: compute increments the 1st
-c                                 time numeric derivatives are computed.
-      fdset = .true. 
-c                                 cntrl: use 2nd order estimate
-      cntrl = .false.
-c                                 fdincs: computed increments available
-      fdincs = .false.
 
       if (deriv(rids)) then
 
@@ -151,6 +116,15 @@ c                                 fdincs: computed increments available
       else
 
          numric = .true.
+c                                 settings for numeric derivatives:
+c                                 -----------------------------------
+c                                 fdset: compute increments the 1st
+c                                 time numeric derivatives are computed.
+         fdset = .true. 
+c                                 cntrl: use 2nd order estimate
+         cntrl = .false.
+c                                 fdincs: computed increments available
+         fdincs = .false.
 
       end if
 
@@ -311,9 +285,6 @@ c-----------------------------------------------------------------------
 
       logical outrpc
       common/ ngg015 /outrpc
-
-      integer itmxnp, lvlder, lverfy
-      common/ ngg020 /itmxnp, lvlder, lverfy
 
       logical fdset, cntrl, numric, fdincs
       common/ cstfds /fdset, cntrl, numric, fdincs
@@ -1188,9 +1159,6 @@ c-----------------------------------------------------------------------
       character fname*10, aname*6, lname*22
       common/ csta7 /fname(h9),aname(h9),lname(h9)
 
-      integer itmxnp, lvlder, lverfy
-      common/ ngg020 /itmxnp, lvlder, lverfy
-
       logical fdset, cntrl, numric, fdincs
       common/ cstfds /fdset, cntrl, numric, fdincs
 
@@ -1391,9 +1359,6 @@ c----------------------------------------------------------------------
       logical fdset, cntrl, numric, fdincs
       common/ cstfds /fdset, cntrl, numric, fdincs
 
-      integer itmxnp, lvlder, lverfy
-      common/ ngg020 /itmxnp, lvlder, lverfy
-
       double precision cdint, ctol, dxlim, epsrf, eta, fdint, ftol,
      *                 hcndbd
       common/ ngg021 /cdint, ctol, dxlim, epsrf, eta,
@@ -1402,7 +1367,7 @@ c----------------------------------------------------------------------
       double precision epspt3, epspt5, epspt8, epspt9
       common/ ngg006 /epspt3, epspt5, epspt8, epspt9
 c----------------------------------------------------------------------
-      itmax = 3
+      itmax = 6
 
       fdnorm = 0d0
 
@@ -1724,28 +1689,27 @@ c                                  remained small as h was decreased itmax times
 c                                 end of chcore
       end
 
-      subroutine lscrsh (nclin,nctotl,nactiv,nfree,n,
-     *                  lda,istate,kactiv,tolact,a,ax,bl,bu,x,wx)
+      subroutine lscrsh (nclin,nctotl,nactiv,nfree,n,lda,istate,kactiv,
+     *                   tolact,a,ax,bl,bu,x,wx)
 c----------------------------------------------------------------------
-c     lscrsh  computes the quantities  istate (optionally), kactiv,
-c     nactiv, nz and nfree associated with the working set at x.
+c     lscrsh  computes the quantities istate, kactiv, nactiv, and nfree 
+c     associated with the working set at x.
 
-c     an initial working set will be selected. first,
-c     nearly-satisfied or violated bounds are added.
-c     next,  general linear constraints are added that have small residuals.
+c     an initial working set is selected. nearly-satisfied or violated 
+c     bounds are added, and lastly general linear constraints are added.
 
-c     values of istate(j)....
+c     values of istate(j)
 c        - 2         - 1         0           1          2         3
 c     a'x lt bl   a'x gt bu   a'x free   a'x = bl   a'x = bu   bl = bu
 c----------------------------------------------------------------------
       implicit none
 
-      integer lda, n, nactiv, nclin, nctotl, nfree, 
-     *        istate(nctotl), kactiv(n), i, imin, is, j, nfixed
+      integer lda, n, nactiv, nclin, nctotl, nfree, istate(nctotl), 
+     *        kactiv(n), i, imin, is, j, nfixed
 
       double precision a(lda,*), ax(*), bl(nctotl), bu(nctotl),
-     *                 wx(n), x(n), tolact,  residl, resl, resmin, 
-     *                 resu, toobig, ddot
+     *                 wx(n), x(n), tolact, residl, resl, resmin, 
+     *                 resu, toobig, ddot, fac
 
       external ddot
 
@@ -1753,33 +1717,18 @@ c----------------------------------------------------------------------
       common/ cstmch /wmach(10)
 c----------------------------------------------------------------------
       call dcopy (n,x,1,wx,1)
-
+c                                 initialize variables
       nfixed = 0
+      istate(1:nctotl) = 0
+c                                 initialize constraints
       nactiv = 0
-c                                 initialize istate for equality constraints
-      do j = 1, nctotl
-         istate(j) = 0
-         if (bl(j).eq.bu(j)) istate(j) = 3
-      end do
-c                                 initialize nfixed, nfree and kactiv.
-c                                 ensure that the number of bounds and 
-c                                 general constraints in the working set does 
-c                                 not exceed n.
-      do j = 1, nctotl
 
-         if (nfixed+nactiv.eq.n) istate(j) = 0
+      do j = n+1, nctotl
 
-         if (istate(j).gt.0) then
-
-            if (j.le.n) then
-               nfixed = nfixed + 1
-               if (istate(j).eq.1) wx(j) = bl(j)
-               if (istate(j).ge.2) wx(j) = bu(j)
-            else
-               nactiv = nactiv + 1
-               kactiv(nactiv) = j - n
-            end if
-
+         if (bl(j).eq.bu(j)) then
+            istate(j) = 3
+            nactiv = nactiv + 1
+            kactiv(nactiv) = j - n
          end if
 
       end do
@@ -1789,30 +1738,26 @@ c                                 -----------------------
 c                                 check if any bounds are violated or nearly 
 c                                 satisfied. if so, add these bounds to the working set and set the
 c                                 variables exactly on their bounds.
-      j = n
+      do j = n, 1, -1
 
-      do 
-
-         if (j.ge.1 .and. nfixed+nactiv.lt.n) then
-
-            if (istate(j).eq.0) then
+         if (nfixed+nactiv.lt.n) then
 
                is = 0
 
-               if (wx(j)-bl(j).le.(1d0+abs(bl(j)))*tolact) is = 1
+               if (wx(j)-bl(j).le.(1d0+abs(bl(j)))) is = 1
 
-               if (bu(j)-wx(j).le.(1d0+abs(bu(j)))*tolact) is = 2
+               if (bu(j)-wx(j).le.(1d0+abs(bu(j)))) is = 2
 
                if (is.gt.0) then
+
                   istate(j) = is
+
                   if (is.eq.1) wx(j) = bl(j)
                   if (is.eq.2) wx(j) = bu(j)
+
                   nfixed = nfixed + 1
+
                end if
-
-            end if
-
-            j = j - 1
 
          else
 
@@ -1849,27 +1794,31 @@ c                                 working set.
 
                   if (istate(j).eq.0) then
 
-                     resl = toobig
-                     resu = toobig
                      resl = abs(ax(i)-bl(j))/(1d0+abs(bl(j)))
                      resu = abs(ax(i)-bu(j))/(1d0+abs(bu(j)))
+
                      residl = min(resl,resu)
 
                      if (residl.lt.resmin) then
+
                         resmin = residl
                         imin = i
                         is = 1
-                           if (resl.gt.resu) is = 2
+                        if (resl.gt.resu) is = 2
+
                      end if
+
                   end if
 
                end do
 
                if (is.gt.0) then
+
                   nactiv = nactiv + 1
                   kactiv(nactiv) = imin
                   j = n + imin
                   istate(j) = is
+
                end if
 
             else
