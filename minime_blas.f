@@ -1367,7 +1367,7 @@ c----------------------------------------------------------------------
       double precision epspt3, epspt5, epspt8, epspt9
       common/ ngg006 /epspt3, epspt5, epspt8, epspt9
 c----------------------------------------------------------------------
-      itmax = 6
+      itmax = 3
 
       fdnorm = 0d0
 
@@ -1709,7 +1709,7 @@ c----------------------------------------------------------------------
 
       double precision a(lda,*), ax(*), bl(nctotl), bu(nctotl),
      *                 wx(n), x(n), tolact, residl, resl, resmin, 
-     *                 resu, toobig, ddot, fac
+     *                 resu, toobig, ddot
 
       external ddot
 
@@ -1840,7 +1840,7 @@ c                                 end of lscrsh
      *                   condmx,a,r,t,res,gq,zy,w,c,s)
 c----------------------------------------------------------------------
 c     lsadds  includes general constraints 1 thru k2 as new rows of
-c     the tq factorization stored in t, zy.  if nrank is nonzero, the
+c     the tq factorization stored in t, zy. if nrank is nonzero, the
 c     changes in q are reflected in nrank by n triangular factor r such
 c     that
 c                         c  =  p (r) q,
@@ -1867,9 +1867,8 @@ c----------------------------------------------------------------------
       double precision asize, dtmax, dtmin
       common/ ngg008 /asize, dtmax, dtmin
 c----------------------------------------------------------------------
-c     estimate the condition number of the constraints that are not
-c     to be refactorized.
-
+c                                 estimate the condition number of the constraints that are not
+c                                 to be refactorized.
       if (nactiv.eq.0) then
          dtmax = 0d0
          dtmin = 1d0
@@ -1901,9 +1900,9 @@ c     to be refactorized.
       if (nactiv.lt.k2) then
 
 c        some of the constraints were classed as dependent and not
-c        included in the factorization.  re-order the part of  kactiv
+c        included in the factorization. re-order the part of  kactiv
 c        that holds the indices of the general constraints in the
-c        working set.  move accepted indices to the front and shift
+c        working set. move accepted indices to the front and shift
 c        rejected indices (with negative values) to the end.
 
          l = 0

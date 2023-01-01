@@ -4760,12 +4760,6 @@ c
       targtg = (1d-4 - eta)*oldg
       g0 = gbest
 
-      if (numric) then
-         mode = 0
-      else
-         mode = 2
-      end if
-
       first = .true.
 
 c     commence main loop, entering srchc  or srchq two or more times.
@@ -5821,9 +5815,9 @@ c----------------------------------------------------------------------
       integer inform, ldaqp, ldr, lenw, majits, n, nactiv, nclin, 
      *        nctotl, nfree, nfun, ngrad, nz, istate(*), iw(*), 
      *        kactiv(n), kx(n), isum, info, jmax, linact, majit0, 
-     *        minits, mnr,
-     *        mnrsum, mode,nlnact, nlserr, nmajor, nminor, nqperr,
-     *        nqpinf, numinf, nviol
+     *        minits, mnr, nqpinf, numinf, nviol,
+     *        mnrsum, nlnact, nlserr, nmajor, nminor, nqperr
+
 
       double precision aqp(ldaqp,*), ax(*), bl(nctotl), bu(nctotl),
      *                 clamda(nctotl), featol(nctotl), grad(n), xnorm,
@@ -5877,7 +5871,6 @@ c----------------------------------------------------------------------
 
       equivalence (itmxnp,nmajor), (itmax2,nminor)
 c----------------------------------------------------------------------
-      mode = 2
 c                                 specify machine-dependent parameters.
       flmax = wmach(7)
       rtmax = wmach(8)
@@ -5968,8 +5961,6 @@ c                                 up the ante:
                   goodgq = .false.
                   cntrl = .true.
                   newgq = .true.
-c                                 this call does nothing at all
-c                 call objfun (n,x,obj,grad,fdnorm,bl,bu)
 
                end if
 
@@ -5978,18 +5969,12 @@ c                 call objfun (n,x,obj,grad,fdnorm,bl,bu)
             if (goodgq) exit
 c                                 end of inner loop
          end do
-
-c     (1) compute the number of constraints that are violated by more
-c         than featol.
-c     (2) compute the 2-norm of the residuals of the constraints in
-c         the qp working set.
-
+c                                 count violated constraints (> featol)
+c                                 get 2-norm of the working set constraint residuals
          call npfeas(n,nclin,istate,bigbnd,cvnorm,errmax,jmax,nviol,
      *            ax,bl,bu,featol,x,w(lwrk2))
-
-c     define small quantities that reflect the magnitude of objf and
-c     the norm of grad(free).
-
+c                                 define small quantities that reflect the magnitude of objf and
+c                                 the norm of grad(free).
          objsiz = 1d0 + abs(objf)
 
          xsize = 1d0 + xnorm
@@ -6026,11 +6011,9 @@ c     the norm of grad(free).
                condhz = flmax
             end if
          end if
-
-c     test for convergence.
-c     the point test convpt checks for a k-t point at the initial
-c     point or after a large change in x.
-
+c                                 test for convergence.
+c                                 convpt checks for a k-t point at the initial
+c                                 point or after a large change in x.
          convpt = dxnorm .le. epspt8*gtest .and. nviol.eq.0 .and.
      *         nqperr .le. 1
 
@@ -6052,22 +6035,16 @@ c     point or after a large change in x.
          if (.not. (done .or. error)) then
 
             majits = majits + 1
-
-c        make copies of information needed for the bfgs update.
-
+c                                 copy information needed for the bfgs update.
             call dcopy (n,x,1,w(lx1),1)
             call dcopy (n,w(lgq),1,w(lgq1),1)
-
-c        compute the parameters for the linesearch.
-c        alfmin is the smallest allowable step predicted by the qp
-c        subproblem.
-
+c                                 compute parameters for \linesearch.
+c                                 alfmin is the smallest allowable step predicted by the qp
+c                                 subproblem.
             alfmin = 1d0
             if (.not. feasqp) alfmin = 0d0
-
-c        alfmax is the largest feasible steplength subject to a user-
-c        defined limit alflim on the change in x.
-
+c                                 alfmax is the largest feasible steplength subject to 
+c                                 input specified alflim.
             alfmax = sdiv (bigdx,dxnorm,overfl)
 
             call npalf(info,n,nclin,alfa,alfmin,alfmax,bigbnd,
@@ -6075,18 +6052,14 @@ c        defined limit alflim on the change in x.
 
             alfmax = alfa
             if (alfmax.lt.1d0+epspt3 .and. feasqp) alfmax = 1d0
-
-c        alfbnd is a tentative upper bound on the steplength.  if the
-c        merit function is decreasing at alfbnd and certain
-c        conditions hold,  alfbnd will be increased in multiples of
-c        two (subject to not being greater than alfmax).
-
+c                                 alfbnd is a tentative upper bound on the steplength. if the
+c                                 merit function is decreasing at alfbnd and certain
+c                                 conditions hold, alfbnd will be increased in multiples of
+c                                 two (subject to not being greater than alfmax).
             alfbnd = alfmax
-
-c        alfsml trips the computation of central differences.  if a
-c        trial steplength falls below alfsml, the linesearch is
-c        terminated.
-
+c                                 alfsml trips computation of central differences. if a
+c                                 trial steplength falls below alfsml, the linesearch is
+c                                 terminated.
             alfsml = 0d0
             if (numric .and. cntrl) then
                alfsml = sdiv (fdnorm,dxnorm,overfl)
@@ -6100,25 +6073,23 @@ c                                 compute the steplength
      *                   dxnorm,epsrf,eta,gdx,grdalf,glf2,objf,objalf,
      *                   xnorm,w(ldx),grad,gradu,w(lx1),x,bl,bu)
 
-c           npsrch  sets nlserr to the following values...
-c           < 0  if the user wants to stop.
-c             1  if the search is successful and alfa < alfmax.
-c             2  if the search is successful and alfa = alfmax.
-c             3  if a better point was found but too many functions
-c                were needed (not sufficient decrease).
+c                                 npsrch  sets nlserr to the following values...
+c                                 1  if the search is successful and alfa < alfmax.
+c                                 2  if the search is successful and alfa = alfmax.
+c                                 3  if a better point was found but too many functions
+c                                    were needed (not sufficient decrease).
 
-c           values of nlserr occurring with a nonzero value of alfa.
-c             4  if alfmax < tolabs (too small to do a search).
-c             5  if alfa  < alfsml (srchq only -- maybe want to switch
-c                to central differences to get a better direction).
-c             6  if the search found that there is no useful step.
-c                the interval of uncertainty is less than 2*tolabs.
-c                the minimizer is very close to alfa = zero
-c                or the gradients are not sufficiently accurate.
-c             7  if there were too many function calls.
-c             8  if the input parameters were bad
-c                (alfmax le toltny  or  uphill).
-
+c                                 values of nlserr occurring with a nonzero value of alfa.
+c                                 4  if alfmax < tolabs (too small to do a search).
+c                                 5  if alfa  < alfsml (srchq only -- maybe want to switch
+c                                    to central differences to get a better direction).
+c                                 6  if the search found that there is no useful step.
+c                                    the interval of uncertainty is less than 2*tolabs.
+c                                    the minimizer is very close to alfa = zero
+c                                    or the gradients are not sufficiently accurate.
+c                                 7  if there were too many function calls.
+c                                 8  if the input parameters were bad
+c                                    (alfmax le toltny or uphill).
             if (nlserr.lt.0) then
                inform = nlserr
                go to 60
@@ -6152,10 +6123,8 @@ c                                 and solve the qp again.
 
                if (numric) then
 c                                 compute the missing gradients.
-                  mode = 1
                   ngrad = ngrad + 1
-c                                 and i can't see how this call
-c                                 does anything either, but it does.
+
                   call objfun (n,x,obj,grad,fdnorm,bl,bu)
 
                   gdx = ddot (n,grad,1,w(ldx))
@@ -6172,10 +6141,8 @@ c                                 does anything either, but it does.
 
                if (nclin.gt.0) call daxpy (nclin,alfa,w(ladx),1,ax,1)
                alfdx = alfa*dxnorm
-
-c           update the factors of the approximate hessian of the
-c           lagrangian function.
-
+c                                 update the factors of the approximate hessian of the
+c                                 lagrangian function.
                call npupdt (mjrmsg,n,ldr,alfa,glf1,glf2,qpcurv,w(lgq1),
      *                    w(lgq),w(lhpq),w(lrpq),r,w(lwrk2),w(lwrk1))
 
@@ -6183,10 +6150,8 @@ c           lagrangian function.
                cond = sdiv (drmax,drmin,overfl)
 
                if (cond.gt.rcndbd .or.rfrobn.gt.rootn*1d2*drmax) then
-
-c              reset the condition estimator and range-space
-c              partition of q'hq.
-
+c                                 reset the condition estimator and range-space
+c                                 partition of q'hq.
                   mjrmsg(5:5) = 'refactorize hessian'
 
                   call nprset (unitq,n,nfree,nz,ldzy,ldr,iw(liperm),kx,
@@ -6251,8 +6216,7 @@ c----------------------------------------------------------------------
       integer idamax
       external ddot, dnrm2, idamax
 c----------------------------------------------------------------------
-c     move  x  onto the simple bounds in the working set.
-
+c                                 move  x  onto the simple bounds in the working set.
       do 20 k = nfree + 1, n
          j = kx(k)
          is = istate(j)
@@ -6260,10 +6224,8 @@ c     move  x  onto the simple bounds in the working set.
          if (is.ge.2) bnd = bu(j)
          if (is.ne.4) x(j) = bnd
    20 continue
-
-c     move  x  onto the general constraints in the working set.
-c     ntry  attempts are made to get acceptable row errors.
-
+c                                 move  x  onto the general constraints in the working set.
+c                                 ntry  attempts are made to get acceptable row errors.
       ktry = 1
       jmax = 1
       errmax = 0d0

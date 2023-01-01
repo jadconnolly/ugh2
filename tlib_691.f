@@ -2,7 +2,7 @@ c----------------------------------------------------------------------
 
 c TLIB - a library of subprograms called by the PERPLEX programs.
 
-c Copyright (C) 1986-2022 James A D Connolly
+c Copyright (C) 1986-2023 James A D Connolly
 
 c This file is part of Perple_X.
 
@@ -31,9 +31,9 @@ c----------------------------------------------------------------------
       integer n
 
       write (n,'(/,a,//,a)') 
-     *     'Perple_X version 6.9.2, source updated December 15, 2022.',
+     *     'Perple_X version 6.9.2, source updated January 1, 2023.',
 
-     *     'Copyright (C) 1986-2022 James A D Connolly '//
+     *     'Copyright (C) 1986-2023 James A D Connolly '//
      *     '<www.perplex.ethz.ch/copyright.html>.'
 
       end
