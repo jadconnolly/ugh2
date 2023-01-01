@@ -1744,9 +1744,9 @@ c                                 variables exactly on their bounds.
 
                is = 0
 
-               if (wx(j)-bl(j).le.(1d0+abs(bl(j)))) is = 1
+               if (wx(j)-bl(j).le.(1d0+abs(bl(j)))*tolact) is = 1
 
-               if (bu(j)-wx(j).le.(1d0+abs(bu(j)))) is = 2
+               if (bu(j)-wx(j).le.(1d0+abs(bu(j)))*tolact) is = 2
 
                if (is.gt.0) then
 
