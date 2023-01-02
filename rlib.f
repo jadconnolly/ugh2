@@ -8928,7 +8928,6 @@ c                                 check for degenerate compositions
 
       end
 
-
       logical function degpin (k,id)
 c----------------------------------------------------------------------
 c check if ordered species k contains a component that the system is 
