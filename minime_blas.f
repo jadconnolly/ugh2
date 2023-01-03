@@ -1,5 +1,5 @@
 
-      subroutine minfrc (ifail)
+      subroutine minfrc (idead)
 c-----------------------------------------------------------------------
 c minimize the omega function for the independent endmember fractions
 c of solution ids subject to site fraction constraints
@@ -21,7 +21,7 @@ c-----------------------------------------------------------------------
       logical zbad, xref, swap
 
       integer i, nvar, iter, iwork(m22), idif, idead,
-     *        istate(m21), nclin, ntot, ifail, itic 
+     *        istate(m21), nclin, ntot, itic 
 
       double precision ggrd(m19), lapz(m20,m19),gsol1, pinc,
      *                 bl(m21), bu(m21), gfinal, ppp(m19),
@@ -152,13 +152,13 @@ c                                 reconstruct pa-array, necessary? yes
 c                                 reject bad site populations, necessary?
       if (boundd(rids)) then
          if (pa(nstot(rids)).lt.0d0) then 
-            ifail = 2
+            idead = 2
             return
          end if
       end if
 
       if (zbad(pa,rids,zsite,fname(rids),.false.,fname(rids))) then
-         ifail = 3
+         idead = 3
          return
       end if
 c                                 save the final point, the point may have
@@ -168,15 +168,11 @@ c                                 a near solution rpc would prevent gsol2 from
 c                                 saving the final composition. here the replicate
 c                                 threshold is reduced to zero (sqrt(eps)).
       call makepp (rids)
-
-      call getscp (rcp,rsum,rids,rids)
 c                                 if logical arg = T use implicit ordering
       gfinal = gsol1 (rids,.false.)
-
-      if (rsum.eq.0d0) then 
-         ifail = 4
-         return
-      end if
+c                                 gsol1 computes rcp, rsum for ksmod(39)
+c                                 but a direct call getscp will not.
+      if (ksmod(rids).ne.39) call getscp (rcp,rsum,rids,rids)
 c                                 save the final QP result
       call savrpc (gfinal,0d0,swap,idif)
 
@@ -203,8 +199,9 @@ c                                 exit
 c                                 degeneracy test removed
 c                                 if logical arg = T use implicit ordering
             gfinal = gsol1 (rids,.true.)
-
-            call getscp (rcp,rsum,rids,rids)
+c                                 gsol1 computes rcp, rsum for ksmod(39)
+c                                 but a direct call here to getscp will not.
+            if (ksmod(rids).ne.39) call getscp (rcp,rsum,rids,rids)
 c                                 save the scatter point
             call savrpc (gfinal,nopt(48)/2d0,swap,idif)
 
@@ -255,13 +252,13 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical zbad, saved
+      logical zbad, saved, tkwak
 
       integer i, j, nvar, idif
 
       double precision ppp(*), gval, dgdp(*), psum, 
      *                 gsol1, g, bsum, zsite(m10,m11),
-     *                 bl(*), bu(*), fdnorm
+     *                 bl(*), bu(*), fdnorm, tcp(k5), tsum
 
       external gsol1, zbad
 
@@ -299,10 +296,10 @@ c                                 reconstruct pa array
       call ppp2pa (ppp,psum,nvar)
 
       call makepp (rids)
-c                                 get the bulk composition from pa
-      call getscp (rcp,rsum,rids,rids)
 
       if (deriv(rids)) then
+c                                 get the bulk composition from pa
+         call getscp (rcp,rsum,rids,rids)
 c                                 analytical derivatives:
          call getder (g,dgdp,rids)
 c                                 ------------------------------------
@@ -324,6 +321,16 @@ c                                 convert dgdp to dg'dp
 c                                 only numeric derivatives are
 c                                 available, get g at the composition
          g = gsol1(rids,.false.)
+c                                 get the bulk composition from 
+c                                 pa if ksmod(rids) ~= 39, else
+c                                 it's computed by gsol1
+         if (ksmod(rids).ne.39) then
+            call getscp (rcp,rsum,rids,rids)
+         end if
+c                                 save the composition
+         tcp(1:icomp) = rcp(1:icomp)
+         tsum = rsum
+         tkwak = rkwak
 c                                 level it
          call gsol5 (g,gval)
 c                                  compute derivatives
@@ -338,8 +345,10 @@ c                                 if numeric derivatives were
 c                                 evaluated reset composition
 c                                 data
             call makepp (rids)
-c                                 get the bulk composition from pa
-            call getscp (rcp,rsum,rids,rids)
+
+            rcp(1:icomp) = tcp(1:icomp)
+            rsum = tsum
+            rkwak = tkwak
 
           end if
 c                                 try to eliminate bad results
@@ -366,9 +375,7 @@ c-----------------------------------------------------------------------
 
       integer j
 
-      double precision gval, gsol1, g
-
-      external gsol1
+      double precision gval, g
 
       logical mus
       double precision mu
@@ -417,7 +424,8 @@ c                                 reconstruct pa array from ppp
 c                                 make the pp array for gsol1
       call makepp (rids)
 c                                 get the bulk composition from pa
-      call getscp (rcp,rsum,rids,rids)
+c                                 for everything but GFSM (done by gsol1)
+      if (ksmod(rids).ne.39) call getscp (rcp,rsum,rids,rids)
 c                                 get the real g
       g = gsol1 (rids,.false.)
 c                                 get the leveled gval
@@ -535,7 +543,6 @@ c                                 increment counters
       idif = jphct
       icoz(jphct) = zcoct
       zcoct = zcoct + ttot
-
 c                                 lagged speciation quack flag
       quack(jphct) = rkwak
 c                                 normalize and save the composition
@@ -1451,8 +1458,6 @@ c                                 numder may do this better),
       end do
 c                                 signal individual increments available:
       fdincs = .true.
-
-200   return
 
       end
 
