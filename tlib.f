@@ -31,7 +31,7 @@ c----------------------------------------------------------------------
       integer n
 
       write (n,'(/,a,//,a)') 
-     *     'Perple_X version 7.0.1, January 3, 2023.',
+     *     'Perple_X version 7.0.2, January 6, 2023.',
 
      *     'Copyright (C) 1986-2023 James A D Connolly '//
      *     '<www.perplex.ethz.ch/copyright.html>.'
@@ -508,6 +508,8 @@ c                                 override counter limits for (some) warnings
       lopt(64) = .false.
 c                                 fluid_shear_modulus
       lopt(65) = .true.
+c                                 compute finite difference increments for MINFRC
+      lopt(66) = .false.
 c                                 phi_d
       nopt(65) = 0.36
 c                                 initialize mus flag lagged speciation
@@ -850,6 +852,10 @@ c                                 override counter limits for (some) warnings
          else if (key.eq.'fluid_shear_modulus') then
 c                                 compute shear modulus assuming textural eq
             if (val.eq.'F') lopt(65) = .false.
+ 
+         else if (key.eq.'compute_fd_increments') then
+c                                 compute finite difference increments for MINFRC
+            if (val.eq.'T') lopt(66) = .true.
 
          else if (key.eq.'phi_d') then
 c                                 disaggregation porosity for fluid_shear_modulus
@@ -13461,3 +13467,4 @@ c                                 automatically continue
      *        've has been set to F, this is often bad practice',/)
 
       end
+

@@ -602,22 +602,18 @@ c                                the point as already been output
 c                                by resub
       outrpc = .false.
 c                                compute objective function
-      call objfun (n,x,objf,gradu,fdnorm,bl,bu)
+      call objfun (n,x,objf,gradu)
 
       g0 = objf
 
-      if (numric) then
+      if (numric.and.lopt(66)) then
+c                                 get finite difference increments:
+         call chfd (n,fdnorm,objf,objfun,bl,bu,gradu,x)
 c                                 forward increments are in w(1:n)
 c                                 central increments are in w(lhctrl:+n)
-c                                 w(ldx) is used as a dummy for grad when
-c                                 objfun is called, this could be obviated
-c                                 by passing the function name used by 
-c                                 numder.
-         call chfd (n,fdnorm,objf,objfun,bl,bu,w(lgrad),x,w(ldx))
-c                                 chfd will return the numeric grad and may return
-c                                 nonsense in gradu, if analytics were ok, copy back
-c                                 into w(lgrd)
-         gradu(1:n) = w(lgrad:lgrad+n-1)
+      else if (numric) then 
+c                                 recompute gradient at first order
+         call numder (objf,objfun,gradu,x,fdnorm,bl,bu,n)
 
       end if
 
@@ -628,10 +624,9 @@ c                                 transform grad (w(lgq))
 c                                 signal gsol2 to save g on request
       outrpc = .true.
 c                                 solve the problem.
-      call npcore (unitq,inform,iter,n,nclin,nctotl,
-     *             nactiv,nfree,nz,ldaqp,ldr,nfun,ngrad,
-     *             istate,iw(lkactv),iw(lkx),objf,fdnorm,xnorm,
-     *             objfun,a,w(lax),bl,bu,clamda,
+      call npcore (unitq,inform,iter,n,nclin,nctotl, nactiv,nfree,nz,
+     *             ldaqp,ldr,nfun,ngrad, istate,iw(lkactv),iw(lkx),objf,
+     *             fdnorm,xnorm,objfun,a,w(lax),bl,bu,clamda,
      *             w(lfeatl),w(lgrad),gradu,r,x,iw,w,lenw)
 
       if (g0-objf.gt.ftol) then 
@@ -4689,8 +4684,8 @@ c
 c     tolrel  is the tolerance on relative changes in alfa.
 c
 c     toltny  is the magnitude of the smallest allowable value of alfa.
-c             if  m(tolabs) - m(0).gt.epsaf,  the linesearch tries
-c             steps in the range  toltny .le. alfa .le. tolabs.
+c             if m(tolabs) - m(0).gt.epsaf,  the linesearch tries
+c             steps in the range toltny .le. alfa .le. tolabs.
 c----------------------------------------------------------------------
       implicit none
 
@@ -4702,11 +4697,11 @@ c----------------------------------------------------------------------
 
       double precision alfa, alfmax, alfsml, dxnorm, epsrf,
      *                 eta, gdx, glf, grdalf, objalf, objf,
-     *                 xnorm, dx(n), grad(n), newa, sum,
+     *                 xnorm, dx(n), grad(n),
      *                 gradu(n), x(n), x1(n), alfbst, epsaf,
      *                 fbest, ftry, g0, gbest, gtry,
      *                 oldf, oldg, q, s, t, targtg, tgdx, tglf,
-     *                 tobj, tobjm, tolabs, tolax, tolrel, tolrx,
+     *                 tobj, tolabs, tolax, tolrel, tolrx,
      *                 toltny, ddot, bl(*), bu(*), fdnorm
 
       external objfun, ddot
@@ -4796,7 +4791,7 @@ c                (alfmax le toltny  or  oldg ge 0).
          if (imprvd) then
 
             objf = tobj
-            objalf = tobjm
+            objalf = tobj
 
            if (.not.numric) then
 
@@ -4813,50 +4808,11 @@ c                                 if ~done, compute objfun for srchc/q
             call dcopy (n,x1,1,x,1)
             call daxpy (n,alfa,dx,1,x,1)
 c                                 hack for simplicial composition
-            if (bl(1).eq.0) then
-
-               newa = alfa
-               sum = 0d0
-
-               do j = 1, n
-
-                  sum = sum + x(j)
-
-                  if (x(j).lt.nopt(50)) then
-
-                     if (x(j).gt.-nopt(50)) then 
-                        x(j) = 0d0
-                     else 
-                        if (x1(j)/dx(j).lt.newa) newa = -x1(j)/dx(j)
-                     end if
-
-                  end if
-
-               end do
-
-               if (newa.lt.alfa.and.newa.ge.0d0) then
-
-                     write (*,*) 'alfa from ',alfa,'to',newa,
-     *                           ' rids/num ',rids,numric
-
-                     alfa = newa
-
-                     call dcopy (n,x1,1,x,1)
-                     call daxpy (n,alfa,dx,1,x,1)
-
-               end if
-
-               if (sum.gt.1d0) then
-                  write (*,*) 'uh oh?',sum
-               end if
-
-            end if 
+            call badalf (alfa,n,x,x1,dx,'a')
 
             call objfun (n,x,tobj,gradu,fdnorm,bl,bu)
 
-            tobjm = tobj
-
-            ftry = tobjm - oldf - 1d-4 * oldg * alfa
+            ftry = tobj - oldf - 1d-4 * oldg * alfa
 c                                 compute auxiliary gradient info 
             if (.not.numric) then
 
@@ -4883,6 +4839,8 @@ c                                 compute auxiliary gradient info
 
          call dcopy (n,x1,1,x,1)
          call daxpy (n,alfa,dx,1,x,1)
+c                                 hack for simplicial composition
+         call badalf (alfa,n,x,x1,dx,'b')
 
       end if
 
@@ -5857,7 +5815,7 @@ c----------------------------------------------------------------------
      *                 alfsml, cond, condh, condhz, condt, ddot, 
      *                 cvnorm, dinky, drzmax, drzmin, dxnorm, errmax,
      *                 flmax, gdx, gfnorm, glf1, glf2, glnorm, gltest,
-     *                 grdalf, gtest, gznorm, obj, objalf, objsiz,
+     *                 grdalf, gtest, gznorm, objalf, objsiz,
      *                 qpcurv, rootn, rtftol, rtmax, xsize, dnrm2, sdiv 
 
       external ddot, dnrm2, sdiv, objfun
@@ -5925,7 +5883,7 @@ c                                 hot start for the first qp subproblem.
       minits = 0
 
       do
-
+c                                 loop to find good gradient
 c        if (rids.eq.3) then
             isum = isum + minits 
 c           write (*,*) isum, objf
@@ -5933,17 +5891,25 @@ c           write (*,*) x
 c        end if
 
          minits = 0
-c                                       loop to find good gradient
+
          do
-c                                       loop to follow the gradient
+c                                 loop to follow the gradient
             if (newgq) then
 
-               if (numric) call objfun (n,x,objf,grad,fdnorm,bl,bu)
+               if (numric) then
+
+                  call objfun (n,x,objf,grad)
+c                                 compute derivatives
+                  call numder (objf,objfun,grad,x,fdnorm,bl,bu,n)
+
+               end if
+c                                 just to be safe, make gradu:
+               gradu(1:n) = grad(1:n)
 
                w(lgq:lgq+n-1) = grad(1:n)
 
-               call cmqmul(6,n,nz,nfree,ldzy,unitq,kx,w(lgq),w(lzy),
-     *                  w(lwrk1))
+               call cmqmul (6,n,nz,nfree,ldzy,unitq,kx,w(lgq),w(lzy),
+     *                      w(lwrk1))
 
                newgq = .false.
 
@@ -6155,8 +6121,12 @@ c                                 and solve the qp again.
                if (numric) then
 c                                 compute the missing gradients.
                   ngrad = ngrad + 1
-
-                  call objfun (n,x,obj,grad,fdnorm,bl,bu)
+c                                 changed to objf otherwise old call makes no sense
+                  call objfun (n,x,objf,grad)
+c                                  compute derivatives
+                  call numder (objf,objfun,grad,x,fdnorm,bl,bu,n)
+c                                 just to be safe, make gradu:
+                  gradu(1:n) = grad(1:n)
 
                   gdx = ddot (n,grad,1,w(ldx))
                   glf2 = gdx

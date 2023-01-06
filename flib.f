@@ -2256,10 +2256,7 @@ c----------------------------------------------------------------------
 
          i = ins(k)
 c DEBUG DEBUG 691
-         if (y(i).lt.-1d-9) then 
-            write (*,*) 'ratso il schmatzo',y(i)
-            return
-         end if
+         if (y(i).lt.nopt(50)) y(i) = 0d0
 
          aj2(i) = 0d0
          bx = bx + b(i)*y(i)

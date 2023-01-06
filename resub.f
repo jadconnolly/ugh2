@@ -587,9 +587,6 @@ c                                 point to solution models
 
                if (nrf(ids)) cycle
 
-c           if (rkds.eq.0) then
-c              write (*,*) rkds
-c            end if 
                rkds = id
 c                                 endmember refinement point:
                call endpa (kd,-id,ids)

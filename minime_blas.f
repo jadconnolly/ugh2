@@ -242,7 +242,7 @@ c-----------------------------------------------------------------------
 
       end
 
-      subroutine gsol2 (nvar,ppp,gval,dgdp,fdnorm,bl,bu)
+      subroutine gsol2 (nvar,ppp,gval,dgdp)
 c-----------------------------------------------------------------------
 c function to evaluate gibbs energy of a solution for minfrc. can call 
 c either gsol1 with order true or false, true seems to give better results
@@ -252,13 +252,12 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical zbad, saved, tkwak
+      logical zbad, saved
 
       integer i, j, nvar, idif
 
       double precision ppp(*), gval, dgdp(*), psum, 
-     *                 gsol1, g, bsum, zsite(m10,m11),
-     *                 bl(*), bu(*), fdnorm, tcp(k5), tsum
+     *                 gsol1, g, bsum, zsite(m10,m11)
 
       external gsol1, zbad
 
@@ -296,10 +295,12 @@ c                                 reconstruct pa array
       call ppp2pa (ppp,psum,nvar)
 
       call makepp (rids)
+c                                 get the bulk composition from 
+c                                 pa if ksmod(rids) ~= 39, else
+c                                 it's computed by gsol1
+      if (ksmod(rids).ne.39) call getscp (rcp,rsum,rids,rids)
 
       if (deriv(rids)) then
-c                                 get the bulk composition from pa
-         call getscp (rcp,rsum,rids,rids)
 c                                 analytical derivatives:
          call getder (g,dgdp,rids)
 c                                 ------------------------------------
@@ -321,36 +322,12 @@ c                                 convert dgdp to dg'dp
 c                                 only numeric derivatives are
 c                                 available, get g at the composition
          g = gsol1(rids,.false.)
-c                                 get the bulk composition from 
-c                                 pa if ksmod(rids) ~= 39, else
-c                                 it's computed by gsol1
-         if (ksmod(rids).ne.39) then
-            call getscp (rcp,rsum,rids,rids)
-         end if
-c                                 save the composition
-         tcp(1:icomp) = rcp(1:icomp)
-         tsum = rsum
-         tkwak = rkwak
 c                                 level it
          call gsol5 (g,gval)
-c                                  compute derivatives
-         call numder (gval,dgdp,ppp,fdnorm,bl,bu,nvar)
 
       end if
 
       if (lopt(57).and.outrpc) then
-
-         if (numric) then
-c                                 if numeric derivatives were
-c                                 evaluated reset composition
-c                                 data
-            call makepp (rids)
-
-            rcp(1:icomp) = tcp(1:icomp)
-            rsum = tsum
-            rkwak = tkwak
-
-          end if
 c                                 try to eliminate bad results
          if (psum.lt.one.or.psum.gt.1d0+zero.or.bsum.lt.zero) return
          if (zbad(pa,rids,zsite,'a',.false.,'a')) return
@@ -398,39 +375,6 @@ c                                 convert g to g'
 
       end do
 
-      end
-
-      subroutine gsol6 (gval,ppp,nvar)
-c----------------------------------------------------------------------
-c gsol6 is a shell to compute the leveled g for numerical derivatives
-c invoked by minfrc via gsol2.
-c----------------------------------------------------------------------
-      implicit none
-
-      include 'perplex_parameters.h'
-
-      integer nvar
-
-      double precision ppp(*), gval, gsol1, g, psum
-
-      external gsol1
-
-      integer count
-      common/ cstcnt /count
-c-----------------------------------------------------------------------
-      count = count + 1
-c                                 reconstruct pa array from ppp
-      call ppp2pa (ppp,psum,nvar)
-c                                 make the pp array for gsol1
-      call makepp (rids)
-c                                 get the bulk composition from pa
-c                                 for everything but GFSM (done by gsol1)
-      if (ksmod(rids).ne.39) call getscp (rcp,rsum,rids,rids)
-c                                 get the real g
-      g = gsol1 (rids,.false.)
-c                                 get the leveled gval
-      call gsol5 (g,gval)
-c
       end
 
       subroutine savrpc (g,tol,swap,idif)
@@ -572,7 +516,7 @@ c                                 and normalized bulk fractions if o/d
 
       end 
 
-      subroutine numder (g,dgdp,ppp,fdnorm,bl,bu,nvar)
+      subroutine numder (g,objfun,dgdp,ppp,fdnorm,bl,bu,nvar)
 c-----------------------------------------------------------------------
 c subroutine to evaluate the gradient numerically for minfrc/minfxc
 c on input sum is the total of the fractions, for bounded models this
@@ -584,7 +528,7 @@ c-----------------------------------------------------------------------
 
       integer i, nvar
 
-      double precision ppp(*), dgdp(*), oldpa(m14), 
+      double precision ppp(*), dgdp(*), oldppp, 
      *            dpp, g, g1, g3, bl(*), bu(*), fdnorm
 
       double precision z, pa, p0a, x, w, y, wl, pp
@@ -598,15 +542,14 @@ c-----------------------------------------------------------------------
 
       logical fdset, cntrl, numric, fdincs
       common/ cstfds /fdset, cntrl, numric, fdincs
-c-----------------------------------------------------------------------
-c                                 one or more derivatives are singular
-c                                 because of ln(0) entropy term, evaluate
-c                                 by finite difference, save old 0 values:
-      oldpa(1:nstot(rids)) = pa(1:nstot(rids))
 
+      external objfun
+c-----------------------------------------------------------------------
       fdnorm = 0d0
 
       do i = 1, nvar
+
+         oldppp = ppp(i)
 
          if (cntrl) then
 c                                 2nd order
@@ -640,39 +583,35 @@ c                                 choose direction away from closest bound
 
          end if
 c                                 apply the increment
-         ppp(i) = oldpa(i) + dpp
+         ppp(i) = oldppp + dpp
 
          if (dabs(dpp).gt.fdnorm) fdnorm = dabs(dpp)
 
          if (cntrl) then
 c                                 g at the double increment
-            call gsol6 (g3,ppp,nvar)
+            call objfun (nvar,ppp,g3,dgdp)
 c                                 single increment
-            ppp(i) = oldpa(i) + dpp/2d0
+            ppp(i) = oldppp + dpp/2d0
 c                                 g at the single increment
-            call gsol6 (g1,ppp,nvar)
+            call objfun (nvar,ppp,g1,dgdp)
 
             dgdp(i) = (4d0*g1- 3d0*g-g3)/dpp
 
          else
 c                                 g at the single increment
-            call gsol6 (g1,ppp,nvar)
+            call objfun (nvar,ppp,g1,dgdp)
 
             dgdp(i) = (g1 - g)/dpp
 
          end if
 c                                 reset ppp
-         ppp(i) = oldpa(i)
+         ppp(i) = oldppp
 
       end do
-c                                 reset pa and make pp:
-      pa(1:nstot(rids)) = oldpa(1:nstot(rids))
-
-      call makepp (rids)
 
       end
 
-      subroutine gsol4 (nvar,ppp,gval,dgdp,fdnorm,bl,bu)
+      subroutine gsol4 (nvar,ppp,gval,dgdp)
 c-----------------------------------------------------------------------
 c gsol4 - a shell to call gsol1 from minfxc, ingsol must be called
 c         prior to minfxc to initialize solution specific paramters. only
@@ -688,8 +627,7 @@ c-----------------------------------------------------------------------
 
       integer ids, i, nvar
 
-      double precision ppp(*), gval, dgdp(*), d2s(j3,j3), 
-     *                 gord, ddq(j3), norm, fdnorm, bl(*), bu(*)
+      double precision ppp(*), gval, dgdp(*), d2s(j3,j3), gord, ddq(j3)
 
       double precision zz, pa, p0a, x, w, y, wl, pp
       common/ cxt7 /y(m4),zz(m4),pa(m4),p0a(m4),x(h4,mst,msp),w(m1),
@@ -1328,7 +1266,7 @@ c                                 the mechanical component?
 
       end
 
-      subroutine chfd (n,fdnorm,fx,objfun,bl,bu,grad,x,dummy)
+      subroutine chfd (n,fdnorm,fx,objfun,bl,bu,grad,x)
 c----------------------------------------------------------------------
 c chfd  computes difference intervals for gradients of f(x). intervals 
 c are computed using a procedure that usually requires about two 
@@ -1348,11 +1286,10 @@ c----------------------------------------------------------------------
 
       integer n, info, iter, itmax, j
 
-      double precision fdnorm, bl(n), bu(n), dummy(n), 
-     *                 grad(n), x(n), cdest, epsa,
-     *                 errbnd, errmax, errmin, f1, f2, fdest, fx,
-     *                 h, hcd, hfd, hmax, hmin, hopt, hphi,
-     *                 sdest, sumeps, sumsd, xj
+      double precision fdnorm, bl(n), bu(n),  grad(n), x(n), cdest,
+     *                 epsa, errbnd, errmax, errmin, f1, f2, fdest, fx,
+     *                 h, hcd, hfd, hmax, hmin, hopt, hphi, sdest, 
+     *                 sumeps, sumsd, xj
 
       external objfun
 
@@ -1403,10 +1340,10 @@ c                                 numder may do this better),
          do
 
             x(j) = xj + h
-            call objfun (n,x,f1,dummy,fdnorm,bl,bu)
+            call objfun (n,x,f1,grad)
 
             x(j) = xj + h + h
-            call objfun (n,x,f2,dummy,fdnorm,bl,bu)
+            call objfun (n,x,f2,grad)
 
             call chcore (done,first,epsa,epsrf,fx,info,iter,itmax,cdest,
      *                   fdest,sdest,errbnd,f1,f2,h,hopt,hphi)
@@ -1922,3 +1859,57 @@ c        rejected indices (with negative values) to the end.
       nrejtd = k2 - nactiv
 c                                 end of lsadds
       end
+
+      subroutine badalf (alfa,n,x,x1,dx,char)
+c---------------------------------------------------------------------
+c hack to prevent linesearch from generating bad alfa values for 
+c simplicial solution models
+c---------------------------------------------------------------------
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      integer j, n
+
+      character char*1
+
+      double precision alfa, x(*), x1(*), dx(*), newa, sum
+c---------------------------------------------------------------------
+      return
+      if (.not.boundd(rids)) return
+
+      newa = alfa
+      sum = 0d0
+
+      do j = 1, n
+
+         sum = sum + x(j)
+
+         if (x(j).lt.nopt(50)) then
+
+            if (x(j).gt.-nopt(50)) then 
+               x(j) = 0d0
+            else if (dx(j).ne.0d0) then
+               if (x1(j)/dx(j).lt.newa) newa = -x1(j)/dx(j)
+            end if
+
+            end if
+
+         end do
+
+         if (newa.lt.alfa.and.newa.ge.0d0) then
+
+c           write (*,*) char,' from ',alfa,'to',newa,' rids',rids
+
+            alfa = newa
+
+            call dcopy (n,x1,1,x,1)
+            call daxpy (n,alfa,dx,1,x,1)
+
+         end if
+
+          if (sum.gt.1d0) then
+c             write (*,*) 'uh oh?',sum
+          end if
+c                                 end of badalf
+      end 
