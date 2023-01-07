@@ -515,14 +515,14 @@ c                                 dynamic optimization starting points
       common/ cst120 / lsamt(k19), lamt(k19), 
      *                 lcpt, lspt, ldv(k19), lsdv(k19), lsst(k19)
 c                                 nlpsol blocks
-      double precision bigbnd, bigdx, bndlow, bndupp, tolact, tolfea, 
-     *                 tolrnk
-      common/ ngg019 /bigbnd, bigdx, bndlow, bndupp, tolact, tolfea, 
-     *                tolrnk
+c     double precision bigbnd, bigdx, bndlow, bndupp, tolact, tolfea, 
+c    *                 tolrnk
+c     common/ ngg019 /bigbnd, bigdx, bndlow, bndupp, tolact, tolfea, 
+c    *                tolrnk
 
-      logical incrun
-      double precision rhomax, rhonrm, rhodmp
-      common/ ngg017 /rhomax, rhonrm, rhodmp, incrun
+c     logical incrun
+c     double precision rhomax, rhonrm, rhodmp
+c     common/ ngg017 /rhomax, rhonrm, rhodmp, incrun
 
       double precision hfwd, hctl
       common/ cxt009 /hfwd(m14), hctl(m14)

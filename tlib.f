@@ -1646,6 +1646,15 @@ c----------------------------------------------------------------------
 
       integer count
       common/ cstcnt /count
+
+      logical incrun
+      double precision rhodmp, rhomax, rhonrm, scale
+      common/ ngg017 /rhomax, rhonrm, rhodmp, scale, incrun
+
+      double precision bigbnd, bigdx, bndlow, bndupp, tolact, tolfea, 
+     *                 tolrnk
+      common/ ngg019 /bigbnd, bigdx, bndlow, bndupp, tolact, tolfea, 
+     *                tolrnk
 c----------------------------------------------------------------------
       rhomax = 1d0/wmach(3)
       tolact = 1d-2

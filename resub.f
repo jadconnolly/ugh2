@@ -632,7 +632,7 @@ c                                  normal solution
 
             if (lopt(61)) call endtim (15,.false.,'minfrc')
 
-            if (ifail.eq.0) then
+            if (ifail.eq.0.and.id.gt.0) then
                
                igood(ids) = igood(ids) + 1
             

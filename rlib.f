@@ -12271,7 +12271,7 @@ c-----------------------------------------------------------------------
 
          x = x + dx
 
-         if (x.le.0d0.or.x.gt.1d3.or.it.gt.iopt(21)) then
+         if (x.le.1d-50.or.x.gt.1d3.or.it.gt.iopt(21)) then
             bad = .true.
             exit
          else if (dabs(dx)/(1d0+x).lt.nopt(50)) then

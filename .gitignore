@@ -206,3 +206,9 @@ blas2lib.o
 flib.o
 
 minime_blas.o
+
+*.blk
+
+*.plt
+
+*.irf

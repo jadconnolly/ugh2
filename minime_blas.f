@@ -594,6 +594,9 @@ c-----------------------------------------------------------------------
       logical fdset, cntrl, numric, fdincs
       common/ cstfds /fdset, cntrl, numric, fdincs
 
+      integer lfdset, lvldif, ncdiff, nfdiff
+      common/ ngg014 /lvldif, ncdiff, nfdiff, lfdset
+
       external objfun
 c-----------------------------------------------------------------------
       fdnorm = 0d0

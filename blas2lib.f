@@ -389,7 +389,7 @@ c----------------------------------------------------------------------
       double precision a(lda,*), bl(n+nclin+ncnln), bu(n+nclin+ncnln),
      *                 c(*), cjacu(ldcju,*), clamda(n+nclin+ncnln), 
      *                 gradu(n), r(ldr,*), user(*), w(lenw), x(n), objf,
-     *                 amin, condmx, ctx, errmax, fdchk,
+     *                 amin, condmx, ctx, errmax, fdchk, g0,
      *                 fdnorm, feamax, feamin, obj, rootn, ssq1,
      *                 suminf, xnorm, dnrm2
 
@@ -446,6 +446,9 @@ c----------------------------------------------------------------------
       common/ ngg021 /cdint, ctol, dxlim, epsrf, eta,
      *                fdint, ftol, hcndbd
 
+      logical fdset, cntrl, numric, fdincs
+      common/ cstfds /fdset, cntrl, numric, fdincs
+
       equivalence (itmxnp,nmajor), (itmax2,nminor)
 c----------------------------------------------------------------------
 c                                 f(n) parameters 
@@ -482,13 +485,6 @@ c                                 fdint, finite difference interval, forward.
       fdint = user(6)
 c                                 cdint, centered finite difference interval
       cdint = fdint**(0.67d0)
-c     cdint = epsrf**(0.33d0)
-
-      if (fdint.gt.0d0) then
-         lfdset = 1
-      else 
-         lfdset = 0
-      end if 
 c                                 lverfy, verify level, default off, may be reset. 0 - off, 1 - on
       lverfy = iuser(11)
 c                                 lvlder, derivative level, 3 - all available, 1 - some, 0 - none
@@ -588,29 +584,7 @@ c     load the arrays of feasibility tolerances.
       ngrad = 0
       nstate = 1
 
-c     if required, compute the problem functions.
-c     if the constraints are nonlinear, the first call of confun
-c     sets up any constant elements in the jacobian matrix. a copy of
-c     the jacobian (with constant elements set) is placed in cjacu.
 
-      if (lverfy.ge.10) then
-         xnorm = dnrm2 (n,x,1)
-         lvrfyc = lverfy - 10
-
-         call npchkd (info,nstate,lvlder,nfun,ngrad,ldcj,ldcju,n,
-     *               ncnln,confun,objfun,iw(lneedc),bigbnd,epsrf,cdint,
-     *               fdint,fdchk,fdnorm,objf,xnorm,bl,bu,c,w(lwrk3),
-     *               w(lcjac),cjacu,w(lcjdx),w(ldx),w(lgrad),gradu,
-     *               w(lhfrwd),w(lhctrl),x,w(lwrk1),w(lwrk2),
-     *               iuser,user)
-
-         if (info.ne.0) then
-            if (info.gt.0) inform = 7
-            if (info.lt.0) inform = info
-            go to 80
-         end if
-         nstate = 0
-      end if
 
       call scond (nplin,w(lfeatl),1,feamax,feamin)
       call dcopy (nplin,w(lfeatl),1,w(lwtinf),1)
@@ -701,24 +675,28 @@ c        use work2 as the multiplier vector.
          go to 80
       end if
 
-c     check the gradients at a feasible x.
+c                                compute objective function
+      call objfun (n,x,objf,gradu)
 
-      lvrfyc = lverfy
-      if (lverfy.ge.10) lvrfyc = -1
+      g0 = objf
 
-      call npchkd (info,nstate,lvlder,nfun,ngrad,ldcj,ldcju,n,
-     *            ncnln,confun,objfun,iw(lneedc),bigbnd,epsrf,cdint,
-     *            fdint,fdchk,fdnorm,objf,xnorm,bl,bu,c,w(lwrk3),
-     *            w(lcjac),cjacu,w(lcjdx),w(ldx),w(lgrad),gradu,
-     *            w(lhfrwd),w(lhctrl),x,w(lwrk1),w(lwrk2),iuser,user)
+      cntrl = .false.
 
-      if (info.ne.0) then
-         if (info.gt.0) inform = 7
-         if (info.lt.0) inform = info
-         go to 80
+      if (lvlder.eq.0.and.lverfy.gt.0) then
+c                                 get finite difference increments:
+         call chfd (n,fdnorm,objf,objfun,bl,bu,gradu,x)
+c                                 forward increments are in w(1:n)
+c                                 central increments are in w(lhctrl:+n)
+      else if (lvlder.eq.0) then
+
+         fdincs = .false.
+c                                 compute gradient at first order
+         call numder (objf,objfun,gradu,x,fdnorm,bl,bu,n)
+
       end if
 
-      call dcopy (n,w(lgrad),1,w(lgq),1)
+      w(lgrad:lgrad+n-1) = gradu(1:n)
+      w(lgq:lgq+n-1) = gradu(1:n)
       call cmqmul (6,n,nz,nfree,ldq,unitq,iw(lkx),w(lgq),w(lq),w(lwrk1))
 c                                 signal gsol2 to save g
       iuser(2) = 1
@@ -3733,7 +3711,7 @@ c     working set is used to start the qp iterations.
 c     solve for dx, the vector of minimum two-norm that satisfies the
 c     constraints in the working set.
 
-      call npsetx(unitq,ncqp,nactiv,nfree,nz,n,nctotl,ldzy,ldaqp,
+      call npsetx(unitq,ncqp,nactiv,nfree,nz,n,nlnx,nctotl,ldzy,ldaqp,
      *            ldr,ldt,istate,kactiv,kx,dxnorm,gdx,aqp,adx,qpbl,qpbu,
      *            w(lrpq),w(lrpq0),dx,w(lgq),r,w(lt),w(lzy),w(lwrk1))
 
@@ -4932,8 +4910,6 @@ c----------------------------------------------------------------------
 c-----------------------------------------------------------------------
       epsmch = wmach(3)
 
-      if (.not.needfd .and. ncnln.gt.0) cs1jdx = ddot (ncnln,cs1,1,
-     *                                                  cjdx,1)
 
       nstate = 0
 
@@ -6434,6 +6410,9 @@ c----------------------------------------------------------------------
       common/ ngg021 /cdint, ctol, dxlim, epsrf, eta,
      *                fdint, ftol, hcndbd
 
+      logical fdset, cntrl, numric, fdincs
+      common/ cstfds /fdset, cntrl, numric, fdincs
+
       equivalence       (itmxnp,nmajor), (itmax2,nminor)
 c----------------------------------------------------------------------
 c     specify machine-dependent parameters.
@@ -6532,12 +6511,10 @@ c   +    repeat                         (until a good gradient is found)
 c           compute any missing gradient elements and the
 c           transformed gradient of the objective.
 
-            call npfd (centrl,mode,ldcj,ldcju,n,ncnln,bigbnd,cdint,
-     *                  fdint,fdnorm,objf,confun,objfun,iw(lneedc),bl,
-     *                  bu,c,w(lwrk2),w(lwrk3),cjac,cjacu,grad,gradu,
-     *                  w(lhfrwd),w(lhctrl),x,iuser,user)
-            inform = mode
-            if (mode.lt.0) go to 60
+            call numder (objf,objfun,grad,x,fdnorm,bl,bu,n)
+
+c           inform = mode
+c           if (mode.lt.0) go to 60
 
          end if
 
@@ -6597,6 +6574,7 @@ c     the qp.
             goodgq = .false.
             mjrmsg(3:3) = 'central differences'
             lvldif = 2
+            cntrl = .true.
             newgq = .true.
 
          end if
@@ -6781,6 +6759,7 @@ c           switch to central differences and solve the qp again.
                   error = .false.
                   mjrmsg(3:3) = 'central differences'
                   lvldif = 2
+                  cntrl = .true.
                   newgq = .true.
                end if
             end if
@@ -6792,7 +6771,8 @@ c              compute the missing gradients.
                mode = 1
                ngrad = ngrad + 1
 c                                 this looks dubious, should be objf in new x
-               call objfun (mode,n,x,obj,gradu,nstate,iuser,user)
+c              call objfun (mode,n,x,obj,gradu,nstate,iuser,user)
+               call objfun (n,x,obj,gradu)
                if (obj.ne.objf) then
                   write (*,*) 'wtf'
                end if 
@@ -6800,12 +6780,14 @@ c                                 this looks dubious, should be objf in new x
                inform = mode
                if (mode.lt.0) go to 60
 
-               call dcopy (n,gradu,1,grad,1)
+c              call dcopy (n,gradu,1,grad,1)
 
-               call npfd (centrl,mode,ldcj,ldcju,n,ncnln,bigbnd,cdint,
-     *                    fdint,fdnorm,objf,confun,objfun,iw(lneedc),
-     *                    bl,bu,c,w(lwrk2),w(lwrk3),cjac,cjacu,grad,
-     *                    gradu,w(lhfrwd),w(lhctrl),x,iuser,user)
+         call numder (objf,objfun,grad,x,fdnorm,bl,bu,n)
+
+c              call npfd (centrl,mode,ldcj,ldcju,n,ncnln,bigbnd,cdint,
+c    *                    fdint,fdnorm,objf,confun,objfun,iw(lneedc),
+c    *                    bl,bu,c,w(lwrk2),w(lwrk3),cjac,cjacu,grad,
+c    *                    gradu,w(lhfrwd),w(lhctrl),x,iuser,user)
 
                inform = mode
                if (mode.lt.0) go to 60
