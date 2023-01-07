@@ -12,10 +12,10 @@ c    problems by succesive quadratic programming. Both after
 
 c    Gill P E, Murray W, Saunders M A and Wright M H (1984) 
 c    Procedures for optimization problems with a mixture of bounds and 
-c    general linear constraints ACM Trans. Math. Software 10 282–298
+c    general linear constraints ACM Trans. Math. Software 10 282ï¿½298
 
 c    Gill PE, Hammarling S, Murray W, Saunders MA and Wright MH (1986) 
-c    User’s Guide for LSSOL (version 1.0) Report SOL 86–1 
+c    Userï¿½s Guide for LSSOL (version 1.0) Report SOL 86ï¿½1 
 c    Department of Operations Research, Stanford University.
 
       subroutine lpsol (n,nclin,a,lda,bl,bu,cvec,istate,x,iter,obj,ax,
@@ -354,7 +354,7 @@ c                                 end of lpsol
 
       subroutine nlpsol (n,nclin,ncnln,lda,ldcju,ldr,a,bl,bu,confun,
      *                  objfun,iter,istate,c,cjacu,clamda,objf,gradu,r,
-     *                  x,iw,leniw,w,lenw,iuser,user,idead)
+     *                  x,iw,leniw,w,lenw,iuser,user,ifail)
 c----------------------------------------------------------------------
 c     nlpsol solves 
 
@@ -372,9 +372,6 @@ c     ncnln - the number of nonlinear constraints (dimension of  c(x))
 c----------------------------------------------------------------------
       implicit none
 
-
-      include 'perplex_parameters.h'
-
       logical cold, linobj, needfd, rowerr, vertex
 
       integer ifail, iter, lda, ldcju, ldr, leniw, lenw, n, nclin, 
@@ -383,7 +380,7 @@ c----------------------------------------------------------------------
      *        lcjac, lcjdx, lclam, lcmul, ldaqp, ldcj, ldfju,
      *        ldx, lfeatl, lgq, lgrad, lhctrl, lhfrwd, liperm,
      *        litotl, lkactv, lkx, lneedc, lq, lres, lres0,
-     *        lrho, lrlam, lt, lwrk1, lwrk2, lwrk3, idead,
+     *        lrho, lrlam, lt, lwrk1, lwrk2, lwrk3,
      *        lwtinf, lwtotl, m, maxact, minfxd, mxfree, nact1, 
      *        nartif, nctotl, nfun, ngq, ngrad,nres, nstate, numinf,
      *        nlperr, nmajor, nminor, nplin, nrank, nrejtd, 
@@ -392,7 +389,7 @@ c----------------------------------------------------------------------
       double precision a(lda,*), bl(n+nclin+ncnln), bu(n+nclin+ncnln),
      *                 c(*), cjacu(ldcju,*), clamda(n+nclin+ncnln), 
      *                 gradu(n), r(ldr,*), user(*), w(lenw), x(n), objf,
-     *                 amin, condmx, ctx, errmax, fdchk, g0,
+     *                 amin, condmx, ctx, errmax, fdchk,
      *                 fdnorm, feamax, feamin, obj, rootn, ssq1,
      *                 suminf, xnorm, dnrm2
 
@@ -407,9 +404,6 @@ c----------------------------------------------------------------------
       double precision wmach
       common/ cstmch /wmach(10)
 
-      logical outrpc, maxs
-      common/ ngg015 /outrpc, maxs
-
       integer ldt, ldq, ncolt
       common/ ngg004 /ldt, ncolt, ldq
 
@@ -419,29 +413,38 @@ c----------------------------------------------------------------------
       double precision epspt3, epspt5, epspt8, epspt9
       common/ ngg006 /epspt3, epspt5, epspt8, epspt9
 
+      integer lvrfyc, jverfy
+      common/ ngg015 /lvrfyc, jverfy(4)
+
       double precision asize, dtmax, dtmin
       common/ ngg008 /asize, dtmax, dtmin
 
       integer itmax1, itmax2, lprob, nn, nnclin
       common/ ngg016 /itmax1, itmax2, lprob, nn, nnclin
 
+      logical incrun
+      double precision rhodmp, rhomax, rhonrm,scale
+      common/ ngg017 /rhomax, rhonrm, rhodmp, scale, incrun
+
       double precision rcndbd, rfrobn, drmax, drmin
       common/ ngg018 /rcndbd, rfrobn, drmax, drmin
+
+      double precision bigbnd, bigdx, bndlow, bndupp, tolact, tolfea, 
+     *                 tolrnk
+      common/ ngg019 /bigbnd, bigdx, bndlow, bndupp, tolact, tolfea, 
+     *                tolrnk
 
       logical unitq
       integer nactiv, nfree, nz
       common/ ngg001 /nactiv, nfree, nz, unitq
 
-      integer itmxnp
-      common/ ngg020 /itmxnp
+      integer itmxnp, lvlder, lverfy, nlnf, nlnj, nlnx, nncnln
+      common/ ngg020 /itmxnp, lvlder, lverfy, nlnf, nlnj, nlnx, nncnln
 
       double precision cdint, ctol, dxlim, epsrf, eta, fdint, ftol,
      *                 hcndbd
       common/ ngg021 /cdint, ctol, dxlim, epsrf, eta,
      *                fdint, ftol, hcndbd
-
-      logical fdset, cntrl, numric, fdincs
-      common/ cstfds /fdset, cntrl, numric, fdincs
 
       equivalence (itmxnp,nmajor), (itmax2,nminor)
 c----------------------------------------------------------------------
@@ -451,9 +454,12 @@ c                                 f(n) parameters
       nctotl = nplin + ncnln
       nmajor = max(50,3*nplin+10*ncnln)
       nminor = max(50,3*nctotl)
-
+      nlnf = n
+      nlnj = n
+      nlnx = n
       itmax1 = max(50,3*(n+nclin+ncnln))
-
+      jverfy(2) = n
+      jverfy(4) = n
       rootn = sqrt(dble(n))
 
       w = 0d0
@@ -476,9 +482,23 @@ c                                 fdint, finite difference interval, forward.
       fdint = user(6)
 c                                 cdint, centered finite difference interval
       cdint = fdint**(0.67d0)
+c     cdint = epsrf**(0.33d0)
 
+      if (fdint.gt.0d0) then
+         lfdset = 1
+      else 
+         lfdset = 0
+      end if 
+c                                 lverfy, verify level, default off, may be reset. 0 - off, 1 - on
+      lverfy = iuser(11)
+c                                 lvlder, derivative level, 3 - all available, 1 - some, 0 - none
+      lvlder = iuser(13)
+
+      needfd = lvlder.eq.0 .or. lvlder.eq.2 .or.
+     *                         (lvlder.eq.1 .and. ncnln.gt.0)
       cold = .true.
-
+      lvldif = 0
+      if (needfd) lvldif = 1
 
       minact = 0
       minfxd = 0
@@ -501,6 +521,7 @@ c                                 cdint, centered finite difference interval
       ldfju = 2
 
       ldaqp = max(nclin+ncnln,1)
+      if (ncnln.eq.0 .and. nclin.gt.0) ldaqp = lda
 
 c     nploc defines the arrays that contain the locations of
 c     work arrays within  w  and  iw.
@@ -552,6 +573,8 @@ c     load the arrays of feasibility tolerances.
 
       if (tolfea.gt.0d0) call sload (nplin,tolfea,w(lfeatl),1)
 
+      if (ncnln.gt.0 .and. ctol.gt.0d0) call sload (ncnln,ctol,
+     *    w(lfeatl+nplin),1)
 
       if (lfdset.eq.0) then
          fdchk = sqrt(epsrf)
@@ -565,7 +588,29 @@ c     load the arrays of feasibility tolerances.
       ngrad = 0
       nstate = 1
 
+c     if required, compute the problem functions.
+c     if the constraints are nonlinear, the first call of confun
+c     sets up any constant elements in the jacobian matrix. a copy of
+c     the jacobian (with constant elements set) is placed in cjacu.
 
+      if (lverfy.ge.10) then
+         xnorm = dnrm2 (n,x,1)
+         lvrfyc = lverfy - 10
+
+         call npchkd (info,nstate,lvlder,nfun,ngrad,ldcj,ldcju,n,
+     *               ncnln,confun,objfun,iw(lneedc),bigbnd,epsrf,cdint,
+     *               fdint,fdchk,fdnorm,objf,xnorm,bl,bu,c,w(lwrk3),
+     *               w(lcjac),cjacu,w(lcjdx),w(ldx),w(lgrad),gradu,
+     *               w(lhfrwd),w(lhctrl),x,w(lwrk1),w(lwrk2),
+     *               iuser,user)
+
+         if (info.ne.0) then
+            if (info.gt.0) inform = 7
+            if (info.lt.0) inform = info
+            go to 80
+         end if
+         nstate = 0
+      end if
 
       call scond (nplin,w(lfeatl),1,feamax,feamin)
       call dcopy (nplin,w(lfeatl),1,w(lwtinf),1)
@@ -595,11 +640,12 @@ c     lscrsh  to define an initial working set.
       call smload ('upper-triangular',n,n,0d0,1d0,r,ldr)
       rfrobn = rootn
       nrank = 0
+      if (ncnln.gt.0) call sload (ncnln,0d0,w(lcmul),1)
 
       incrun = .true.
       rhonrm = 0d0
       rhodmp = 1d0
-
+      scale = 1d0
       call sload (ncnln,0d0,w(lrho),1)
 
 c        re-order kx so that the free variables come first.
@@ -652,39 +698,30 @@ c        use work2 as the multiplier vector.
 
       if (nlperr.gt.0) then
          inform = 2
-         write (*,*) 'whoa'
-         pause
+         go to 80
       end if
 
-      if (nlperr.gt.0) return
-c                                get finite difference increments
-c                                at initial point, no need to save
-c                                the point as already been output
-c                                by resub
-      outrpc = .false.
-c                                compute objective function
-      call objfun (n,x,objf,gradu)
+c     check the gradients at a feasible x.
 
-      g0 = objf
+      lvrfyc = lverfy
+      if (lverfy.ge.10) lvrfyc = -1
 
-      if (numric.and.lopt(66)) then
-c                                 get finite difference increments:
-         call chfd (n,fdnorm,objf,objfun,bl,bu,gradu,x)
-c                                 forward increments are in w(1:n)
-c                                 central increments are in w(lhctrl:+n)
-      else if (numric) then 
-c                                 recompute gradient at first order
-         call numder (objf,objfun,gradu,x,fdnorm,bl,bu,n)
+      call npchkd (info,nstate,lvlder,nfun,ngrad,ldcj,ldcju,n,
+     *            ncnln,confun,objfun,iw(lneedc),bigbnd,epsrf,cdint,
+     *            fdint,fdchk,fdnorm,objf,xnorm,bl,bu,c,w(lwrk3),
+     *            w(lcjac),cjacu,w(lcjdx),w(ldx),w(lgrad),gradu,
+     *            w(lhfrwd),w(lhctrl),x,w(lwrk1),w(lwrk2),iuser,user)
 
+      if (info.ne.0) then
+         if (info.gt.0) inform = 7
+         if (info.lt.0) inform = info
+         go to 80
       end if
-
-      w(lgrad:lgrad+n-1) = gradu(1:n)
-      w(lgq:lgq+n-1) = gradu(1:n)
 
       call dcopy (n,w(lgrad),1,w(lgq),1)
       call cmqmul (6,n,nz,nfree,ldq,unitq,iw(lkx),w(lgq),w(lq),w(lwrk1))
 c                                 signal gsol2 to save g
-      outrpc = .true.
+      iuser(2) = 1
 
 c     solve the problem.
 
@@ -694,11 +731,11 @@ c     solve the problem.
      *               ,objfun,a,w(lax),bl,bu,c,w(lcjac),cjacu,clamda,
      *                w(lfeatl),w(lgrad),gradu,r,x,iw,w,lenw,iuser,user)
 
-      if (g0-objf.gt.ftol) then 
-       idead = inform
-      else
-       idead = -2
-      end if
+c                                 the diagnositics are not so hot,
+c                                 here let the calling routine decide
+c                                 what to do. this could be checked 
+c                                 again
+80    ifail = 0
 c                                 end of nlpsol
       end
 
@@ -1330,7 +1367,7 @@ c           swap columns nrz1 and jart of r.
 c                                 end of lsdel
       end
 
-      subroutine npsetx(unitq,ncqp,nactiv,nfree,nz,n,nctotl,ldzy,
+      subroutine npsetx(unitq,ncqp,nactiv,nfree,nz,n,nlnx,nctotl,ldzy,
      *                  ldaqp,ldr,ldt,istate,kactiv,kx,dxnorm,gdx,aqp,
      *                  adx,bl,bu,rpq,rpq0,dx,gq,r,t,zy,work)
 c----------------------------------------------------------------------
@@ -1348,7 +1385,7 @@ c----------------------------------------------------------------------
      *        i, j, k, nfixed, nr
 
       double precision adx(*), aqp(ldaqp,*), bl(nctotl), bu(nctotl),
-     *                 dx(n), gq(n), r(ldr,*), rpq(n), rpq0(n),
+     *                 dx(n), gq(n), r(ldr,*), rpq(nlnx), rpq0(nlnx),
      *                 t(ldt,*), work(n), zy(ldzy,*), dxnorm, gdx, bnd,
      *                 ddot, dnrm2
 
@@ -1357,10 +1394,11 @@ c----------------------------------------------------------------------
       nfixed = n - nfree
 
       gdx = 0d0
+      adx(1:ncqp) = 0d0
 
       call sload (n,0d0,dx,1)
-      call sload (n,0d0,rpq,1)
-      call sload (n,0d0,rpq0,1)
+      call sload (nlnx,0d0,rpq,1)
+      call sload (nlnx,0d0,rpq0,1)
 
       if (nactiv+nfixed.gt.0) then
 
@@ -1402,14 +1440,19 @@ c
          if (nz.lt.n) then
             call dgemv ('n',nz,n-nz,-1d0,r(1,nz+1),ldr,dx(nz+1),1,1d0,
      *                 rpq,1)
-            if (nz.lt.n) then
+            if (nz.lt.nlnx) then
                nr = ldr
                if (nz+1.eq.n) nr = 1
-               call dcopy (n-nz,dx(nz+1),1,rpq(nz+1),1)
-               call dscal (n-nz,-1d0,rpq(nz+1),1)
-               call dtrmv ('u','n','n',n-nz,r(nz+1,nz+1),nr,
+               call dcopy (nlnx-nz,dx(nz+1),1,rpq(nz+1),1)
+               call dscal (nlnx-nz,-1d0,rpq(nz+1),1)
+               call dtrmv ('u','n','n',nlnx-nz,r(nz+1,nz+1),nr,
      *                    rpq(nz+1),1)
-
+               if (nlnx.lt.n) then
+                  nr = ldr
+                  if (nlnx+1.eq.n) nr = n - nz
+                  call dgemv ('n',nlnx-nz,n-nlnx,-1d0,r(nz+1,nlnx+1),nr,
+     *                       dx(nlnx+1),1,1d0,rpq(nz+1),1)
+               end if
             end if
          end if
 
@@ -3523,13 +3566,11 @@ c          the slack variables, the multipliers and the variables.
 c----------------------------------------------------------------------
       implicit none
 
-      include 'perplex_parameters.h'
-
       logical feasqp, unitq, linobj, overfl
 
       integer ldaqp, ldcj, ldr, linact, minits, n, nactiv, nclin, ncnln,
      *        nfree, nlnact, nqperr, numinf, nz, istate(*), kactiv(n), 
-     *        kx(n), i, inform, iswap, j, jinf, k, kviol, l, 
+     *        kx(n), i, inform, iswap, j, jinf, k, k1, k2, kviol, l, 
      *        lgq, lhpq, lrlam, lrpq, lrpq0, lt, lwrk1, lzy, nartif, 
      *        ncqp, nctotl, ngq, nmajor, nminor, nplin, nrank,
      *        nrejtd, nrpq, ntry, nviol, nz1
@@ -3560,11 +3601,20 @@ c----------------------------------------------------------------------
       integer itmax1, itmax2, lprob, nn, nnclin
       common/ ngg016 /itmax1, itmax2, lprob, nn, nnclin
 
+      logical incrun
+      double precision rhodmp, rhomax, rhonrm, scale
+      common/ ngg017 /rhomax, rhonrm, rhodmp, scale, incrun
+
       double precision rcndbd, rfrobn, drmax, drmin
       common/ ngg018 /rcndbd, rfrobn, drmax, drmin
 
-      integer itmxnp
-      common/ ngg020 /itmxnp
+      double precision bigbnd, bigdx, bndlow, bndupp, tolact, tolfea, 
+     *                 tolrnk
+      common/ ngg019 /bigbnd, bigdx, bndlow, bndupp, tolact, tolfea, 
+     *                tolrnk
+
+      integer itmxnp, lvlder, lverfy, nlnf, nlnj, nlnx, nncnln
+      common/ ngg020 /itmxnp, lvlder, lverfy, nlnf, nlnj, nlnx, nncnln
 
       double precision cdint, ctol, dxlim, epsrf, eta, fdint, ftol,
      *                 hcndbd
@@ -3720,7 +3770,7 @@ c           count the violated linear constraints.
             nz = n
             call iload (nctotl,0,istate,1)
 
-            call npsetx (unitq,ncqp,nactiv,nfree,nz,n,nctotl,ldzy,
+            call npsetx (unitq,ncqp,nactiv,nfree,nz,n,nlnx,nctotl,ldzy,
      *                  ldaqp,ldr,ldt,istate,kactiv,kx,dxnorm,gdx,aqp,
      *                  adx,qpbl,qpbu,w(lrpq),w(lrpq0),dx,w(lgq),r,w(lt)
      *                  ,w(lzy),w(lwrk1))
@@ -4814,7 +4864,7 @@ c        set the array of violations.
 c                                 end of npfeas
       end
 
-      subroutine npsrch (inform,n,ncnln,ldcj,ldcju,nfun,ngrad,
+      subroutine npsrch (needfd,inform,n,ncnln,ldcj,ldcju,nfun,ngrad,
      *                  needc,confun,objfun,alfa,alfbnd,alfmax,alfsml,
      *                  dxnorm,epsrf,eta,gdx,grdalf,glf1,glf,objf,
      *                  objalf,qpcurv,xnorm,c,c2,cjac,cjacu,cjdx,cjdx2,
@@ -4845,11 +4895,9 @@ c     toltny  is the magnitude of the smallest allowable value of alfa.
 c             if  m(tolabs) - m(0).gt.epsaf,  the linesearch tries
 c             steps in the range  toltny .le. alfa .le. tolabs.
 c----------------------------------------------------------------------
-      implicit none
+      implicit none 
 
-      include 'perplex_parameters.h'
-
-      logical done, first, imprvd
+      logical needfd, done, first, imprvd
 
       integer inform, ldcj, ldcju, n, ncnln, nfun, iuser(*), needc(*),
      *        ngrad, j, maxf, mode, nstate, numf
@@ -4878,14 +4926,18 @@ c----------------------------------------------------------------------
       double precision epspt3, epspt5, epspt8, epspt9
       common/ ngg006 /epspt3, epspt5, epspt8, epspt9
 
-      logical fdset, cntrl, numric, fdincs
-      common/ cstfds /fdset, cntrl, numric, fdincs
+      integer incrun
+      double precision rhodmp, rhomax, rhonrm, scale
+      common/ ngg017 /rhomax, rhonrm, rhodmp, scale, incrun
 c-----------------------------------------------------------------------
       epsmch = wmach(3)
 
+      if (.not.needfd .and. ncnln.gt.0) cs1jdx = ddot (ncnln,cs1,1,
+     *                                                  cjdx,1)
+
       nstate = 0
 
-      if (numric) then
+      if (needfd) then
          maxf = 15
       else
          maxf = 10
@@ -4923,7 +4975,7 @@ c
       targtg = (1d-4 - eta)*oldg
       g0 = gbest
 
-      if (numric) then
+      if (needfd) then
          mode = 0
       else
          mode = 2
@@ -4951,7 +5003,7 @@ c            = 8 if the input parameters were bad
 c                (alfmax le toltny  or  oldg ge 0).
 
 c     +    repeat
-   40 if (numric) then
+   40 if (needfd) then
          call srchq (first,done,imprvd,inform,maxf,numf,
      *               alfmax,alfsml,epsaf,g0,targtg,ftry,tolabs,tolrel,
      *               toltny,alfa,alfbst,fbest)
@@ -4965,8 +5017,7 @@ c     +    repeat
          objf = tobj
          objalf = tobjm
 
-         if (.not. numric) then
-
+         if (.not. needfd) then
             call dcopy (n,gradu,1,grad,1)
             gdx = tgdx
             glf = tglf
@@ -4994,7 +5045,7 @@ c        compute the value and gradient of the objective function.
 
 c        compute auxiliary gradient information.
 
-         if (.not. numric) then
+         if (.not. needfd) then
             gtry = ddot (n,gradu,1,dx,1)
             tgdx = gtry
             tglf = gtry
@@ -5007,7 +5058,7 @@ c     +    until (     done)
       if (.not. done) go to 40
 
       nfun = nfun + numf
-      if (.not. numric) ngrad = ngrad + numf
+      if (.not. needfd) ngrad = ngrad + numf
       alfa = alfbst
 
       if (.not. imprvd) then
@@ -5046,8 +5097,6 @@ c     be done, the first character of lsumry is loaded with 'm'.
 c----------------------------------------------------------------------
       implicit none
 
-      include 'perplex_parameters.h'
-
       character lsumry*5
 
       logical unitq, overfl, ssbfgs
@@ -5064,10 +5113,14 @@ c----------------------------------------------------------------------
 
       external dnrm2, sdiv , idamax
 
+      logical incrun
+      double precision rhodmp, rhomax, rhonrm,scale
+      common/ ngg017 /rhomax, rhonrm, rhodmp, scale, incrun
+
       double precision rcndbd, rfrobn, drmax, drmin
       common/ ngg018 /rcndbd, rfrobn, drmax, drmin
 c----------------------------------------------------------------------
-
+      if (ncnln.gt.0) call sload (ncnln,0d0,omega,1)
 
 c     set curvl = (g2 - g1)'dx,  the approximate curvature along dx of
 c     the (augmented) lagrangian.  at first, the curvature is not scaled
@@ -6295,9 +6348,6 @@ c     programming (sqp) method for nonlinearly constrained optimization.
 c----------------------------------------------------------------------
       implicit none
 
-
-      include 'perplex_parameters.h'
-
       double precision fdnorm, objf, xnorm
       integer inform, ldaqp, ldcj, ldcju, ldr, lenw, majits,
      *                  n, nactiv, nclin, ncnln, nctotl, nfree, nfun,
@@ -6305,7 +6355,7 @@ c----------------------------------------------------------------------
       logical unitq
 
       double precision aqp(ldaqp,*), ax(*), bl(nctotl), bu(nctotl),
-     *                  c(*), cjac(ldcj,*), cjacu(ldcju,*), 
+     *                  c(*), cjac(ldcj,*), cjacu(ldcju,*),
      *                  clamda(nctotl), featol(nctotl), grad(n),
      *                  gradu(n), r(ldr,*), user(*), w(lenw), x(n)
       integer istate(*), iuser(*), iw(*), kactiv(n), kx(n)
@@ -6329,7 +6379,7 @@ c----------------------------------------------------------------------
      *                  nlnact, nlserr, nmajor, nminor, nplin, nqperr,
      *                  nqpinf, nstate, numinf, nviol
       logical centrl, convpt, convrg, done, error, feasqp,
-     *                  goodgq, infeas, newgq, optiml, overfl
+     *                  goodgq, infeas, needfd, newgq, optiml, overfl
       character*5       mjrmsg
 
       logical ktcond(2)
@@ -6355,20 +6405,29 @@ c----------------------------------------------------------------------
       double precision epspt3, epspt5, epspt8, epspt9
       common/ ngg006 /epspt3, epspt5, epspt8, epspt9
 
+      integer lvrfyc, jverfy
+      common/ ngg015 /lvrfyc, jverfy(4)
+
       double precision asize, dtmax, dtmin
       common/ ngg008 /asize, dtmax, dtmin
 
       integer itmax1, itmax2, lprob, nn, nnclin
       common/ ngg016 /itmax1, itmax2, lprob, nn, nnclin
 
+      logical incrun
+      double precision rhodmp, rhomax, rhonrm,scale
+      common/ ngg017 /rhomax, rhonrm, rhodmp, scale, incrun
+
       double precision rcndbd, rfrobn, drmax, drmin
       common/ ngg018 /rcndbd, rfrobn, drmax, drmin
 
-      integer itmxnp
-      common/ ngg020 /itmxnp
+      double precision bigbnd, bigdx, bndlow, bndupp, tolact, tolfea, 
+     *                 tolrnk
+      common/ ngg019 /bigbnd, bigdx, bndlow, bndupp, tolact, tolfea, 
+     *                tolrnk
 
-      logical fdset, cntrl, numric, fdincs
-      common/ cstfds /fdset, cntrl, numric, fdincs
+      integer itmxnp, lvlder, lverfy, nlnf, nlnj, nlnx, nncnln
+      common/ ngg020 /itmxnp, lvlder, lverfy, nlnf, nlnj, nlnx, nncnln
 
       double precision cdint, ctol, dxlim, epsrf, eta, fdint, ftol,
      *                 hcndbd
@@ -6435,6 +6494,9 @@ c     initialize
 
       ldcj1 = max(ncqp,1)
 
+      needfd = lvlder.eq.0 .or. lvlder.eq.2 .or.
+     *         (lvlder.eq.1 .and. ncnln.gt.0)
+
       alfa = 0d0
       alfdx = 0d0
       rtftol = sqrt(ftol)
@@ -6448,6 +6510,8 @@ c     hot start for the first qp subproblem.
       nstate = 0
       objalf = objf
 
+      if (ncnln.gt.0) objalf = objalf - ddot (ncnln,w(lcmul),1,c,1)
+
       newgq = .false.
       isum = 0
       minits = 0
@@ -6460,22 +6524,20 @@ c   +    repeat                         (until a good gradient is found)
 
             
 
-   40   if (newgq) then
-         if (numric) then
+   40 centrl = lvldif.eq.2
 
-                  call objfun (n,x,objf,grad)
-c                                 compute derivatives
-                  call numder (objf,objfun,grad,x,fdnorm,bl,bu,n)
-c original code:
+      if (newgq) then
+         if (needfd) then
+
 c           compute any missing gradient elements and the
 c           transformed gradient of the objective.
 
-c           call npfd (centrl,mode,ldcj,ldcju,n,ncnln,bigbnd,cdint,
-c     *                  fdint,fdnorm,objf,confun,objfun,iw(lneedc),bl,
-c     *                  bu,c,w(lwrk2),w(lwrk3),cjac,cjacu,grad,gradu,
-c     *                  w(lhfrwd),w(lhctrl),x,iuser,user)
-c            inform = mode
-c            if (mode.lt.0) go to 60
+            call npfd (centrl,mode,ldcj,ldcju,n,ncnln,bigbnd,cdint,
+     *                  fdint,fdnorm,objf,confun,objfun,iw(lneedc),bl,
+     *                  bu,c,w(lwrk2),w(lwrk3),cjac,cjacu,grad,gradu,
+     *                  w(lhfrwd),w(lhctrl),x,iuser,user)
+            inform = mode
+            if (mode.lt.0) go to 60
 
          end if
 
@@ -6525,7 +6587,7 @@ c     central differences, recompute the derivatives and re-solve
 c     the qp.
 
       goodgq = .true.
-      if (numric .and. .not. cntrl) then
+      if (needfd .and. .not. centrl) then
          glnorm = dnrm2 (n,w(lhpq),1)
 
             cnorm = 0d0
@@ -6662,7 +6724,7 @@ c        trial steplength falls below alfsml, the linesearch is
 c        terminated.
 
          alfsml = 0d0
-         if (numric .and. .not. cntrl) then
+         if (needfd .and. .not. centrl) then
             alfsml = sdiv (fdnorm,dxnorm,overfl)
             alfsml = min(alfsml,alfmax)
          end if
@@ -6672,7 +6734,7 @@ c        compute the steplength using safeguarded interpolation.
          alflim = sdiv ((1d0+xnorm)*dxlim,dxnorm,overfl)
          alfa = min(alflim,1d0)
 
-         call npsrch(nlserr,n,ncnln,ldcj,ldcju,nfun,ngrad,
+         call npsrch(needfd,nlserr,n,ncnln,ldcj,ldcju,nfun,ngrad,
      *               iw(lneedc),confun,objfun,alfa,alfbnd,alfmax,alfsml,
      *               dxnorm,epsrf,eta,gdx,grdalf,glf1,glf2,objf,objalf,
      *               qpcurv,xnorm,c,w(lwrk1),cjac,cjacu,w(lcjdx),
@@ -6714,45 +6776,39 @@ c           if exact gradients or central differences are being used,
 c           or the kt conditions are satisfied, stop.  otherwise,
 c           switch to central differences and solve the qp again.
 
-            if (numric .and. .not. cntrl) then
+            if (needfd .and. .not. centrl) then
                if (.not. optiml) then
                   error = .false.
                   mjrmsg(3:3) = 'central differences'
-                  cntrl = .true.
+                  lvldif = 2
                   newgq = .true.
                end if
             end if
          else
-            if (numric) then
+            if (needfd) then
 
 c              compute the missing gradients.
 
                mode = 1
                ngrad = ngrad + 1
-
-c                                 changed to objf otherwise old call makes no sense
-                  call objfun (n,x,objf,grad)
-c                                  compute derivatives
-                  call numder (objf,objfun,grad,x,fdnorm,bl,bu,n)
-c original code
 c                                 this looks dubious, should be objf in new x
-c              call objfun (n,x,obj,gradu)
-c              if (obj.ne.objf) then
-c                 write (*,*) 'wtf'
-c              end if 
+               call objfun (mode,n,x,obj,gradu,nstate,iuser,user)
+               if (obj.ne.objf) then
+                  write (*,*) 'wtf'
+               end if 
  
-c              inform = mode
-c              if (mode.lt.0) go to 60
+               inform = mode
+               if (mode.lt.0) go to 60
 
-c              call dcopy (n,gradu,1,grad,1)
+               call dcopy (n,gradu,1,grad,1)
 
-c              call npfd (centrl,mode,ldcj,ldcju,n,ncnln,bigbnd,cdint,
-c    *                    fdint,fdnorm,objf,confun,objfun,iw(lneedc),
-c    *                    bl,bu,c,w(lwrk2),w(lwrk3),cjac,cjacu,grad,
-c    *                    gradu,w(lhfrwd),w(lhctrl),x,iuser,user)
+               call npfd (centrl,mode,ldcj,ldcju,n,ncnln,bigbnd,cdint,
+     *                    fdint,fdnorm,objf,confun,objfun,iw(lneedc),
+     *                    bl,bu,c,w(lwrk2),w(lwrk3),cjac,cjacu,grad,
+     *                    gradu,w(lhfrwd),w(lhctrl),x,iuser,user)
 
-c              inform = mode
-c              if (mode.lt.0) go to 60
+               inform = mode
+               if (mode.lt.0) go to 60
 
                gdx = ddot (n,grad,1,w(ldx),1)
                glf2 = gdx
@@ -6823,6 +6879,7 @@ c     set clamda
 
    60 call cmprt (nfree,n,nclin,nctotl,
      *            nactiv,kactiv,kx,clamda,w(lrlam))
+      if (ncnln.gt.0) call dcopy (ncnln,w(lcmul),1,clamda(n+nclin+1),1)
 c                                 end of npcore
       end
 
