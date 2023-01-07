@@ -1,3 +1,5 @@
+      subroutine dummy
+      end 
 
       subroutine minfrc (idead)
 c-----------------------------------------------------------------------
@@ -21,14 +23,17 @@ c-----------------------------------------------------------------------
       logical zbad, xref, swap
 
       integer i, nvar, iter, iwork(m22), idif, idead,
-     *        istate(m21), nclin, ntot, itic 
+     *        istate(m21), nclin, ntot, itic, ivars(13)
 
       double precision ggrd(m19), lapz(m20,m19),gsol1, pinc,
      *                 bl(m21), bu(m21), gfinal, ppp(m19),
      *                 clamda(m21),r(m19,m19),work(m23),
-     *                 yt(m4),zsite(m10,m11), sum
+     *                 yt(m4),zsite(m10,m11),
+c DEBUG691                    dummies for NCNLN > 0
+     *                 rvars(9),c(1),cjac(1,1), sum
 
-      external gsol2, gsol1
+
+      external gsol2, gsol1, dummy
 
       integer nz
       double precision apz, zl, zu
@@ -128,8 +133,54 @@ c                                 fdincs: computed increments available
 
       end if
 
-      call nlpsol (nvar,nclin,m20,m19,lapz,bl,bu,gsol2,iter,istate,
-     *            clamda,gfinal,ggrd,r,ppp,iwork,m22,work,m23,idead)
+
+
+      idead = -1
+c                                 EPSRF, function precision
+      rvars(1) = (wmach(3))**(0.9)
+c                                 FTOL, optimality tolerance
+      rvars(2) = (wmach(3))**(0.8)
+c                                 CTOL,feasibility tolerance
+      rvars(3) = zero
+c                                 DXLIM, step limit < nopt(5) leads to bad results
+      rvars(4) = 0.05d0
+c                                 ETA, linesearch tolerance, low values -> more accurate search 
+c                                 -> more function calls, 0.05-.4 seem best
+      rvars(5) = 0.225d0
+c                                 FDINT, finite difference interval, forward.
+      rvars(6) = nopt(49)
+c                                 ---------------------------------------------
+c                                 ivars(1:10) reserved for flags, counters used by GSOL2
+c                                 ---------------------------------------------
+
+
+      if (deriv(rids)) then
+c                                 LVLDER = 3, all derivatives available
+         ivars(13) = 3
+c                                 LVERFY = 1, verify derivatives 
+         ivars(11) = itic
+c                                 flag (if ~0) to force numerical
+c                                 finite differences even when 
+c                                 derivatives are available
+         ivars(6) = 0
+
+      else
+c                                 Derivatives not available; or failed once:
+c                                 LVERFY = 0, don't verify
+         ivars(11) = 0
+c                                 LVLDER = 0, no derivatives
+         ivars(13) = 0
+c                                 Set flag to prevent GSOL2 from returning
+c                                 derivatives.
+         ivars(6) = 1
+
+      end if
+c      call nlpsol (nvar,nclin,m20,m19,lapz,bl,bu,gsol2,iter,istate,
+c     *            clamda,gfinal,ggrd,r,ppp,iwork,m22,work,m23,idead)
+
+      call nlpsol (nvar,nclin,0,m20,1,m19,lapz,bl,bu,dummy,gsol2,iter,
+     *            istate,c,cjac,clamda,gfinal,ggrd,r,ppp,iwork,m22,work,
+     *            m23,ivars,rvars,idead)
 
       itic = itic + 1
 
@@ -1225,8 +1276,8 @@ c                                 solution model index
 
       numric = .false.
 
-      call nlpsol (nvar,nclin,m20,m19,lapz,bl,bu,gsol4,iter,istate,
-     *            clamda,gfinal,ggrd,r,ppp,iwork,m22,work,m23,idead)
+c     call nlpsol (nvar,nclin,m20,m19,lapz,bl,bu,gsol4,iter,istate,
+c    *            clamda,gfinal,ggrd,r,ppp,iwork,m22,work,m23,idead)
 c                                 if nlpsol returns iter = 0
 c                                 it's likely failed, make 2 additional 
 c                                 attempts, 1st try numerical verification of 
@@ -1624,7 +1675,7 @@ c                                  remained small as h was decreased itmax times
 c                                 end of chcore
       end
 
-      subroutine lscrsh (nclin,nctotl,nactiv,nfree,n,lda,istate,kactiv,
+      subroutine nlscrsh (nclin,nctotl,nactiv,nfree,n,lda,istate,kactiv,
      *                   tolact,a,ax,bl,bu,x,wx)
 c----------------------------------------------------------------------
 c     lscrsh  computes the quantities istate, kactiv, nactiv, and nfree 
@@ -1709,7 +1760,7 @@ c                                 is complete or all remaining residuals are too
 c                                 compute residuals for all constraints not in
 c                                 working set.
          do i = 1, nclin
-            if (istate(n+i).le.0) ax(i) = ddot (n,a(i,1),lda,wx)
+            if (istate(n+i).le.0) ax(i) = ddot (n,a(i,1),lda,wx,1)
          end do
 
          is = 1
@@ -1770,7 +1821,7 @@ c                                 working set.
 c                                 end of lscrsh
       end
 
-      subroutine lsadds (unitq,inform,k2,nactiv,nz,nfree,nrank,nrejtd,
+      subroutine nlsadds (unitq,inform,k2,nactiv,nz,nfree,nrank,nrejtd,
      *                   nres,ngq,n,ldzy,lda,ldr,ldt,istate,kactiv,kx,
      *                   condmx,a,r,t,res,gq,zy,w,c,s)
 c----------------------------------------------------------------------
