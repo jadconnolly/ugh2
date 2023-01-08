@@ -6853,40 +6853,6 @@ c                                 set clamda
 c                                 end of lscore
       end
 
-
-      subroutine cmprnt (nfree,n,nclin,nctotl,
-     *                  nactiv,kactiv,kx,clamda,rlamda)
-c----------------------------------------------------------------------
-c cmprnt creates the expanded lagrange multiplier vector clamda.
-c----------------------------------------------------------------------
-      implicit none
-  
-      integer n, nactiv, nclin, nctotl, nfree, kactiv(n), kx(n),
-     *        j, k, nfixed, nplin, nz
-
-      double precision clamda(nctotl), rlamda(n), rlam
-c----------------------------------------------------------------------
-      nplin = n + nclin
-      nz = nfree - nactiv
-
-c     expand multipliers for bounds, linear and nonlinear constraints
-c     into the  clamda  array.
-
-      call sload (nctotl,0d0,clamda,1)
-      nfixed = n - nfree
-      do 20 k = 1, nactiv + nfixed
-         if (k.le.nactiv) then
-            j = kactiv(k) + n
-            rlam = rlamda(nactiv-k+1)
-         else
-            j = kx(nz+k)
-            rlam = rlamda(k)
-         end if
-         clamda(j) = rlam
-   20 continue
-c                                 end of cmprnt
-      end
-
       subroutine lsbnds (unitq,inform,nz,nfree,nrank,nres,ngq,n,ldzy,lda
      *                  ,ldr,ldt,istate,kx,condmx,a,r,t,res,gq,zy,w,c,s)
 c----------------------------------------------------------------------
