@@ -212,3 +212,7 @@ minime_blas.o
 *.plt
 
 *.irf
+
+w2_1.txt
+
+weigang_2.txt

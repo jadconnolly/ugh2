@@ -354,7 +354,7 @@ c                                 end of lpsol
 
       subroutine nlpsol (n,nclin,ncnln,lda,ldcju,ldr,a,bl,bu,confun,
      *                  objfun,iter,istate,c,cjacu,clamda,objf,gradu,r,
-     *                  x,iw,leniw,w,lenw,iuser,user,ifail)
+     *                  x,iw,leniw,w,lenw,iuser,user,idead)
 c----------------------------------------------------------------------
 c     nlpsol solves 
 
@@ -374,7 +374,7 @@ c----------------------------------------------------------------------
 
       logical cold, linobj, needfd, rowerr, vertex
 
-      integer ifail, iter, lda, ldcju, ldr, leniw, lenw, n, nclin, 
+      integer idead, iter, lda, ldcju, ldr, leniw, lenw, n, nclin, 
      *        ncnln,i, ianrmj, ikx, info, inform, maxnz, minact,
      *        itmxsv, itns, j, jinf, jmax, lanorm, laqp, lax,
      *        lcjac, lcjdx, lclam, lcmul, ldaqp, ldcj, ldfju,
@@ -465,7 +465,7 @@ c                                 f(n) parameters
       jverfy(4) = n
       rootn = sqrt(dble(n))
 
-      w = 0d0
+      idead = -1
 
       inform = 0
 c                                 parameters set from calling routine
@@ -490,8 +490,8 @@ c                                 lverfy, verify level, default off, may be rese
 c                                 lvlder, derivative level, 3 - all available, 1 - some, 0 - none
       lvlder = iuser(13)
 
-      needfd = lvlder.eq.0 .or. lvlder.eq.2 .or.
-     *                         (lvlder.eq.1 .and. ncnln.gt.0)
+      needfd = lvlder.eq.0 .or. lvlder.eq.2
+
       cold = .true.
       lvldif = 0
       if (needfd) lvldif = 1
@@ -517,7 +517,7 @@ c                                 lvlder, derivative level, 3 - all available, 1
       ldfju = 2
 
       ldaqp = max(nclin+ncnln,1)
-      if (ncnln.eq.0 .and. nclin.gt.0) ldaqp = lda
+      ldaqp = lda
 
 c     nploc defines the arrays that contain the locations of
 c     work arrays within  w  and  iw.
@@ -569,17 +569,6 @@ c     load the arrays of feasibility tolerances.
 
       if (tolfea.gt.0d0) call sload (nplin,tolfea,w(lfeatl),1)
 
-      if (ncnln.gt.0 .and. ctol.gt.0d0) call sload (ncnln,ctol,
-     *    w(lfeatl+nplin),1)
-
-      if (lfdset.eq.0) then
-         fdchk = sqrt(epsrf)
-      else if (lfdset.eq.1) then
-         fdchk = fdint
-      else
-         fdchk = w(lhfrwd)
-      end if
-
       nfun = 0
       ngrad = 0
       nstate = 1
@@ -614,7 +603,6 @@ c     lscrsh  to define an initial working set.
       call smload ('upper-triangular',n,n,0d0,1d0,r,ldr)
       rfrobn = rootn
       nrank = 0
-      if (ncnln.gt.0) call sload (ncnln,0d0,w(lcmul),1)
 
       incrun = .true.
       rhonrm = 0d0
@@ -671,8 +659,8 @@ c        use work2 as the multiplier vector.
       itmax1 = itmxsv
 
       if (nlperr.gt.0) then
-         inform = 2
-         go to 80
+
+         return
       end if
 
 c                                compute objective function
@@ -697,6 +685,7 @@ c                                 compute gradient at first order
 
       w(lgrad:lgrad+n-1) = gradu(1:n)
       w(lgq:lgq+n-1) = gradu(1:n)
+
       call cmqmul (6,n,nz,nfree,ldq,unitq,iw(lkx),w(lgq),w(lq),w(lwrk1))
 c                                 signal gsol2 to save g
       iuser(2) = 1
@@ -709,11 +698,11 @@ c     solve the problem.
      *               ,objfun,a,w(lax),bl,bu,c,w(lcjac),cjacu,clamda,
      *                w(lfeatl),w(lgrad),gradu,r,x,iw,w,lenw,iuser,user)
 
-c                                 the diagnositics are not so hot,
-c                                 here let the calling routine decide
-c                                 what to do. this could be checked 
-c                                 again
-80    ifail = 0
+      if (g0-objf.gt.ftol) then 
+       idead = inform
+      else
+       idead = -2
+      end if
 c                                 end of nlpsol
       end
 
@@ -1372,7 +1361,7 @@ c----------------------------------------------------------------------
       nfixed = n - nfree
 
       gdx = 0d0
-      adx(1:ncqp) = 0d0
+c     adx(1:ncqp) = 0d0
 
       call sload (n,0d0,dx,1)
       call sload (nlnx,0d0,rpq,1)
@@ -4778,11 +4767,10 @@ c     violations and residuals of the constraints in the qp working set.
 
       nviol = 0
 
-      do 40 j = 1, n + nclin + ncnln
+      do 40 j = 1, n + nclin 
          feasj = featol(j)
          res = 0d0
 
-         if (j.le.n+nclin) then
 
 c           bound or general linear constraint.
 
@@ -4793,13 +4781,6 @@ c           bound or general linear constraint.
             end if
 c
             tolj = feasj
-         else
-
-c           nonlinear constraint.
-
-            con = c(j-n-nclin)
-            tolj = 0d0
-         end if
 
 c        check for constraint violations.
 
@@ -5096,7 +5077,7 @@ c----------------------------------------------------------------------
       double precision rcndbd, rfrobn, drmax, drmin
       common/ ngg018 /rcndbd, rfrobn, drmax, drmin
 c----------------------------------------------------------------------
-      if (ncnln.gt.0) call sload (ncnln,0d0,omega,1)
+
 
 c     set curvl = (g2 - g1)'dx,  the approximate curvature along dx of
 c     the (augmented) lagrangian.  at first, the curvature is not scaled
@@ -5111,29 +5092,6 @@ c     constraints,  no update can be doed.
 
       if (curvl.lt.tinycl) then
          lsumry(1:1) = 'modified bfgs'
-         if (ncnln.gt.0) then
-            qmax = 0d0
-            do 20 i = 1, ncnln
-               qi = cjdx2(i)*cs2(i) - cjdx1(i)*cs1(i)
-               qmax = max(qmax,qi)
-               if (qi.le.0d0) wrk1(i) = 0d0
-               if (qi.gt.0d0) wrk1(i) = qi
-   20       continue
-
-            qnorm = dnrm2 (ncnln,wrk1,1)
-
-            test = max(tinycl-curvl,0d0)
-            beta = sdiv (qmax*test,qnorm*qnorm,overfl)
-            if (beta.lt.rhomax .and. .not. overfl) then
-               lsumry(1:1) = ' '
-               beta = test/(qnorm*qnorm)
-               do 40 i = 1, ncnln
-                  qi = wrk1(i)
-                  omega(i) = beta*qi
-                  curvl = curvl + beta*qi*qi
-   40          continue
-            end if
-         end if
       end if
 
       if (curvl.lt.tinycl) curvl = tinycl
@@ -5470,7 +5428,7 @@ c----------------------------------------------------------------------
       external ddot, dnrm2, idamax
 c----------------------------------------------------------------------
 c DEBUG ADDED
-      ax(1:nclin) = 0d0
+c     ax(1:nclin) = 0d0
 
 c     move  x  onto the simple bounds in the working set.
 
@@ -6489,8 +6447,6 @@ c     hot start for the first qp subproblem.
       nstate = 0
       objalf = objf
 
-      if (ncnln.gt.0) objalf = objalf - ddot (ncnln,w(lcmul),1,c,1)
-
       newgq = .false.
       isum = 0
       minits = 0
@@ -6510,6 +6466,10 @@ c   +    repeat                         (until a good gradient is found)
 
 c           compute any missing gradient elements and the
 c           transformed gradient of the objective.
+                 call objfun (n,x,obj,gradu)
+            if (obj.ne.objf) then
+               write (*,*) 'wtf 1',objf - obj
+            end if 
 
             call numder (objf,objfun,grad,x,fdnorm,bl,bu,n)
 

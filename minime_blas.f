@@ -159,20 +159,13 @@ c                                 LVLDER = 3, all derivatives available
          ivars(13) = 3
 c                                 LVERFY = 1, verify derivatives 
          ivars(11) = itic
-c                                 flag (if ~0) to force numerical
-c                                 finite differences even when 
-c                                 derivatives are available
-         ivars(6) = 0
 
       else
 c                                 Derivatives not available; or failed once:
 c                                 LVERFY = 0, don't verify
-         ivars(11) = 0
+         ivars(11) = 1
 c                                 LVLDER = 0, no derivatives
          ivars(13) = 0
-c                                 Set flag to prevent GSOL2 from returning
-c                                 derivatives.
-         ivars(6) = 1
 
       end if
 c      call nlpsol (nvar,nclin,m20,m19,lapz,bl,bu,gsol2,iter,istate,
