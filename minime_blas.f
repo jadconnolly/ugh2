@@ -1756,7 +1756,7 @@ c                                 is complete or all remaining residuals are too
 c                                 compute residuals for all constraints not in
 c                                 working set.
          do i = 1, nclin
-            if (istate(n+i).le.0) ax(i) = ddot (n,a(i,1),lda,wx,1)
+            if (istate(n+i).le.0) ax(i) = ddot (n,a(i,1),lda,wx)
          end do
 
          is = 1
