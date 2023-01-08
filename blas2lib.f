@@ -408,9 +408,6 @@ c----------------------------------------------------------------------
       integer nactiv, nfree, nz
       common/ ngg001 /nactiv, nfree, nz, unitq
 
-      integer itmxnp
-      common/ ngg020 /itmxnp
-
       double precision cdint, ctol, dxlim, epsrf, eta, fdint, ftol,
      *                 hcndbd
       common/ ngg021 /cdint, ctol, dxlim, epsrf, eta,
@@ -552,7 +549,6 @@ c                                 are used by lscrsh to define the initial worki
       rfrobn = rootn
       nrank = 0
 
-      incrun = .true.
       rhonrm = 0d0
       rhodmp = 1d0
 c                                 re-order kx so that the free variables come first
@@ -609,11 +605,16 @@ c                                compute objective function
       if (numric.and.lopt(66)) then
 c                                 get finite difference increments:
          call chfd (n,fdnorm,objf,objfun,bl,bu,gradu,x)
-c                                 forward increments are in w(1:n)
-c                                 central increments are in w(lhctrl:+n)
+
+         cntrl = .true.
+
       else if (numric) then 
 c                                 recompute gradient at first order
          call numder (objf,objfun,gradu,x,fdnorm,bl,bu,n)
+
+         cntrl = .false.
+
+         fdincs = .false.
 
       end if
 
@@ -3490,9 +3491,6 @@ c----------------------------------------------------------------------
       double precision rcndbd, rfrobn, drmax, drmin
       common/ ngg018 /rcndbd, rfrobn, drmax, drmin
 
-      integer itmxnp
-      common/ ngg020 /itmxnp
-
       double precision cdint, ctol, dxlim, epsrf, eta, fdint, ftol,
      *                 hcndbd
       common/ ngg021 /cdint, ctol, dxlim, epsrf, eta,
@@ -4660,7 +4658,7 @@ c                                 end of npfeas
       subroutine npsrch (inform,n,nfun,ngrad,
      *                  objfun,alfa,alfmax,alfsml,
      *                  dxnorm,epsrf,eta,gdx,grdalf,glf,objf,
-     *                  objalf,xnorm,dx,grad,gradu,x1,x,bl,bu)
+     *                  objalf,xnorm,dx,grad,gradu,x1,x)
 c----------------------------------------------------------------------
 c     npsrch finds the steplength alfa that gives sufficient decrease in
 c     the augmented lagrangian merit function.
@@ -4692,7 +4690,7 @@ c----------------------------------------------------------------------
 
       logical done, first, imprvd
 
-      integer inform, n, nfun, ngrad, j, maxf, mode, numf
+      integer inform, n, nfun, ngrad, j, maxf, numf
 
       double precision alfa, alfmax, alfsml, dxnorm, epsrf,
      *                 eta, gdx, glf, grdalf, objalf, objf,
@@ -4701,7 +4699,7 @@ c----------------------------------------------------------------------
      *                 fbest, ftry, g0, gbest, gtry,
      *                 oldf, oldg, q, s, t, targtg, tgdx, tglf,
      *                 tobj, tolabs, tolax, tolrel, tolrx,
-     *                 toltny, ddot, bl(*), bu(*), fdnorm
+     *                 toltny, ddot
 
       external objfun, ddot
 
@@ -4842,10 +4840,6 @@ c                                 hack for simplicial composition
          call badalf (alfa,n,x,x1,dx,'b')
 
       end if
-
-      return
-
-60    inform = mode
 c                                 end of npsrch
       end
 
@@ -5846,9 +5840,6 @@ c----------------------------------------------------------------------
       double precision rcndbd, rfrobn, drmax, drmin
       common/ ngg018 /rcndbd, rfrobn, drmax, drmin
 
-      integer itmxnp
-      common/ ngg020 /itmxnp
-
       logical fdset, cntrl, numric, fdincs
       common/ cstfds /fdset, cntrl, numric, fdincs
 
@@ -6071,7 +6062,7 @@ c                                 compute the steplength
 
             call npsrch (nlserr,n,nfun,ngrad,objfun,alfa,alfmax,alfsml,
      *                   dxnorm,epsrf,eta,gdx,grdalf,glf2,objf,objalf,
-     *                   xnorm,w(ldx),grad,gradu,w(lx1),x,bl,bu)
+     *                   xnorm,w(ldx),grad,gradu,w(lx1),x)
 
 c                                 npsrch  sets nlserr to the following values...
 c                                 1  if the search is successful and alfa < alfmax.
@@ -6090,11 +6081,6 @@ c                                    or the gradients are not sufficiently accur
 c                                 7  if there were too many function calls.
 c                                 8  if the input parameters were bad
 c                                    (alfmax le toltny or uphill).
-            if (nlserr.lt.0) then
-               inform = nlserr
-               go to 60
-            end if
-
             if (alfa.gt.alflim) mjrmsg(4:4) = 'l'
 
             error = nlserr .ge. 4
@@ -6125,12 +6111,12 @@ c                                 and solve the qp again.
 c                                 compute the missing gradients.
                   ngrad = ngrad + 1
 c                                 changed to objf otherwise old call makes no sense
-                  call objfun (n,x,obj,grad)
+c                 call objfun (n,x,obj,grad)
 
-                  if (obj.ne.objf) then 
-                     write (*,*) 'found a case:',objf - obj
-                     objf = obj
-                  end if 
+c                 if (obj.ne.objf) then 
+c                    write (*,*) 'found a case:',objf - obj
+c                    objf = obj
+c                 end if 
 c                                  compute derivatives
                   call numder (objf,objfun,grad,x,fdnorm,bl,bu,n)
 c                                 just to be safe, make gradu:
@@ -6191,8 +6177,7 @@ c                                 partition of q'hq.
             inform = 6
          end if
       end if
-c                                 set clamda
-   60 call cmprt (nfree,n,nctotl,nactiv,kactiv,kx,clamda,w(lrlam))
+c                                 used to set clamda here, but no point
 c                                 end of npcore
       end
 

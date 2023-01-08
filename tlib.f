@@ -361,7 +361,7 @@ c                                  0 - only use minfx when speci2 sets minfx, do
 c                                  1 - set minfx on any constraint, but allow speci2 to continue
 c                                  2 - set minfx on any constraint, only continue for icase = 0
 c                                  3 - set minfx on any constraint, continue for all cases.
-      iopt(37) = 5
+      iopt(37) = 0
 c                                 dynamic_LP_start
 c                                  0 - cold
 c                                  1 - warm

@@ -116,15 +116,6 @@ c                                 closure for molecular models
       else
 
          numric = .true.
-c                                 settings for numeric derivatives:
-c                                 -----------------------------------
-c                                 fdset: compute increments the 1st
-c                                 time numeric derivatives are computed.
-         fdset = .true. 
-c                                 cntrl: use 2nd order estimate
-         cntrl = .false.
-c                                 fdincs: computed increments available
-         fdincs = .false.
 
       end if
 
@@ -1227,15 +1218,17 @@ c                                 solution model index
 
       call nlpsol (nvar,nclin,m20,m19,lapz,bl,bu,gsol4,iter,istate,
      *            clamda,gfinal,ggrd,r,ppp,iwork,m22,work,m23,idead)
-c                                 if nlpsol returns iter = 0
-c                                 it's likely failed, make 2 additional 
-c                                 attempts, 1st try numerical verification of 
-c                                 the derivatives, 2nd try use only numerical 
-c                                 derivatives.
 
-c                                 need error testing on idead here! 
-c                                 on failure could switch to numeric
-
+      if (idead.eq.1) then
+c        write (*,*) 'starting point is as good as it gets',rids,idead
+      else if (idead.eq.6) then
+c        write (*,*) 'starting point is as good as it gets',rids,idead
+      else if (idead.eq.4) then
+c         write (*,*) 'ran out of time',rids
+      else if (idead.lt.0.or.idead.eq.3) then 
+c           write (*,*) 'and i am outta here ',rids, idead
+            return
+      end if
 c                                 if ok:
 c                                 set pa to correspond to the final 
 c                                 values in ppp.
@@ -1257,7 +1250,7 @@ c                                 check for fuck-ups
 c                                 need to call gsol1 here to get 
 c                                 total g, gsol4 is not computing 
 c                                 the mechanical component?
-         if (gfinal.gt.g0.or.iter.eq.0) then 
+         if (gfinal.gt.g0) then 
             gfinal = g0
             pa = p0a
          end if
