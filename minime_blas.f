@@ -1671,7 +1671,7 @@ c                                  remained small as h was decreased itmax times
 c                                 end of chcore
       end
 
-      subroutine nlscrsh (nclin,nctotl,nactiv,nfree,n,lda,istate,kactiv,
+      subroutine lscrsh (nclin,nctotl,nactiv,nfree,n,lda,istate,kactiv,
      *                   tolact,a,ax,bl,bu,x,wx)
 c----------------------------------------------------------------------
 c     lscrsh  computes the quantities istate, kactiv, nactiv, and nfree 
@@ -1817,7 +1817,7 @@ c                                 working set.
 c                                 end of lscrsh
       end
 
-      subroutine nlsadds (unitq,inform,k2,nactiv,nz,nfree,nrank,nrejtd,
+      subroutine lsadds (unitq,inform,k2,nactiv,nz,nfree,nrank,nrejtd,
      *                   nres,ngq,n,ldzy,lda,ldr,ldt,istate,kactiv,kx,
      *                   condmx,a,r,t,res,gq,zy,w,c,s)
 c----------------------------------------------------------------------

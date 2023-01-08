@@ -261,9 +261,13 @@ c     the input values of x and (optionally) istate are used by
 c     lscrsh  to define an initial working set.
 
       vertex = .false.
-      call lscrsh (cold,vertex,nclin,nplin,nactiv,nartif,nfree,n,lda,
-     *            istate,iw(lkactv),bigbnd,tolact,a,w(lax),bl,bu,x,
-     *            w(lwrk1),w(lwrk2))
+c     call lscrsh (cold,vertex,nclin,nplin,nactiv,nartif,nfree,n,lda,
+c    *            istate,iw(lkactv),bigbnd,tolact,a,w(lax),bl,bu,x,
+c    *            w(lwrk1),w(lwrk2))
+
+      call lscrsh (nclin,nctotl,nactiv,nfree,n,lda,
+     *            istate,iw(lkactv),tolact,a,w(lax),bl,bu,x,
+     *            w(lwrk1))
 
       nres = 0
       ngq = 0
@@ -302,10 +306,16 @@ c     factorize the linear constraints in the initial working set.
          nact1 = nactiv
          nactiv = 0
 
-         call lsadds (unitq,vertex,inform,1,nact1,nactiv,nartif,nz,nfree
-     *               ,nrank,nrejtd,nres,ngq,n,ldq,lda,ldr,ldt,istate,
+c        call xlsadds (unitq,vertex,inform,1,nact1,nactiv,nartif,nz,nfree
+c    *               ,nrank,nrejtd,nres,ngq,n,ldq,lda,ldr,ldt,istate,
+c    *                iw(lkactv),iw(lkx),condmx,a,r,w(lt),w(lres0),
+c    *                w(lgq),w(lq),w(lwrk1),w(lwrk2),w(lrlam))
+
+         call lsadds (unitq,inform,nact1,nactiv,nz,nfree,
+     *                nrank,nrejtd,nres,ngq,n,ldq,lda,ldr,ldt,istate,
      *                iw(lkactv),iw(lkx),condmx,a,r,w(lt),w(lres0),
      *                w(lgq),w(lq),w(lwrk1),w(lwrk2),w(lrlam))
+
       end if
 
 c        move  x  on to the linear constraints and
@@ -5193,7 +5203,7 @@ c     residual  pr  -  rq'x = res0  -  rq'x.
 c                                 end of lssetx
       end
 
-      subroutine lsadds (unitq,vertex,inform,k1,k2,nactiv,nartif,nz,
+      subroutine xlsadds (unitq,vertex,inform,k1,k2,nactiv,nartif,nz,
      *                   nfree,nrank,nrejtd,nres,ngq,n,ldzy,lda,ldr,ldt,
      *                   istate,kactiv,kx,condmx,a,r,t,res,gq,zy,w,c,s)
 c----------------------------------------------------------------------
@@ -5667,10 +5677,10 @@ c   +    repeat                         (until a good gradient is found)
 
 c           compute any missing gradient elements and the
 c           transformed gradient of the objective.
-                 call objfun (n,x,obj,gradu)
-            if (obj.ne.objf) then
-               write (*,*) 'wtf 1',objf - obj
-            end if 
+c                call objfun (n,x,obj,gradu)
+c           if (obj.ne.objf) then
+c              write (*,*) 'wtf 1',objf - obj
+c           end if 
 
             call numder (objf,objfun,grad,x,fdnorm,bl,bu,n)
 
@@ -6022,11 +6032,10 @@ c     set clamda
 
    60 call cmprt (nfree,n,nclin,nctotl,
      *            nactiv,kactiv,kx,clamda,w(lrlam))
-      if (ncnln.gt.0) call dcopy (ncnln,w(lcmul),1,clamda(n+nclin+1),1)
 c                                 end of npcore
       end
 
-      subroutine lscrsh(cold,vertex,nclin,nctotl,nactiv,nartif,nfree,n,
+      subroutine xlscrsh(cold,vertex,nclin,nctotl,nactiv,nartif,nfree,n,
      *                  lda,istate,kactiv,bigbnd,tolact,a,ax,bl,bu,x,wx,
      *                  work)
 c----------------------------------------------------------------------
