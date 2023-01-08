@@ -1461,8 +1461,7 @@ c        the working set at its upper bound.
          if (is.eq.2) rlam = -rlam
          if (is.eq.3) rlam = abs(rlam)
          if (is.eq.4) rlam = -abs(rlam)
-c DEBUG DEBUG
-c        if (is.ne.3.and..not.isnan(rlam)) then
+
          if (is.ne.3) then
             scdlam = rlam*anormj
             if (scdlam.lt.smllst) then
@@ -1474,7 +1473,7 @@ c        if (is.ne.3.and..not.isnan(rlam)) then
                jtiny = j
             end if
          end if
-c        if (numinf.gt.0 .and. j.gt.jinf.and..not.isnan(rlam)) then
+
          if (numinf.gt.0 .and. j.gt.jinf) then
             scdlam = rlam/wtinf(j)
             if (scdlam.gt.biggst) then
@@ -4810,7 +4809,7 @@ c                                 if ~done, compute objfun for srchc/q
 c                                 hack for simplicial composition
             call badalf (alfa,n,x,x1,dx,'a')
 
-            call objfun (n,x,tobj,gradu,fdnorm,bl,bu)
+            call objfun (n,x,tobj,gradu)
 
             ftry = tobj - oldf - 1d-4 * oldg * alfa
 c                                 compute auxiliary gradient info 
@@ -5897,8 +5896,12 @@ c                                 loop to follow the gradient
             if (newgq) then
 
                if (numric) then
+c                                 in principle no call to objfun is necessary
+c                                 because switching to 2nd order derivatives
+c                                 the switch itself may be redundant if chfd
+c                                 has been called as it will start the whole
+c                                 thing off w/2nd order. 
 
-                  call objfun (n,x,objf,grad)
 c                                 compute derivatives
                   call numder (objf,objfun,grad,x,fdnorm,bl,bu,n)
 
@@ -6122,7 +6125,12 @@ c                                 and solve the qp again.
 c                                 compute the missing gradients.
                   ngrad = ngrad + 1
 c                                 changed to objf otherwise old call makes no sense
-                  call objfun (n,x,objf,grad)
+                  call objfun (n,x,obj,grad)
+
+                  if (obj.ne.objf) then 
+                     write (*,*) 'found a case:',objf - obj
+                     objf = obj
+                  end if 
 c                                  compute derivatives
                   call numder (objf,objfun,grad,x,fdnorm,bl,bu,n)
 c                                 just to be safe, make gradu:
