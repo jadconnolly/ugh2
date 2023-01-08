@@ -573,7 +573,18 @@ c     load the arrays of feasibility tolerances.
       ngrad = 0
       nstate = 1
 
+      if (nclin.gt.0) then
 
+         ianrmj = lanorm
+
+         do j = 1, nclin
+            w(ianrmj) = dnrm2 (n,a(j,1),lda)
+            ianrmj = ianrmj + 1
+         end do
+
+         call scond (nclin,w(lanorm),1,asize,amin)
+
+      end if
 
       call scond (nplin,w(lfeatl),1,feamax,feamin)
       call dcopy (nplin,w(lfeatl),1,w(lwtinf),1)
@@ -1551,7 +1562,7 @@ c        the working set at its upper bound.
          if (is.eq.2) rlam = -rlam
          if (is.eq.3) rlam = abs(rlam)
          if (is.eq.4) rlam = -abs(rlam)
-c DEBUG DEBUG
+
          if (is.ne.3) then
             scdlam = rlam*anormj
             if (scdlam.lt.smllst) then
@@ -5427,9 +5438,6 @@ c----------------------------------------------------------------------
 
       external ddot, dnrm2, idamax
 c----------------------------------------------------------------------
-c DEBUG ADDED
-c     ax(1:nclin) = 0d0
-
 c     move  x  onto the simple bounds in the working set.
 
       do 20 k = nfree + 1, n
@@ -9030,22 +9038,16 @@ c-----------------------------------------------------------------------
          ky = 1 - (leny - 1)*incy
       end if
 
-      if (beta.ne.1d0) then
+c DEBUG DEBUG avoids uninitialized ax/adx (assumes incy = 1)
 
-         if (incy.eq.1) then
+      if (beta.eq.0d0) then 
 
-            y(1:leny) = beta*y(1:leny)
+         y(1:leny) = 0d0
 
-         else
+      else if (beta.ne.1d0) then
 
-            iy = ky
+         y(1:leny) = beta*y(1:leny)
 
-               do 40, i = 1, leny
-                  y(iy) = beta*y(iy)
-                  iy      = iy           + incy
-   40          continue
-
-         end if
       end if
 
       if (alpha.eq.0d0) return
