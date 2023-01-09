@@ -20246,6 +20246,9 @@ c---------------------------------------------------------------------
 c----------------------------------------------------------------------
       ntot = nstot(ids)
       nvar = ntot - 1
+c                                 get the bulk composition needed for 
+c                                 leveling.
+      call getscp (rcp,rsum,rids,rids)
 
       g = 0d0
       dgdp(1:nvar) = 0d0

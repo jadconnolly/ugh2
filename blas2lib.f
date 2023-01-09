@@ -224,7 +224,7 @@ c                                 get tq factorization of working set matrix
             nactiv = 0
             ngq = 0
 
-            call rzadds (unitq,vertex,1,nact1,it,nactiv,nartif,nz,nfree,
+            call rzadds (unitq,vertex,nact1,it,nactiv,nartif,nz,nfree,
      *                   nrejtd,ngq,n,ldq,lda,ldt,istate,iw(lkactv),
      *                   iw(lkx),condmx,a,w(lt),w(lgq),w(lq),w(lwrk),
      *                   w(ld),w(lrlam))
@@ -507,8 +507,13 @@ c                                  addresses used by npcore
 c                                 load feasibility tolerances.
       w(lfeatl:lfeatl+nctotl-1) = tolfea
 
-      nfun = 0
-      ngrad = 0
+      if (numric) then 
+         nfun = 1
+         ngrad = 1
+      else 
+         nfun = 0
+         ngrad = 0
+      end if 
 
       if (nclin.gt.0) then
 
@@ -3555,7 +3560,7 @@ c     set the maximum allowable condition estimator of the constraints
 c     in the working set.  note that a relatively well-conditioned
 c     working set is used to start the qp iterations.
 
-      condmx = max(1d0/epspt3,1d2)
+      condmx = 1d0/epspt3
 
 c     solve for dx, the vector of minimum two-norm that satisfies the
 c     constraints in the working set.
@@ -3583,29 +3588,31 @@ c     (1  thru  jinf)  being satisfied.
      *            dxnorm,qpbl,qpbu,aqp,clamda,adx,qptol,r,dx,w)
 
          nviol = 0
+
          if (numinf.gt.0) then
+c                                 count the violated linear constraints.
+            do j = 1, nctotl
+               if (istate(j).lt.0) nviol = nviol + 1
+            end do
 
-c           count the violated linear constraints.
+            if (nviol.gt.0) then
+               ntry = ntry + 1
+               unitq = .true.
+               nactiv = 0
+               nfree = n
+               nz = n
+               call iload (nctotl,0,istate,1)
 
-         do j = 1, nctotl
-            if (istate(j).lt.0) nviol = nviol + 1
-         end do
-
-         if (nviol.gt.0) then
-            ntry = ntry + 1
-            unitq = .true.
-            nactiv = 0
-            nfree = n
-            nz = n
-            call iload (nctotl,0,istate,1)
-
-            call npsetx (unitq,nclin,nactiv,nfree,nz,n,nctotl,ldzy,
+               call npsetx (unitq,nclin,nactiv,nfree,nz,n,nctotl,ldzy,
      *                  ldaqp,ldr,ldt,istate,kactiv,kx,dxnorm,gdx,aqp,
      *                  adx,qpbl,qpbu,w(lrpq),w(lrpq0),dx,w(lgq),r,w(lt)
      *                  ,w(lzy),w(lwrk1))
+            end if
+
          end if
-      end if
-      if (nviol.eq.0 .or. ntry.gt.2) exit
+
+         if (nviol.eq.0 .or. ntry.gt.2) exit
+
       end do
 
       nlnact = 0
@@ -4790,7 +4797,7 @@ c                (alfmax le toltny  or  oldg ge 0).
             objf = tobj
             objalf = tobj
 
-           if (.not.numric) then
+            if (.not.numric) then
 
                call dcopy (n,gradu,1,grad,1)
                gdx = tgdx
@@ -4843,8 +4850,8 @@ c                                 hack for simplicial composition
 c                                 end of npsrch
       end
 
-      subroutine npupdt (lsumry,n,ldr,alfa,glf1,glf2,qpcurv,
-     *                  gq1,gq2,hpq,rpq,r,wrk1,wrk2)
+      subroutine npupdt (n,ldr,alfa,glf1,glf2,qpcurv,
+     *                   gq1,gq2,hpq,rpq,r,wrk1,wrk2)
 c----------------------------------------------------------------------
 c     npupdt  computes the bfgs update for the approximate hessian of
 c     the lagrangian.  if the approximate curvature of the lagrangian
@@ -5792,8 +5799,6 @@ c----------------------------------------------------------------------
       logical unitq, convpt, convrg, done, error, feasqp,
      *        goodgq, infeas, newgq, optiml, overfl
 
-      character*5 mjrmsg
-
       integer inform, ldaqp, ldr, lenw, majits, n, nactiv, nclin, 
      *        nctotl, nfree, nfun, ngrad, nz, istate(*), iw(*), 
      *        kactiv(n), kx(n), isum, info, jmax, linact, majit0, 
@@ -5854,7 +5859,6 @@ c                                 specify machine-dependent parameters.
       flmax = wmach(7)
       rtmax = wmach(8)
 c                                 initialize
-      mjrmsg = '     '
       nqpinf = 0
       mnrsum = 0
       majit0 = majits
@@ -5897,8 +5901,6 @@ c                                 compute derivatives
                   call numder (objf,objfun,grad,x,fdnorm,bl,bu,n)
 
                end if
-c                                 just to be safe, make gradu:
-               gradu(1:n) = grad(1:n)
 
                w(lgq:lgq+n-1) = grad(1:n)
 
@@ -5924,7 +5926,6 @@ c
                nqpinf = 0
             else
                nqpinf = nqpinf + 1
-               mjrmsg(2:2) = 'infeasible subproblem'
             end if
 c                                 convergence test:
 c                                 compute norms of projected gradient and
@@ -5947,8 +5948,6 @@ c                                 and re-solve the qp.
 
                if (glnorm.le.gltest) then
 c                                 up the ante:
-                  mjrmsg(3:3) = 'central differences'
-
                   goodgq = .false.
                   cntrl = .true.
                   newgq = .true.
@@ -6081,7 +6080,6 @@ c                                    or the gradients are not sufficiently accur
 c                                 7  if there were too many function calls.
 c                                 8  if the input parameters were bad
 c                                    (alfmax le toltny or uphill).
-            if (alfa.gt.alflim) mjrmsg(4:4) = 'l'
 
             error = nlserr .ge. 4
 
@@ -6097,8 +6095,6 @@ c                                 and solve the qp again.
 
                      error = .false.
 
-                     mjrmsg(3:3) = 'central differences'
-
                      newgq = .true.
 
                   end if
@@ -6110,17 +6106,8 @@ c                                 and solve the qp again.
                if (numric) then
 c                                 compute the missing gradients.
                   ngrad = ngrad + 1
-c                                 changed to objf otherwise old call makes no sense
-c                 call objfun (n,x,obj,grad)
 
-c                 if (obj.ne.objf) then 
-c                    write (*,*) 'found a case:',objf - obj
-c                    objf = obj
-c                 end if 
-c                                  compute derivatives
                   call numder (objf,objfun,grad,x,fdnorm,bl,bu,n)
-c                                 just to be safe, make gradu:
-                  gradu(1:n) = grad(1:n)
 
                   gdx = ddot (n,grad,1,w(ldx))
                   glf2 = gdx
@@ -6138,8 +6125,8 @@ c                                 just to be safe, make gradu:
                alfdx = alfa*dxnorm
 c                                 update the factors of the approximate hessian of the
 c                                 lagrangian function.
-               call npupdt (mjrmsg,n,ldr,alfa,glf1,glf2,qpcurv,w(lgq1),
-     *                    w(lgq),w(lhpq),w(lrpq),r,w(lwrk2),w(lwrk1))
+               call npupdt (n,ldr,alfa,glf1,glf2,qpcurv,w(lgq1),
+     *                      w(lgq),w(lhpq),w(lrpq),r,w(lwrk2),w(lwrk1))
 
                call scond (n,r,ldr+1,drmax,drmin)
                cond = sdiv (drmax,drmin,overfl)
@@ -6147,8 +6134,6 @@ c                                 lagrangian function.
                if (cond.gt.rcndbd .or.rfrobn.gt.rootn*1d2*drmax) then
 c                                 reset the condition estimator and range-space
 c                                 partition of q'hq.
-                  mjrmsg(5:5) = 'refactorize hessian'
-
                   call nprset (unitq,n,nfree,nz,ldzy,ldr,iw(liperm),kx,
      *                     w(lgq),r,w(lzy),w(lwrk1),w(lqrwrk))
 
@@ -6280,12 +6265,12 @@ c     until    (errmax .le. featol(jmax) .or. ktry.gt.ntry
 c                                 end of cmsetx
       end
 
-      subroutine rzadds (unitq,vertex,k1,k2,it,nactiv,nartif,nz,nfree,
+      subroutine rzadds (unitq,vertex,k2,it,nactiv,nartif,nz,nfree,
      *                   nrejtd,ngq,n,ldq,lda,ldt,istate,kactiv,kx,
      *                   condmx,a,t,gqm,q,w,c,s)
 c----------------------------------------------------------------------
-c     rzadds  includes general constraints  k1  thru  k2  as new rows of
-c     the  tq  factorization:
+c     rzadds includes general constraints 1:k2 as new rows of
+c     the tq factorization:
 c              a(free) * q(free)  = ( 0 t)
 c                        q(free)  = ( z y)
 c     a) the  nactiv x nactiv  upper-triangular matrix  t  is stored
@@ -6295,7 +6280,7 @@ c----------------------------------------------------------------------
 
       logical unitq, vertex, overfl, rset
 
-      integer it, k1, k2, lda, ldq, ldt, n, nactiv, kx(n), k, l,
+      integer it, k2, lda, ldq, ldt, n, nactiv, kx(n), k, l,
      *        nartif, nfree, ngq, nrejtd, nz, istate(*), kactiv(n),
      *        i, iadd, iartif, ifix, inform, iswap, j, jadd, jt, nzadd
 
@@ -6335,7 +6320,7 @@ c           first general constraint added.  set  q = i.
          call scond (nactiv,t(it,jt),ldt+1,dtmax,dtmin)
       end if
 
-      do 20 k = k1, k2
+      do 20 k = 1, k2
          iadd = kactiv(k)
          jadd = n + iadd
          if (nactiv.lt.nfree) then
@@ -6412,8 +6397,8 @@ c        that holds the indices of the general constraints in the
 c        working set.  move accepted indices to the front and shift
 c        rejected indices (with negative values) to the end.
 
-         l = k1 - 1
-         do 40 k = k1, k2
+         l = 0
+         do 40 k = 1, k2
             i = kactiv(k)
             if (i.ge.0) then
                l = l + 1

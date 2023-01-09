@@ -118,41 +118,27 @@ c                                 closure for molecular models
 
       call nlpsol (nvar,nclin,m20,m19,lapz,bl,bu,gsol2,iter,istate,
      *            clamda,gfinal,ggrd,r,ppp,iwork,m22,work,m23,idead)
-
-      if (idead.lt.0.or.idead.eq.3.or.idead.eq.6) return
+c                                 reject results outright if no improvement
+c                                 (idead < 0) or infeasible (idead = 3)
+      if (idead.lt.0.or.idead.eq.3) return
 c                                 reconstruct pa-array, this IS necessary.
       call ppp2pa (ppp,sum,nvar)
-c                                 reject bad site populations, necessary?
-      if (boundd(rids).and.sum.gt.nopt(55)) then
-
-            write (*,*) 'oink 2',sum, pa(1:nstot(rids))
-
-            idead = 2
-
+c                                 reject bad site populations, these may not
+c                                 be useful
+      if (boundd(rids)) then
+         if (sum.gt.nopt(55)) then
+            write (*,*) 'oink 1',sum,rids
             return
-
-      else if (boundd(rids)) then 
-
-         sum = 0d0
-
-         do i = 1, nstot(rids)
-            if (pa(i).lt.0d0) pa(i) = 0d0
-            sum = sum + pa(i)
-         end do
-
-         pa(1:nstot(rids)) = pa(1:nstot(rids))/sum
-
-      else
-
-         if (zbad(pa,rids,zsite,fname(rids),.false.,fname(rids))) then
-
-            write (*,*) 'oink 3',rids
-
-         idead = 3
-
-         return
+         else if (sum.gt.1d0) then 
+            pa(nstot(rids)) = 0d0
          end if
-
+      end if
+      
+      if (zbad(pa,rids,zsite,fname(rids),.false.,fname(rids))) then
+      
+         write (*,*) 'oink 3',rids
+         return
+      
       end if
 c                                 save the final point, the point may have
 c                                 already been saved by gsol2 but because
@@ -163,9 +149,6 @@ c                                 threshold is reduced to zero (sqrt(eps)).
       call makepp (rids)
 c                                 if logical arg = T use implicit ordering
       gfinal = gsol1 (rids,.false.)
-c                                 gsol1 computes rcp, rsum for ksmod(39)
-c                                 but a direct call getscp will not.
-      if (ksmod(rids).ne.39) call getscp (rcp,rsum,rids,rids)
 c                                 save the final QP result
       call savrpc (gfinal,0d0,swap,idif)
 
@@ -288,15 +271,11 @@ c                                 reconstruct pa array
       call ppp2pa (ppp,psum,nvar)
 
       call makepp (rids)
-c                                 get the bulk composition from 
-c                                 pa if ksmod(rids) ~= 39, else
-c                                 it's computed by gsol1
-      if (ksmod(rids).ne.39) call getscp (rcp,rsum,rids,rids)
 
       if (deriv(rids)) then
 c                                 analytical derivatives:
          call getder (g,dgdp,rids)
-c                                 ------------------------------------
+
          gval = g
 
          do j = 1, icp
@@ -1222,7 +1201,7 @@ c                                 solution model index
      *            clamda,gfinal,ggrd,r,ppp,iwork,m22,work,m23,idead)
 
       if (.not.maxs) then 
-         if (idead.lt.0.or.idead.eq.3.or.idead.eq.6) then 
+         if (idead.lt.0.or.idead.eq.3) then 
             gfinal = g0
             pa = p0a
             return
