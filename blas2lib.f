@@ -602,17 +602,17 @@ c                                compute objective function
 
       g0 = objf
 
+      cntrl = .false.
+
       if (numric.and.lopt(66)) then
 c                                 get finite difference increments:
          call chfd (n,fdnorm,objf,objfun,bl,bu,gradu,x)
-
-         cntrl = .true.
-
+c                                 chfd will in fact return 2nd order 
+c                                 derivatives, but setting cntrl at this
+c                                 point is too costly
       else if (numric) then 
 c                                 recompute gradient at first order
          call numder (objf,objfun,gradu,x,fdnorm,bl,bu,n)
-
-         cntrl = .false.
 
          fdincs = .false.
 
@@ -6176,6 +6176,9 @@ c                                 partition of q'hq.
          else
             inform = 6
          end if
+      else 
+         write (*,*) 'wtf'
+         stop
       end if
 c                                 used to set clamda here, but no point
 c                                 end of npcore

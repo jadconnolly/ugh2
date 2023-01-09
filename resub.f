@@ -628,33 +628,9 @@ c                                 amount can be initialized
 
             if (lopt(61)) call begtim (15)
 c                                  normal solution
-            call minfrc (ifail)
+            call minfrc
 
             if (lopt(61)) call endtim (15,.false.,'minfrc')
-
-            if (ifail.eq.0) then
-               
-               igood(ids) = igood(ids) + 1
-            
-               if (iter.eq.1.and..not.ststbl(id)) then
-c                 write (*,*) 'not good now good ',id,ids
-               end if 
-            
-            else
-            
-               ibad(ids) = ibad(ids) + 1
-            
-               if (ifail.eq.1) then
-c                 write (*,*) 'and i am outta here 0 iter',ids
-               else if (ifail.eq.2) then
-c                 write (*,*) 'bounded w/<0 fraction',ids
-               else if (ifail.eq.3) then 
-c                 write (*,*) 'bad site fraction',ids
-               else if (ifail.eq.4) then 
-c                 write (*,*) 'never happens',ids
-               end if
-
-            end if
 
          end if
 

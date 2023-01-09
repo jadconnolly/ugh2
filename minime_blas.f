@@ -1,5 +1,5 @@
 
-      subroutine minfrc (idead)
+      subroutine minfrc
 c-----------------------------------------------------------------------
 c minimize the omega function for the independent endmember fractions
 c of solution ids subject to site fraction constraints
@@ -21,7 +21,7 @@ c-----------------------------------------------------------------------
       logical zbad, xref, swap
 
       integer i, nvar, iter, iwork(m22), idif, idead,
-     *        istate(m21), nclin, ntot, itic 
+     *        istate(m21), nclin, ntot
 
       double precision ggrd(m19), lapz(m20,m19),gsol1, pinc,
      *                 bl(m21), bu(m21), gfinal, ppp(m19),
@@ -57,9 +57,6 @@ c-----------------------------------------------------------------------
 
       logical fdset, cntrl, numric, fdincs
       common/ cstfds /fdset, cntrl, numric, fdincs
-
-      data itic/0/
-      save itic
 c-----------------------------------------------------------------------
       yt = pa
 
@@ -122,35 +119,40 @@ c                                 closure for molecular models
       call nlpsol (nvar,nclin,m20,m19,lapz,bl,bu,gsol2,iter,istate,
      *            clamda,gfinal,ggrd,r,ppp,iwork,m22,work,m23,idead)
 
-      itic = itic + 1
-
-c         write (*,*) rids, gfinal,itic, iter
-
-      if (idead.eq.1) then
-c        write (*,*) 'starting point is as good as it gets',rids,idead
-      else if (idead.eq.6) then
-c        write (*,*) 'starting point is as good as it gets',rids,idead
-      else if (idead.eq.4) then
-c         write (*,*) 'ran out of time',rids
-      else if (idead.lt.0.or.idead.eq.3) then 
-c           write (*,*) 'and i am outta here ',rids, idead
-            return
-      end if
-
-c                                 reconstruct pa-array, necessary? yes
-      yt(1:nstot(rids)) = pa(1:nstot(rids))
+      if (idead.lt.0.or.idead.eq.3.or.idead.eq.6) return
+c                                 reconstruct pa-array, this IS necessary.
       call ppp2pa (ppp,sum,nvar)
 c                                 reject bad site populations, necessary?
-      if (boundd(rids)) then
-         if (pa(nstot(rids)).lt.0d0) then 
-            idead = 2
-            return
-         end if
-      end if
+      if (boundd(rids).and.sum.gt.nopt(55)) then
 
-      if (zbad(pa,rids,zsite,fname(rids),.false.,fname(rids))) then
+            write (*,*) 'oink 2',sum, pa(1:nstot(rids))
+
+            idead = 2
+
+            return
+
+      else if (boundd(rids)) then 
+
+         sum = 0d0
+
+         do i = 1, nstot(rids)
+            if (pa(i).lt.0d0) pa(i) = 0d0
+            sum = sum + pa(i)
+         end do
+
+         pa(1:nstot(rids)) = pa(1:nstot(rids))/sum
+
+      else
+
+         if (zbad(pa,rids,zsite,fname(rids),.false.,fname(rids))) then
+
+            write (*,*) 'oink 3',rids
+
          idead = 3
+
          return
+         end if
+
       end if
 c                                 save the final point, the point may have
 c                                 already been saved by gsol2 but because
@@ -1219,43 +1221,17 @@ c                                 solution model index
       call nlpsol (nvar,nclin,m20,m19,lapz,bl,bu,gsol4,iter,istate,
      *            clamda,gfinal,ggrd,r,ppp,iwork,m22,work,m23,idead)
 
-      if (idead.eq.1) then
-c        write (*,*) 'starting point is as good as it gets',rids,idead
-      else if (idead.eq.6) then
-c        write (*,*) 'starting point is as good as it gets',rids,idead
-      else if (idead.eq.4) then
-c         write (*,*) 'ran out of time',rids
-      else if (idead.lt.0.or.idead.eq.3) then 
-c           write (*,*) 'and i am outta here ',rids, idead
+      if (.not.maxs) then 
+         if (idead.lt.0.or.idead.eq.3.or.idead.eq.6) then 
+            gfinal = g0
+            pa = p0a
             return
+         end if
       end if
 c                                 if ok:
 c                                 set pa to correspond to the final 
 c                                 values in ppp.
       call ppp2p0 (ppp,ids)
-
-      if (.not.maxs) then
-
-         if (itic.gt.0) then 
-c                                 check for fuck-ups
-            ppp(1:nstot(ids)) = p0a(1:nstot(ids))
-
-            p0a(1:nstot(ids)) = pa(1:nstot(ids))
-
-            gfinal = gordp0(ids)
-
-            p0a(1:nstot(ids)) = ppp(1:nstot(ids))
-
-         end if
-c                                 need to call gsol1 here to get 
-c                                 total g, gsol4 is not computing 
-c                                 the mechanical component?
-         if (gfinal.gt.g0) then 
-            gfinal = g0
-            pa = p0a
-         end if
-
-      end if
 
       end
 
