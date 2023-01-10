@@ -31,7 +31,7 @@ c----------------------------------------------------------------------
       integer n
 
       write (n,'(/,a,//,a)') 
-     *     'Perple_X version 7.0.2, January 6, 2023.',
+     *     'Perple_X release 7.0.1, January 10, 2023.',
 
      *     'Copyright (C) 1986-2023 James A D Connolly '//
      *     '<www.perplex.ethz.ch/copyright.html>.'
@@ -508,7 +508,7 @@ c                                 override counter limits for (some) warnings
       lopt(64) = .false.
 c                                 fluid_shear_modulus
       lopt(65) = .true.
-c                                 compute finite difference increments for MINFRC
+c                                 compute_FD_increments for MINFRC
       lopt(66) = .false.
 c                                 phi_d
       nopt(65) = 0.36
@@ -853,7 +853,7 @@ c                                 override counter limits for (some) warnings
 c                                 compute shear modulus assuming textural eq
             if (val.eq.'F') lopt(65) = .false.
  
-         else if (key.eq.'compute_fd_increments') then
+         else if (key.eq.'compute_FD_increments') then
 c                                 compute finite difference increments for MINFRC
             if (val.eq.'T') lopt(66) = .true.
 
@@ -1643,9 +1643,6 @@ c----------------------------------------------------------------------
 
       double precision epspt3, epspt5, epspt8, epspt9
       common/ ngg006 /epspt3, epspt5, epspt8, epspt9
-
-      integer count
-      common/ cstcnt /count
 c----------------------------------------------------------------------
       rhomax = 1d0/wmach(3)
       tolact = 1d-2
@@ -7621,7 +7618,7 @@ c----------------------------------------------------------------
 
       character*5 y*1, units*13, text*195, what*9, sym*1
 
-      integer jcomp, ier, i, ids, count
+      integer jcomp, ier, i, ids, kount
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
@@ -7701,16 +7698,16 @@ c                                define the numerator
 
          if (spec(jcomp)) then
             write (*,1010) (i,spnams(i,ids), i = 1, spct(ids))
-            count = spct(ids)
+            kount = spct(ids)
          else 
             write (*,1010) (i,cname(i), i = 1, icomp)
-            count = icomp
+            kount = icomp
          end if 
 
          read (*,*,iostat=ier) (icps(i,jcomp),rcps(i,jcomp), 
      *                                     i = 1, jcx(jcomp))
          do i = 1, jcx(jcomp)
-            if (icps(i,jcomp).lt.1.or.icps(i,jcomp).gt.count) then
+            if (icps(i,jcomp).lt.1.or.icps(i,jcomp).gt.kount) then
                ier = 1
                exit 
             end if 

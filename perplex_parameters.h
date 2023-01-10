@@ -528,3 +528,12 @@ c                                 nlpsol blocks
 
       integer itmxnp
       common/ ngg020 /itmxnp
+
+      logical outrpc, maxs
+      common/ ngg015 /outrpc, maxs
+
+      logical fdset, cntrl, numric, fdincs
+      common/ cstfds /fdset, cntrl, numric, fdincs
+
+      integer count
+      common/ cstcnt /count

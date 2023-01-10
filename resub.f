@@ -251,14 +251,6 @@ c-----------------------------------------------------------------------
       integer npt,jdv
       double precision cptot,ctotal
       common/ cst78 /cptot(k19),ctotal,jdv(k19),npt
-
-      integer count
-      common/ cstcnt /count
-
-      double precision cdint, ctol, dxlim, epsrf, eta, fdint, ftol,
-     *                 hcndbd
-      common/ ngg021 /cdint, ctol, dxlim, epsrf, eta,
-     *                fdint, ftol, hcndbd
 c-----------------------------------------------------------------------
 c                                 the pseudocompounds to be refined
 c                                 are identified in jdv(1..npt)
@@ -2510,9 +2502,6 @@ c                                 make a pointer to the original refinement
 c                                 point, this is used by resub
          do i = 1, npt
             mkp(i) = hkp(jdv(i))
-c           if (mkp(i).eq.0) then 
-c              write (*,*) 'oink?'
-c           end if 
          end do
 
       else
@@ -2882,9 +2871,6 @@ c                                 make a pointer to the original refinement
 c                                 point
          do i = 1, npt
             mkp(i) = hkp(jdv(i))
-c           if (mkp(i).eq.0) then 
-c              write (*,*) 'oink?'
-c           end if 
          end do
 
       else

@@ -54,9 +54,6 @@ c-----------------------------------------------------------------------
 
       double precision wmach
       common/ cstmch /wmach(10)
-
-      logical fdset, cntrl, numric, fdincs
-      common/ cstfds /fdset, cntrl, numric, fdincs
 c-----------------------------------------------------------------------
       yt = pa
 
@@ -127,7 +124,7 @@ c                                 reject bad site populations, these may not
 c                                 be useful
       if (boundd(rids)) then
          if (sum.gt.nopt(55)) then
-            write (*,*) 'oink 1',sum,rids
+c           write (*,*) 'oink 1',sum,rids
             return
          else if (sum.gt.1d0) then 
             pa(nstot(rids)) = 0d0
@@ -136,7 +133,7 @@ c                                 be useful
       
       if (zbad(pa,rids,zsite,fname(rids),.false.,fname(rids))) then
       
-         write (*,*) 'oink 3',rids
+c        write (*,*) 'oink 3',rids
          return
       
       end if
@@ -254,15 +251,6 @@ c-----------------------------------------------------------------------
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
-
-      logical outrpc, maxs
-      common/ ngg015 /outrpc, maxs
-
-      logical fdset, cntrl, numric, fdincs
-      common/ cstfds /fdset, cntrl, numric, fdincs
-
-      integer count
-      common/ cstcnt /count
 c-----------------------------------------------------------------------
       count = count + 1
 
@@ -503,17 +491,10 @@ c-----------------------------------------------------------------------
       double precision ppp(*), dgdp(*), oldppp, 
      *            dpp, g, g1, g3, bl(*), bu(*), fdnorm
 
-      double precision z, pa, p0a, x, w, y, wl, pp
-      common/ cxt7 /y(m4),z(m4),pa(m4),p0a(m4),x(h4,mst,msp),w(m1),
-     *              wl(m17,m18),pp(m4)
-
       double precision cdint, ctol, dxlim, epsrf, eta, fdint, ftol,
      *                 hcndbd
       common/ ngg021 /cdint, ctol, dxlim, epsrf, eta,
      *                fdint, ftol, hcndbd
-
-      logical fdset, cntrl, numric, fdincs
-      common/ cstfds /fdset, cntrl, numric, fdincs
 
       external objfun
 c-----------------------------------------------------------------------
@@ -545,14 +526,14 @@ c                                 rel/abs scaling
 c                                 first increment, doubled for central
          if (cntrl) dpp = 2d0*dpp
 c                                 try to avoid invalid values (z<=0)
-         if (pa(i).gt.bu(i)-dpp) then 
-
+         if (ppp(i).gt.bu(i)-dpp) then 
+c
             dpp = -dpp
-
-         else if (pa(i).gt.bl(i)+2d0*dpp) then
+c
+         else if (ppp(i).gt.bl(i)+2d0*dpp) then
 c                                 choose direction away from closest bound
            if (bl(i) + bu(i) - 2d0*ppp(i).lt.0d0) dpp = -dpp
-
+c
          end if
 c                                 apply the increment
          ppp(i) = oldppp + dpp
@@ -605,9 +586,6 @@ c-----------------------------------------------------------------------
       common/ cxt7 /y(m4),zz(m4),pa(m4),p0a(m4),x(h4,mst,msp),w(m1),
      *              wl(m17,m18),pp(m4)
 
-      logical outrpc, maxs
-      common/ ngg015 /outrpc, maxs
-
       external gord
 c-----------------------------------------------------------------------
       ids = rids
@@ -638,7 +616,7 @@ c                                   analytical derivatives, non-equimolar
 c                                   negentropy minimization:
 c                                   will only be called for analytical
 c                                   dnu = 0 case.
-         call sderiv (ids,gval,dgdp,d2s,.true.)
+         call sderiv (ids,gval,dgdp,d2s)
 
          if (.not.equimo(ids)) call errdbg ('piggy wee, piggy waa')
 
@@ -1069,12 +1047,6 @@ c-----------------------------------------------------------------------
       character fname*10, aname*6, lname*22
       common/ csta7 /fname(h9),aname(h9),lname(h9)
 
-      logical fdset, cntrl, numric, fdincs
-      common/ cstfds /fdset, cntrl, numric, fdincs
-
-      logical outrpc, maxs
-      common/ ngg015 /outrpc, maxs
-
       external gsol4, gordp0
 c-----------------------------------------------------------------------
 c                                 compute the disordered g for bailouts
@@ -1240,9 +1212,6 @@ c----------------------------------------------------------------------
      *                 sumeps, sumsd, xj
 
       external objfun
-
-      logical fdset, cntrl, numric, fdincs
-      common/ cstfds /fdset, cntrl, numric, fdincs
 
       double precision cdint, ctol, dxlim, epsrf, eta, fdint, ftol,
      *                 hcndbd

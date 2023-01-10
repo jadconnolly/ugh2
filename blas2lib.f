@@ -392,9 +392,6 @@ c----------------------------------------------------------------------
       double precision epspt3, epspt5, epspt8, epspt9
       common/ ngg006 /epspt3, epspt5, epspt8, epspt9
 
-      logical fdset, cntrl, numric, fdincs
-      common/ cstfds /fdset, cntrl, numric, fdincs
-
       double precision asize, dtmax, dtmin
       common/ ngg008 /asize, dtmax, dtmin
 
@@ -412,9 +409,6 @@ c----------------------------------------------------------------------
      *                 hcndbd
       common/ ngg021 /cdint, ctol, dxlim, epsrf, eta,
      *                fdint, ftol, hcndbd
-
-      logical outrpc, maxs
-      common/ ngg015 /outrpc, maxs
 
       equivalence (itmxnp,nmajor), (itmax2,nminor)
 c----------------------------------------------------------------------
@@ -627,8 +621,6 @@ c                                 recompute gradient at first order
       w(lgq:lgq+n-1) = gradu(1:n)
 c                                 transform grad (w(lgq))
       call cmqmul (6,n,nz,nfree,ldq,unitq,iw(lkx),w(lgq),w(lq),w(lwrk1))
-c                                 signal gsol2 to save g on request
-      outrpc = .true.
 c                                 solve the problem.
       call npcore (unitq,inform,iter,n,nclin,nctotl, nactiv,nfree,nz,
      *             ldaqp,ldr,nfun,ngrad, istate,iw(lkactv),iw(lkx),objf,
@@ -4713,9 +4705,6 @@ c----------------------------------------------------------------------
       double precision wmach
       common/ cstmch /wmach(10)
 
-      logical fdset, cntrl, numric, fdincs
-      common/ cstfds /fdset, cntrl, numric, fdincs
-
       double precision epspt3, epspt5, epspt8, epspt9
       common/ ngg006 /epspt3, epspt5, epspt8, epspt9
 c-----------------------------------------------------------------------
@@ -4814,7 +4803,11 @@ c                                 if ~done, compute objfun for srchc/q
 c                                 hack for simplicial composition
             call badalf (alfa,n,x,x1,dx,'a')
 
+            outrpc = .true.
+
             call objfun (n,x,tobj,gradu)
+
+            outrpc = .false.
 
             ftry = tobj - oldf - 1d-4 * oldg * alfa
 c                                 compute auxiliary gradient info 
@@ -5810,7 +5803,7 @@ c----------------------------------------------------------------------
      *                 clamda(nctotl), featol(nctotl), grad(n), xnorm,
      *                 gradu(n), r(ldr,*), w(lenw), x(n), fdnorm, objf,
      *                 alfa, alfbnd, alfdx, alflim, alfmax, alfmin,
-     *                 alfsml, cond, condh, condhz, condt, ddot, 
+     *                 alfsml, cond, condh, condhz, condt, ddot, obj,
      *                 cvnorm, dinky, drzmax, drzmin, dxnorm, errmax,
      *                 flmax, gdx, gfnorm, glf1, glf2, glnorm, gltest,
      *                 grdalf, gtest, gznorm, objalf, objsiz,
@@ -5844,9 +5837,6 @@ c----------------------------------------------------------------------
 
       double precision rcndbd, rfrobn, drmax, drmin
       common/ ngg018 /rcndbd, rfrobn, drmax, drmin
-
-      logical fdset, cntrl, numric, fdincs
-      common/ cstfds /fdset, cntrl, numric, fdincs
 
       double precision cdint, ctol, dxlim, epsrf, eta, fdint, ftol,
      *                 hcndbd
@@ -5892,11 +5882,11 @@ c                                 loop to follow the gradient
 
                if (numric) then
 c                                 in principle no call to objfun is necessary
-c                                 because switching to 2nd order derivatives
-c                                 the switch itself may be redundant if chfd
-c                                 has been called as it will start the whole
-c                                 thing off w/2nd order. 
-
+c                                 because switching to 2nd order gradient
+c              call objfun (n,x,obj,gradu)
+c              if (obj.ne.objf) then
+c                 write (*,*) 'wtf',objf-obj
+c              end if 
 c                                 compute derivatives
                   call numder (objf,objfun,grad,x,fdnorm,bl,bu,n)
 
@@ -6107,6 +6097,11 @@ c                                 and solve the qp again.
 c                                 compute the missing gradients.
                   ngrad = ngrad + 1
 
+c              call objfun (n,x,obj,gradu)
+c              if (obj.ne.objf) then
+c                 write (*,*) 'wtf 2',objf-obj
+c              end if 
+
                   call numder (objf,objfun,grad,x,fdnorm,bl,bu,n)
 
                   gdx = ddot (n,grad,1,w(ldx))
@@ -6153,7 +6148,7 @@ c                                 partition of q'hq.
          else if (infeas) then
             inform = 3
          end if
-      else if (error) then
+      else
          if (majits.ge.nmajor) then
             inform = 4
          else if (optiml) then
@@ -6161,9 +6156,6 @@ c                                 partition of q'hq.
          else
             inform = 6
          end if
-      else 
-         write (*,*) 'wtf'
-         stop
       end if
 c                                 used to set clamda here, but no point
 c                                 end of npcore
