@@ -472,8 +472,28 @@ c                                  save the old count
 
       end do
 
-c     write (*,*) count
+c     if (count.gt.8000) then
+
+c     write (*,*) ' '
+c     write (*,*) 'function calls ',count
+c     write (*,*) 'iterations ',rcount(1)
+c     if (rcount(1).gt.0) 
+c    *   write (*,*) 'function calls/iteration ',count/rcount(1)
+c     write (*,*) 'good : bad ',rcount(2), rcount(3), 
+c    *                          rcount(2) + rcount(3)
+c     if (rcount(1).gt.0)  
+c    *   write (*,*) 'iter/opt ', rcount(1)/(rcount(2) + rcount(3))
+c     write (*,*) ' '
+
+c     call prtptx
+
+c     end if
+
+c     rcount = 0
+
+      
 c     count = 0
+c     write (*,*) count
 
 c     write (*,*) 'end of reopt'
 
@@ -610,7 +630,11 @@ c                                 all that needs to be done.
          else 
             gg = gsol1 (ids,.false.)
          end if
-
+c                                 for electrolytic fluids set 
+c                                 kwak0 to record the state of the
+c                                 refinement point
+         kwak0 = rkwak
+c
          call savrpc (gg,nopt(37),swap,idif)
 c                                 save the location so that the 
 c                                 amount can be initialized
