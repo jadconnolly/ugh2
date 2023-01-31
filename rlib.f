@@ -3044,6 +3044,9 @@ c                                 warn
 
             if (iwarn.lt.10) then
                write (*,1000) t, p
+               if (ns.eq.1) write (*,'(/,a,/)') 
+     *                      'No result will be output.'
+
                iwarn = iwarn + 1
                if (iwarn.eq.10) call warn (49,r,277,'GFUNC')
             end if

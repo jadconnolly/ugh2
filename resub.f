@@ -176,7 +176,7 @@ c                                 final processing, .false. indicates dynamic
 c                                 bad solution (lagged speciation) identified
 c                                 in avrger
                   call lpwarn (102,'LPOPT0')
-                  if (iopt(22).lt.2) idead = 102
+                  if (iopt(22).gt.2) idead = 102
 
                end if 
 
@@ -634,13 +634,11 @@ c                                 for electrolytic fluids set
 c                                 kwak0 to record the state of the
 c                                 refinement point
          kwak0 = rkwak
-c
-         call savrpc (gg,nopt(37),swap,idif)
-c                                 save the location so that the 
-c                                 amount can be initialized
-         lsdv(kd) = idif
+         idif = 0
 
          if (nstot(ids).gt.1) then 
+
+            call savrpc (gg,nopt(37),swap,idif)
 
             if (lopt(61)) call begtim (15)
 c                                  normal solution
@@ -648,7 +646,16 @@ c                                  normal solution
 
             if (lopt(61)) call endtim (15,.false.,'minfrc')
 
+         else 
+c                                 don't save non-electrolytic pure fluids
+            if (rkwak) cycle
+c                                 save with 0-threshold
+            call savkwk (gg,0d0,swap,idif)
+
          end if
+c                                 save the location so that the 
+c                                 amount can be initialized
+         lsdv(kd) = idif
 
          lds = ids
 
@@ -991,12 +998,6 @@ c                                 loaded into caq(i,1:ns+aqct)
                   pa(k) = pa3(i,k)
                end do 
 
-               if (abort1) then 
-                  quit = .true.
-                  abort = .true.
-                  cycle 
-               end if 
-
                if (quack(jdv(i))) then 
 c                                 pure solvent phase
                   msol = 0d0
@@ -1038,16 +1039,17 @@ c                                 identfied so far:
 
                   kk = jdsol(j,idsol(j))
 c                                 if match check for a solvus
-                  if (notaq) then 
+                  if (notaq) then
+
                      if (solvs1(i,kk,nkp(i))) cycle
+
                   else
 c                                  special solvus test based on solvent 
 c                                  speciation for lagged aq model.
                      if (solvs4(i,kk)) cycle
 
-                     if (iopt(22).lt.2) then 
-c                                  check pure and impure solvent coexistence
-
+                     if (iopt(22).gt.2) then 
+c                                  check pure and impure solvent coexist
                         if (caq(i,na1).eq.0d0.and.caq(kk,na1).ne.0d0.or.
      *                      caq(i,na1).ne.0d0.and.caq(kk,na1).eq.0d0) 
      *                                                              then 
@@ -1057,7 +1059,7 @@ c                                  pure solvent and impure solvent coexist
 
                         end if
 
-                     end if 
+                     end if
 
                   end if 
 c                                 the pseudocompound matches a solution

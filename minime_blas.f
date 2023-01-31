@@ -400,7 +400,7 @@ c-----------------------------------------------------------------------
 
       if (.not.rkwak) then
 c                                special case for electrolytic fluids
-         call savkwk (g,tol,swap)
+         call savkwk (g,tol,swap,idif)
          return
 
        end if
@@ -499,7 +499,7 @@ c                                 and normalized bulk fractions if o/d
 
       end 
 
-      subroutine savkwk (g,tol,swap)
+      subroutine savkwk (g,tol,swap,idif)
 c-----------------------------------------------------------------------
 c save dynamic electrolytic fluid compositions/g for the lp solver.
 c discriminate compositions on the basis of the solvent speciation
@@ -512,7 +512,7 @@ c-----------------------------------------------------------------------
 
       logical swap
 
-      integer i, j, ltot, ipt, ist, idif
+      integer i, j, ltot, ist, idif
 
       double precision g, diff, tol, dtol
 
@@ -547,9 +547,15 @@ c                                 check if duplicate
          ist = icoz(i)
          diff = 0d0
 
-         do j = 1, ltot
+c         do j = 1, ltot
 
-            diff = diff + dabs(pa(j) - zco(ist + j))
+c            diff = diff + dabs(pa(j) - zco(ist + j))
+
+c         end do
+
+         do j = 1, icomp
+
+            diff = diff + dabs(cp2(j,i) - rcp(j)/rsum)
 
          end do
 
