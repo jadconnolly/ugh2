@@ -6721,11 +6721,6 @@ c                                 dqf parameters
       double precision aqg,q2,rt
       common/ cxt2 /aqg(m4),q2(m4),rt,jnd(m4)
 
-      integer spct
-      double precision ysp
-      character spnams*8
-      common/ cxt34 /ysp(l10,k5),spct(h9),spnams(l10,h9)
-
       character specie*4
       integer jsp, ins
       common/ cxt33 /jsp,ins(nsp),specie(nsp)
@@ -11443,11 +11438,6 @@ c-----------------------------------------------------------------------
       integer jnd
       double precision aqg,q2,rt
       common/ cxt2 /aqg(m4),q2(m4),rt,jnd(m4)
-
-      integer spct
-      double precision ysp
-      character spnams*8
-      common/ cxt34 /ysp(l10,k5),spct(h9),spnams(l10,h9)
 c----------------------------------------------------------------------
 c                                 solvent properties
       call slvnt3 (gso,.true.,.true.,id)
@@ -11746,11 +11736,6 @@ c-----------------------------------------------------------------------
       integer kd, na1, na2, na3, nat
       double precision x3, caq
       common/ cxt16 /x3(k5,h4,mst,msp),caq(k5,l10),na1,na2,na3,nat,kd
-
-      integer spct
-      double precision ysp
-      character spnams*8
-      common/ cxt34 /ysp(l10,k5),spct(h9),spnams(l10,h9)
 
       save badct
       data badct/0/
@@ -14475,11 +14460,6 @@ c-----------------------------------------------------------------------
       double precision z, pa, p0a, x, w, y, wl, pp
       common/ cxt7 /y(m4),z(m4),pa(m4),p0a(m4),x(h4,mst,msp),w(m1),
      *              wl(m17,m18),pp(m4)
-
-      integer spct
-      double precision ysp
-      character spnams*8
-      common/ cxt34 /ysp(l10,k5),spct(h9),spnams(l10,h9)
 c----------------------------------------------------------------------
       rt  = r*t
 
@@ -20778,11 +20758,6 @@ c                                 endmember pointers
       common/ cxt29 /lc(j6,j5,j3,h9),l0c(2,j5,j3,h9),lid(j6,j5,j3,h9),
      *               ln(j3,h9),lt(j5,j3,h9),jc(j3,j5,j3,h9),
      *               jid(j3,j5,j3,h9),jt(j5,j3,h9)
-
-      integer spct
-      double precision ysp
-      character spnams*8
-      common/ cxt34 /ysp(l10,k5),spct(h9),spnams(l10,h9)
 
       character specie*4
       integer jsp, ins

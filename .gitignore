@@ -454,3 +454,11 @@ nomp.prn
 nomp.tim
 
 nomp.tof
+
+actcor.pdb
+
+*.pdb
+
+intel/.vs/Perp2020/v15/.suo
+
+intel/.vs/Perp2020/v15/Browse.VC.db
