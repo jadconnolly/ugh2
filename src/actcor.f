@@ -30,10 +30,6 @@ c-----------------------------------------------------------------------
       integer iam
       common/ cst4 /iam
 
-      double precision sel, cox
-      logical hscon, hsc, oxchg
-      common/ cxt45 /sel(k0),cox(k0),hscon,oxchg,hsc(k1)
-
       logical eof
            
       data blank8/' '/ 

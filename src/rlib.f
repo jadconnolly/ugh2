@@ -4594,7 +4594,7 @@ c----------------------------------------------------------------------
 
       end
 
-      subroutine cmodel (im,idsol,first,found)
+      subroutine cmodel (im,ids,first,found)
 c---------------------------------------------------------------------
 c cmodel - checks to see if solution models contain valid endmembers.
 c modified to allow saturated phase/component endmembers, 10/25/05.
@@ -4607,7 +4607,7 @@ c---------------------------------------------------------------------
 
       character missin(m4)*8
 
-      integer imiss, im, idsol, i, j, h, ineg, ipos
+      integer imiss, im, ids, i, j, h, ineg, ipos
 
       character tname*10
       logical refine, lresub
@@ -4668,7 +4668,7 @@ c                              name requested in input from n1
 
            if (tname.eq.fname(i)) then
 c                              got a match, exit
-               idsol = i
+               ids = i
                im = im + 1
                ok = .true.
                found = ok
@@ -9340,7 +9340,7 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i, j, im, id, idsol, ixct, gcind, irjct, infnd, ifnd
+      integer i, j, im, id, ids, ixct, gcind, irjct, infnd, ifnd
 
       logical first, chksol, wham, ok, found
 
@@ -9452,7 +9452,7 @@ c                                 istot is zero, if eof:
          if (istot.eq.0) exit
 c                                 -------------------------------------
 c                                 check the solution model:
-         call cmodel (im,idsol,first,found)
+         call cmodel (im,ids,first,found)
 
          if (jstot.eq.1.and.jsmod.eq.39.and.lopt(32)) then
 c                                  lagged aqueous speciaton with a pure water solvent.
@@ -11671,10 +11671,6 @@ c-----------------------------------------------------------------------
       integer ion, ichg, jchg
       double precision q, q2, qr
       common/ cstaq /q(l9),q2(l9),qr(l9),jchg(l9),ichg,ion
-
-      double precision sel, cox
-      logical hscon, hsc, oxchg
-      common/ cxt45 /sel(k0),cox(k0),hscon,oxchg,hsc(k1)
 
       double precision r,tr,pr,ps,p,t,xco2,u1,u2
       common/ cst5   /p,t,xco2,u1,u2,tr,pr,r,ps
@@ -14195,10 +14191,6 @@ c                                 adaptive coordinates
       double precision z, pa, p0a, x, w, y, wl, pp
       common/ cxt7 /y(m4),z(m4),pa(m4),p0a(m4),x(h4,mst,msp),w(m1),
      *              wl(m17,m18),pp(m4)
-
-      double precision sel, cox
-      logical hscon, hsc, oxchg
-      common/ cxt45 /sel(k0),cox(k0),hscon,oxchg,hsc(k1)
 
       double precision p,t,xco2,mmu,tr,pr,r,ps
       common/ cst5 /p,t,xco2,mmu(2),tr,pr,r,ps
@@ -18355,10 +18347,6 @@ c----------------------------------------------------------------------
       integer eos
       common/ cst303 /eos(k10)
 
-      double precision sel, cox
-      logical hscon, hsc, oxchg
-      common/ cxt45 /sel(k0),cox(k0),hscon,oxchg,hsc(k1)
-
       integer ikp
       common/ cst61 /ikp(k1)
 
@@ -19383,9 +19371,6 @@ c----------------------------------------------------------------------
       integer ncol, nrow
       common/ cst226 /ncol,nrow,fileio,flsh,anneal,short
 
-      integer idstab,nstab,istab
-      common/ cst34 /idstab(i11),nstab(i11),istab
-
       integer idsol,nrep,nph
       common/ cst38/idsol(k5,k3),nrep(k5,k3),nph(k3)
 
@@ -19538,7 +19523,7 @@ c                                 next compare to the existing list
             if (kount) then
 
                istab = istab + 1
-               if (istab.gt.k10) call error (999,0d0,istab,'ISTAB ')
+               if (istab.gt.h9) call error (999,0d0,istab,'ISTAB ')
                nstab(istab) = nrep(k,i)
                idstab(istab) = idsol(k,i)
 

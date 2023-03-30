@@ -565,3 +565,10 @@ c                                 bulk assemblage counter dependent arrays
 
       double precision pcomp
       common/ cst324 /pcomp(k0,k5)
+
+      integer idstab,nstab,istab
+      common/ cst34 /idstab(h9),nstab(h9),istab
+
+      double precision sel, cox
+      logical hscon, hsc, oxchg
+      common/ cxt45 /sel(k0),cox(k0),hscon,oxchg,hsc(k1)

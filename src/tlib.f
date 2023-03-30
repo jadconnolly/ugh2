@@ -4296,10 +4296,6 @@ c----------------------------------------------------------------------
       double precision atwt
       common/ cst45 /atwt(k0)
 
-      double precision sel, cox
-      logical hscon, hsc, oxchg
-      common/ cxt45 /sel(k0),cox(k0),hscon,oxchg,hsc(k1)
-
       integer ic
       common/ cst42 /ic(k0)
 
@@ -4782,10 +4778,6 @@ c----------------------------------------------------------------------
 
       double precision atwt
       common/ cst45 /atwt(k0)
-
-      double precision sel, cox
-      logical hscon, hsc, oxchg
-      common/ cxt45 /sel(k0),cox(k0),hscon,oxchg,hsc(k1)
 
       character*80 commnt
       common/delet/commnt
@@ -5629,10 +5621,6 @@ c----------------------------------------------------------------------
       double precision atwt
       common/ cst45 /atwt(k0)
 
-      double precision sel, cox
-      logical hscon, hsc, oxchg
-      common/ cxt45 /sel(k0),cox(k0),hscon,oxchg,hsc(k1)
-
       integer ikind,icmpn,icout,ieos
       double precision comp,tot
       common/ cst43 /comp(k0),tot,icout(k0),ikind,icmpn,ieos
@@ -5819,10 +5807,6 @@ c----------------------------------------------------------------------
 
       double precision atwt
       common/ cst45 /atwt(k0)
-
-      double precision sel, cox
-      logical hscon, hsc, oxchg
-      common/ cxt45 /sel(k0),cox(k0),hscon,oxchg,hsc(k1)
 
       integer length,com
       character chars*1

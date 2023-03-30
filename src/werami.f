@@ -2992,7 +2992,7 @@ c----------------------------------------------------------------
 
       integer i, j, k, id, jk, ind(i11), jnd(i11), nsol, knd(i11), ksol
 
-      logical stble(i11), quit
+      logical stble(h9), quit
 
       double precision mode(3), smode(i11), dinc 
 
@@ -3003,9 +3003,6 @@ c----------------------------------------------------------------
       common/ cst77 /prop(i11),prmx(i11),prmn(i11),
      *               kop(i11),kcx(i11),k2c(i11),iprop,
      *               first,kfl(i11),tname
-
-      integer idstab,nstab,istab
-      common/ cst34 /idstab(i11),nstab(i11),istab
 
       integer idsol,nrep,nph
       common/ cst38/idsol(k5,k3),nrep(k5,k3),nph(k3)
@@ -3429,15 +3426,8 @@ c----------------------------------------------------------------
      *               kop(i11),kcx(i11),k2c(i11),iprop,
      *               first,kfl(i11),tname
 
-      integer idstab,nstab,istab
-      common/ cst34 /idstab(i11),nstab(i11),istab
-
       double precision atwt
       common/ cst45 /atwt(k0)
-
-      double precision sel, cox
-      logical hscon, hsc, oxchg
-      common/ cxt45 /sel(k0),cox(k0),hscon,oxchg,hsc(k1)
 
       save cprp
 c----------------------------------------------------------------------
@@ -3829,9 +3819,6 @@ c----------------------------------------------------------------
       common/ cst77 /prop(i11),prmx(i11),prmn(i11),
      *               kop(i11),kcx(i11),k2c(i11),iprop,
      *               first,kfl(i11),tname
-
-      integer idstab,nstab,istab
-      common/ cst34 /idstab(i11),nstab(i11),istab
 
       integer hcp,idv
       common/ cst52  /hcp,idv(k7) 
