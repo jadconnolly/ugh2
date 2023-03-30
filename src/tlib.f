@@ -31,7 +31,7 @@ c----------------------------------------------------------------------
       integer n
 
       write (n,'(/,a,//,a)') 
-     *     'Perple_X release 7.0.9, March 19, 2023.',
+     *     'Perple_X release 7.0.9, March 27, 2023.',
 
      *     'Copyright (C) 1986-2023 James A D Connolly '//
      *     '<www.perplex.ethz.ch/copyright.html>.'
@@ -4142,7 +4142,7 @@ c                                 fluid eos species
       data specie /
      *      'H2O ','CO2 ','CO  ','CH4 ','H2  ','H2S ','O2  ',
      *      'SO2 ','COS ','N2  ','NH3 ','O   ','SiO ','SiO2',
-     *      'Si  ','C2H6','HF  '/
+     *      'Si  ','C2H6','HF  ','HCl '/
 
       data times,btime,etime/90*0d0/
 c                                 na1 must be initalized because the

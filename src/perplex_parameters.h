@@ -1,5 +1,4 @@
 
-
       integer h4,h5,h6,h8,h9,h0
       integer i6,i7,i8,i9,i10,i11
       integer j3,j4,j5,j6,j9
@@ -170,7 +169,7 @@ c----------------------------------------------------------------------
 !                                nsp - max number of species in fluid speciation routines 
 
       parameter (l2=5,l3=l2+2,l5=1000,l6=500,l7=2048,l8=10,l9=150,
-     *           nsp=17,l10=nsp+l9+4)
+     *           nsp=18,l10=nsp+l9+4)
 !                                 m0 - max number of terms for a species site fraction?
 !                                 m1 - max number of terms in excess function
 !                                 m2 - max order of term in excess function

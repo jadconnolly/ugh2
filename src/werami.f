@@ -3948,6 +3948,8 @@ c                                 modes:
 c                                 get phase name
              call rnam1 (icx,pname,2)
 
+             phluid = .false.
+
              if (icx.gt.0) then
                 if (fp(icx)) phluid = .true.
              else if (icx.lt.0) then 
@@ -3958,9 +3960,9 @@ c                                 get phase name
 
                 lflu = .true.
 
-             else if (gflu) then 
+             else if (gflu.and.lop.ne.37) then 
 c                                 the phase isn't fluid, ask if fluid should be 
-c                                 included in modes:
+c                                 included in relative modes:
                 write (*,1120) 
                 read (*,'(a)') y
                 if (y.eq.'y'.or.y.eq.'Y') lflu = .true.

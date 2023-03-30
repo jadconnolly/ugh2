@@ -39,13 +39,13 @@
 |                         optimizations.
 
 dynamic_LP_start          default | [warm] hot, cold, warm. 
-GFSM                      default | [F] allow GFSM/disable saturated-phase constraints
+GFSM                      T default | [F] allow GFSM/disable saturated-phase constraints
 intermediate_savrpc       default | [F] save intermediate compositions during dynamic optiomization
 intermediate_savdyn       default | [F] save intermediate dynamic compositions as auto-refine static compositions
 logarithmic_X             default | [F] VERTEX/MEEMUM only, replace saturated phase compositional variable X with log10(X)
 LP_max_it                 default | [500] max number of iterations for a single LP optimization
 MINFRC_diff_increment     default | [1d-7] finite difference increment used during NLP when analytical derivatives are not available
-MINFXC_solver              5 default | [0] -1 -> 3, controls use of the specis/mifxc o/d solvers
+MINFXC_solver             default | [0] -1 -> 3, controls use of the specis/mifxc o/d solvers
 optimization_max_it       default | [40] maximum number of sucessive LP optimizations
 optimization_precision    default | [1d-3 energy unit] absolute precision for succesive LP optimization
 phi_d                     default | [0.36] 0-1, disaggregation porosity used by fluid_shear_modulus
@@ -112,8 +112,8 @@ melt_is_fluid             default | [T] identify melt (liquid) as fluid in MEEMU
 non_linear_switch         default | VERTEX/MEEMUM [F], CONVEX [T], toggles whether nonlinear subdivision uses initial_resolution
 null_phase                default | [F] include null phases in convexhull optimization with mobile components
 option_list_files         default | [F] T => echo run-time options to my_project_PROGRAM_options.txt
-output_iteration_details  default | [F] T => output intermediate adaptive optimization information
-output_iteration_G        default | [F] T => print iteration G to monitor convergence during optimization
+output_iteration_details  T default | [F] T => output intermediate adaptive optimization information
+output_iteration_G        T default | [F] T => print iteration G to monitor convergence during optimization
 pause_on_error            default | [T] T => wait for user response after errors
 pc_perturbation           default | [5d-3] pseudo-compound composition perturbation; only relevant for CONVEX
 poisson_ratio             default | [on 0.35] value 1: on, off or all; value 2: 0->0.5; controls use of poisson ratio estimates for shear moduli
@@ -145,6 +145,6 @@ T_stop                    default | [0.] equilibration temperature (K) cut off
 variance                  default | [1 99] exploratory and auto-refine; maximum variance of traced equilibria; only relevant for CONVEX
 vrh/hs_weighting          default | [0.5] 0->1, weighting factor for the stiff average in VRH/HS averaging (see bounds)
 warning_ver637            default | [T] F -> warn and cease interpolation in WERAMI when immiscible solutions are present
-x_nodes                   default | [10 40] exploratory and auto-refine (grid parameters keyword group), lowest-level x grid resolution 
-y_nodes                   default | [10 40] exploratory and auto-refine (grid parameters keyword group), lowest-level y grid resolution
+x_nodes                   20 40 default | [10 40] exploratory and auto-refine (grid parameters keyword group), lowest-level x grid resolution 
+y_nodes                   20 40 default | [10 40] exploratory and auto-refine (grid parameters keyword group), lowest-level y grid resolution
 zero_mode                 default | [1e-6] 0->1, threshold below which the molar mode of a phase is set to 0; defaults to zero for fractionation calculations

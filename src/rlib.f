@@ -518,7 +518,7 @@ c                                 and eos is set by ifug
 
             end if
 
-         else if (eos(id).lt.118) then
+         else if (eos(id).le.100+nsp) then
 c                                 call appropriate pure fluid EoS
             gval = gval + r*t * lnfpur(eos(id))
 
@@ -11548,8 +11548,14 @@ c                                11 - NH3 and 12-15 Si-O high T species
 c                                16 - Ethane, H&L 2005
      *     11.1552d0, 0.0112d0, 0d0, 36.759d0, 23.639d0, -808.03d0,
      *     -378.84d0, 1.75d0, 3*0d0,
-c                                17 - dilutant
-     *      11*0d0/
+c                                17 - HF, approximated by H2S
+     *     1.18d0, 5829.059676d0, 9.232464738d0, -.1213537391d-1, .9d0,
+     *     -453374.7482d0, 3.5d0, 1.241d0, -.241d0, -16.61833221d0,
+     *     .5d0,
+c                                18 - HCl, approximated by H2S
+     *     1.18d0, 5829.059676d0, 9.232464738d0, -.1213537391d-1, .9d0,
+     *     -453374.7482d0, 3.5d0, 1.241d0, -.241d0, -16.61833221d0,
+     *     .5d0/
 
       save po
 c----------------------------------------------------------------------
