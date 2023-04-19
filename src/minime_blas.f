@@ -139,22 +139,16 @@ c                                 reconstruct pa-array, this IS necessary.
       call ppp2pa (ppp,sum,nvar)
 c                                 reject bad site populations, these may not
 c                                 be useful
-      if (boundd(rids)) then
-         if (sum.gt.nopt(55)) then
-c           write (*,*) 'oink 1',sum,rids
-            rcount(3) = rcount(3) + 1
-            return
-         else if (sum.gt.1d0) then 
-            pa(nstot(rids)) = 0d0
-         end if
-      end if
-      
-      if (zbad(pa,rids,zsite,fname(rids),.false.,fname(rids))) then
-      
-c        write (*,*) 'oink 3',rids
+      if (boundd(rids).and.sum.gt.nopt(55)) then
+
          rcount(3) = rcount(3) + 1
          return
-      
+
+      else if (zbad(pa,rids,zsite,fname(rids),.false.,fname(rids))) then
+
+         rcount(3) = rcount(3) + 1
+         return
+
       end if
 
       rcount(2) = rcount(2) + 1
@@ -395,6 +389,8 @@ c-----------------------------------------------------------------------
       ntot = nstot(rids)
       ltot = lstot(rids)
       ttot = tstot(rids)
+
+      call chkpa (rids)
 
       idif = 0
 
@@ -984,15 +980,15 @@ c     if (lopt(28)) call endtim (9,.true.,'p2y inversion')
 
       if (idead.gt.0) then
 c                                 really bad inversion result
-         if (iwarn.lt.11) then
+         if (iwarn.lt.iopt(1)) then
 
             write (*,1010) fname(id),idead
 
             call prtptx
 
-            if (iwarn.eq.10) call warn (49,0d0,202,'P2YX')
-
             iwarn = iwarn + 1
+
+            if (iwarn.eq.iopt(1)) call warn (49,0d0,202,'P2YX')
 
          end if
 

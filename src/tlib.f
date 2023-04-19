@@ -31,7 +31,7 @@ c----------------------------------------------------------------------
       integer n
 
       write (n,'(/,a,//,a)') 
-     *     'Perple_X release 7.0.9, March 27, 2023.',
+     *     'Perple_X release 7.0.10, April 18, 2023.',
 
      *     'Copyright (C) 1986-2023 James A D Connolly '//
      *     '<www.perplex.ethz.ch/copyright.html>.'
@@ -208,6 +208,10 @@ c                                 solution composition zero and one
       zero = dsqrt(r2)
       r1 = 1d0 + zero
       one = 1d0 - zero
+c                                 equivalents in nopt:
+      nopt(40) = zero
+      nopt(41) = r1
+      nopt(42) = one
 c                                 -------------------------------------
 c                                 default option values:
 c                                 reserved for temporary use:
@@ -289,6 +293,8 @@ c                                 scatter_increment
 c                                 MINFRC_diff_increment
       nopt(49) = 1d-7
 c                                 -------------------------------------
+c                                 max_warn
+      iopt(1)  = 5
 c                                 composition_phase
       iopt(2) = 0 
       valu(2) = 'mol'
@@ -505,8 +511,6 @@ c                                 order_check
       lopt(62) = .false.
 c                                 allow GFSM/disable saturated phase
       lopt(63) = .false.
-c                                 override counter limits for (some) warnings
-      lopt(64) = .false.
 c                                 fluid_shear_modulus
       lopt(65) = .true.
 c                                 compute_FD_increments for MINFRC
@@ -858,9 +862,14 @@ c                                 allow re-refinement in VERTEX
 c                                 override interactive warnings with the bad choice.
             if (val.eq.'F') lopt(56) = .false.
 
-         else if (key.eq.'warn_no_limit') then
-c                                 override counter limits for (some) warnings
-            if (val.eq.'T') lopt(64) = .true.
+         else if (key.eq.'max_warn_limit') then
+c                                 set counter limit for (some) warnings
+            read (strg,*) iopt(1)
+
+         else if (key.eq.'warn_no_limits') then
+
+            write (*,'(/,a,/)') 'warn_no_limits has been replaced by '//
+     *                          'max_warn_limit'
 
          else if (key.eq.'fluid_shear_modulus') then
 c                                 compute shear modulus assuming textural eq
@@ -1816,7 +1825,7 @@ c                                 pause_on_error
             write (n,1013) lopt(19),lopt(61)
 c                                 auto_exclude, warn_interactive, 
 c                                 output_iteration_details, output_iteration_g
-            write (n,1234) lopt(5),lopt(56),lopt(64),lopt(33),lopt(34)
+            write (n,1234) lopt(5),lopt(56),iopt(1),lopt(33),lopt(34)
 c                                 logarithmic_p, bad_number, interim_results
             if (iam.eq.1) write (n,1014) lopt(14),lopt(37),nopt(7),
      *                                   valu(34)
@@ -1831,8 +1840,8 @@ c                                 WERAMI input/output options
      *                  lopt(14),lopt(37),nopt(7),lopt(22),valu(2),
      *                  valu(21),valu(3),lopt(41),lopt(42),lopt(45),
      *                  valu(4),lopt(6),valu(22),lopt(51),lopt(21),
-     *                  lopt(24),
-     *                  valu(14),lopt(19),lopt(20),valu(34),lopt(48)
+     *                  lopt(24),valu(14),lopt(19),iopt(1),lopt(20),
+     *                  valu(34),lopt(48)
 c                                 WERAMI info file options
          write (n,1241) lopt(12)       
 c                                 WERAMI thermodynamic options
@@ -1847,7 +1856,7 @@ c                                 MEEMUM input/output options
      *                  lopt(21),lopt(24),valu(14),lopt(19),
      *                  lopt(20),lopt(61)
 c                                 auto_exclude, warn_interactive, etc
-         write (n,1234) lopt(5),lopt(56),lopt(64),lopt(33),lopt(34)
+         write (n,1234) lopt(5),lopt(56),iopt(1),lopt(33),lopt(34)
 
       else if (iam.eq.5) then 
 c                                 FRENDLY input/output options
@@ -2043,6 +2052,7 @@ c                                 thermo options for frendly
      *        4x,'output_species_props    ',l1,9x,'[F] T',/,
      *        4x,'seismic_output          ',a3,7x,'[some] none all',/,
      *        4x,'pause_on_error          ',l1,9x,'[T] F',/,
+     *        4x,'max_warn_limit          ',i3,7x,'[5]',/,
      *        4x,'poisson_test            ',l1,9x,'[F] T',/,
      *        4x,'interim_results         ',a3,7x,'[auto] off manual',/,
      *        4x,'sample_on_grid          ',l1,9x,'[T] F')
@@ -2091,7 +2101,7 @@ c                                 thermo options for frendly
      *        4x,'phi_d                   ',f4.2,6x,'[0.36] 0->1')
 1234  format (4x,'auto_exclude            ',l1,9x,'[T] F',/,
      *        4x,'warn_interactive        ',l1,9x,'[T] F',/,
-     *        4x,'warn_no_limit           ',l1,9x,'[F] T',/,
+     *        4x,'max_warn_limit          ',i3,7x,'[5]',/,
      *        4x,'output_iteration_detai  ',l1,9x,'[F] T',/,
      *        4x,'output_iteration_g      ',l1,9x,'[F] T')
 1240  format (/,2x,'Information file output options:',//,
@@ -3173,7 +3183,7 @@ c----------------------------------------------------------------------
       else if (ier.eq.59) then
          write (*,59) char
       else if (ier.eq.60) then
-         write (*,60) char
+         write (*,60) char, realv
          if (int.eq.1) then 
             write (*,601) char
          else 
@@ -3387,9 +3397,9 @@ c                                 generic warning, also 99
      *          'to numerical instability',/,
      *          'or because the phases of the system do not span ',
      *          'its bulk composition.',//,
-     *          4x,'In the 1st case (best solutions listed first):',/,
-     *          8x,'increase the optimization_precision keyword value',/
-     *         ,8x,'set intermediate_savrpc and intermediate_savrpc to',
+     *          4x,'In the first case (best solutions listed first):',/,
+     *          8x,'double the first value of x/y_nodes',/,
+     *          8x,'set intermediate_savrpc and intermediate_savrpc to',
      *             ' T',/,
      *          8x,'increase replicate_threshold',/,
      *          8x,'increase rep_dynamic_threshold'/,
@@ -3419,8 +3429,8 @@ c                                 generic warning, also 99
 49    format (/,'**warning ver049** warning ',i3,' will not be repeated'
      *         ,' for future instances of this problem.',/,
      *          'currently in routine: ',a,//,
-     *          'To override the limit on the number of warnings set ',
-     *          'warn_no_limit to T',/)
+     *          'To see how often this warning occurs increase ',
+     *          'max_warn_limit',/)
 50    format (/,'**warning ver050** reformulating prismatic ',
      *          'solution: ',a,' because of missing endmembers. ',
      *        /,'(reformulation can be controlled explicitly ',
@@ -7984,11 +7994,66 @@ c----------------------------------------------------------------------
 
       end
 
-      subroutine volwrn (jd,eos)
+      subroutine spewrn (id,jd,it,iwarn,bad,routin)
+c----------------------------------------------------------------------
+c write warning messages when speciation fail to converge
+c   id - solution model
+c   jd - action on fail
+c----------------------------------------------------------------------
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      integer id, jd, iwarn, it
+
+      logical bad
+
+      character routin*(*)
+
+      double precision goodc, badc
+      common/ cst20 /goodc(3),badc(3)
+
+      character fname*10, aname*6, lname*22
+      common/ csta7 /fname(h9),aname(h9),lname(h9)
+c----------------------------------------------------------------------
+      if (bad) then
+
+         badc(1) = badc(1) + 1d0
+         goodc(2) = goodc(2) + dfloat(it)
+
+         if (iwarn.lt.iopt(1)) then
+
+            call conwrn (jd,routin//'/'//fname(id))
+
+            iwarn = iwarn + 1
+
+            if (iwarn.eq.iopt(1)) call warn (49,nopt(1),93,routin)
+
+          end if
+
+      else
+
+         goodc(1) = goodc(1) + 1d0
+         goodc(2) = goodc(2) + dfloat(it)
+
+         if (iwarn.lt.iopt(1)) then
+
+            call conwrn (jd,routin//'/'//fname(id))
+
+            iwarn = iwarn + 1
+
+            if (iwarn.eq.iopt(1)) call warn (49,nopt(1),93,routin)
+
+         end if
+
+      end if
+
+      end
+
+      subroutine conwrn (jd,eos)
 c----------------------------------------------------------------------
 c write warning messages when numeric PVT EoS fail to converge
-c   jd indicates action on fail
-c       1 - uses CORK EoS
+c   jd - action on fail
 c----------------------------------------------------------------------
       implicit none
 
@@ -8001,29 +8066,49 @@ c----------------------------------------------------------------------
 
       character eos*(*)
 c----------------------------------------------------------------------
-      write (*,1000) eos, p, t
+      if (jd.lt.100) then
+c                                 volume EoS
+         write (*,1000) eos, p, t
 
-      if (jd.eq.1) then
-         write (*,1020)
-      else if (jd.eq.2) then
-         write (*,1030)
-      else if (jd.eq.3) then
-         write (*,1040)
-      else if (jd.eq.4) then
-         write (*,1050)
-      else if (jd.eq.5) then
-         write (*,1060)
-      end if
+         if (jd.eq.1) then
+            write (*,1020)
+         else if (jd.eq.2) then
+            write (*,1030)
+         else if (jd.eq.3) then
+            write (*,1040)
+         else if (jd.eq.4) then
+            write (*,1050)
+         else if (jd.eq.5) then
+            write (*,1060)
+         end if
 
-      write (*,1010)
+         write (*,1010)
+
+      else 
+c                                 speciation calcs
+         write (*,2000) eos, p, t
+
+         if (jd.eq.101) then
+            write (*,2020)
+         else if (jd.eq.102) then
+            write (*,2030)
+         else if (jd.eq.103) then
+            write (*,2040)
+         else if (jd.eq.104) then
+            write (*,2050)
+         end if
+
+         write (*,2010)
+
+      end if 
 
 1000  format (/,'**warning ver093** ',a,' did not converge at:',/,
      *        /,4x,'P(bar) = ',g12.6,/,4x,'T(K) = ',g12.6,/)
 1010  format (/'This warning can usually be ignored; when not, remedies'
      *       ,' include (best first):',/,
-     *        /,4x,'1 - set warn_no_limit to see how often and where ',
-     *             'the problem occurs',
-     *        /,4x,'2 - reduce convergence tolerance ',
+     *        /,4x,'1 - increase max_warn_limit to see how often/where',
+     *             ' the problem occurs',
+     *        /,4x,'2 - increase convergence tolerance ',
      *             '(volume_tolerance_exp option)',
      *        /,4x,'3 - increase iteration limit ',
      *             '(speciation_max_it)',/)
@@ -8033,6 +8118,21 @@ c----------------------------------------------------------------------
 1050  format ('Endmember will be destabilized by setting g(j/mol) = ',
      *        '100*P(bar).')
 1060  format ('Low quality result will be used.')
+
+2000  format (/,'**warning ver093** ',a,' did not converge at:',/,
+     *        /,4x,'P(bar) = ',g12.6,/,4x,'T(K) = ',g12.6,/)
+2010  format (/'This warning can usually be ignored; when not, remedies'
+     *       ,' include (best first):',/,
+     *        /,4x,'1 - increase max_warn_limit to see how often/where',
+     *             ' the problem occurs',
+     *        /,4x,'2 - increase convergence tolerance',
+     *        /,4x,'3 - increase iteration limit ',
+     *             '(speciation_max_it)',/)
+2020  format ('Oscillating, low quality result will be used.')
+2030  format ('Oscillating, result will be rejected.')
+2040  format ('Iteration limit exceeded, low quality result wil',
+     *        'l be used.')
+2050  format ('Iteration limit exceeded, result will be rejected.')
 
       end
 
@@ -8061,7 +8161,7 @@ c----------------------------------------------------------------------
 c----------------------------------------------------------------------
 c                                             look for errors
       if (idead.eq.2.or.idead.gt.4.and.idead.lt.8.and.
-     *                      (lopt(64).or.iwarn91.lt.6)) then 
+     *                                 iwarn91.lt.iopt(1)) then 
 c                                             unbounded solution, or
 c                                             other programming error.
          call warn (91,c,idead,char)
@@ -8069,31 +8169,30 @@ c                                             other programming error.
          call prtptx
 
          iwarn91 = iwarn91 + 1
-         if (iwarn91.eq.5.and..not.lopt(64)) 
-     *                        call warn (49,c,91,'LPWARN')
 
-      else if (idead.eq.3.and.
-     *                      (lopt(64).or.iwarn42.lt.6)) then 
+         if (iwarn91.eq.iopt(1)) call warn (49,c,91,'LPWARN')
+
+      else if (idead.eq.3.and.iwarn42.lt.iopt(1)) then 
 c                                             no feasible solution
          call warn (42,c,idead,char)
 
          call prtptx
 
          iwarn42 = iwarn42 + 1
-         if (iwarn42.eq.6.and..not.lopt(64)) 
-     *                        call warn (49,c,42,'LPWARN')
 
-      else if (idead.eq.4.and.
-     *                      (lopt(64).or.iwarn90.lt.6)) then 
+         if (iwarn42.eq.iopt(1)) call warn (49,c,42,'LPWARN')
+
+      else if (idead.eq.4.and.iwarn90.lt.iopt(1)) then 
 c                                             iteration count exceeded,
 c                                             probable cause no feasible
 c                                             solution.
-         call warn (90,c,idead,char) 
-         iwarn90 = iwarn90 + 1
-         if (iwarn90.eq.5) call warn (49,c,90,'LPWARN')
+         call warn (90,c,idead,char)
 
-      else if ((lopt(64).or.iwarn58.lt.11)
-     *         .and.(idead.eq.58.or.idead.eq.59)) then 
+         iwarn90 = iwarn90 + 1
+
+         if (iwarn90.eq.iopt(1)) call warn (49,c,90,'LPWARN')
+
+      else if (iwarn58.lt.iopt(1).and.(idead.eq.58.or.idead.eq.59)) then 
 
          if (idead.eq.58) then 
             call warn (58,c,k21,char)
@@ -8105,43 +8204,40 @@ c                                             solution.
 
          iwarn58 = iwarn58 + 1
 
-         if (iwarn58.eq.10.and..not.lopt(64)) 
+         if (iwarn58.eq.iopt(1)) 
      *                        call warn (49,c,58,'LPWARN')
 
-      else if (idead.eq.101.and.
-     *        (lopt(64).or.iwarn01.lt.10).and.lopt(32)) then
+      else if (idead.eq.101.and. iwarn01.lt.iopt(1).and.lopt(32)) then
 
           iwarn01 = iwarn01 + 1
+
           call warn (100,c,101,'under-saturated solute-component.'
      *              //' To output result set aq_bad_result to 102')
 
-          if (iwarn01.eq.10.and..not.lopt(64)) 
-     *                        call warn (49,c,101,'LPWARN')
+          if (iwarn01.eq.iopt(1)) call warn (49,c,101,'LPWARN')
 
-      else if (idead.eq.102.and.
-     *        (lopt(64).or.iwarn02.lt.10).and.lopt(32)) then
+      else if (idead.eq.102.and.iwarn02.lt.iopt(1).and.lopt(32)) then
 
          iwarn02 = iwarn02 + 1
+
          call warn (100,c,102,'pure and impure solvent phases '//
      *             'coexist within solvus_tolerance. '//
      *             'To output result set aq_bad_result to 101')
 
          call prtptx
 
-          if (iwarn02.eq.10.and..not.lopt(64)) 
-     *                        call warn (49,c,102,'LPWARN')
+          if (iwarn02.eq.iopt(1)) call warn (49,c,102,'LPWARN')
 
-      else if (idead.eq.103.and.
-     *        (lopt(64).or.iwarn03.lt.10).and.lopt(32)) then
+      else if (idead.eq.103.and.iwarn03.lt.iopt(1).and.lopt(32)) then
 
          iwarn03 = iwarn03 + 1
+
          call warn (100,c,103,'pure and impure solvent phases '//
      *              'coexist. To output result set aq_bad_result.')
 
          call prtptx
 
-          if (iwarn03.eq.10.and..not.lopt(64)) 
-     *                        call warn (49,c,103,'LPWARN')
+         if (iwarn03.eq.iopt(1)) call warn (49,c,103,'LPWARN')
 
       end if
 
@@ -8166,7 +8262,7 @@ c----------------------------------------------------------------------
 c----------------------------------------------------------------------
       quit = .true.
 
-      if (iwarn.lt.9.or.lopt(64)) then
+      if (iwarn.lt.iopt(1)) then
 
          iwarn = iwarn + 1
 
@@ -8174,7 +8270,7 @@ c----------------------------------------------------------------------
 
          call prtptx
 
-         if (iwarn.eq.10) call warn (49,0d0,106,'MUWARN')
+         if (iwarn.eq.iopt(1)) call warn (49,0d0,106,'MUWARN')
 
       end if
 

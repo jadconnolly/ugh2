@@ -2020,7 +2020,7 @@ c                                 vp/vs
 c                                 check for negative poisson ratio
             if (poiss(props(7,jd),props(8,jd)).lt.0d0) then
 
-               if (iwarn3.lt.11.and.pname(jd).ne.wname3) then 
+               if (iwarn3.lt.iopt(1).and.pname(jd).ne.wname3) then 
 
                  write (*,1050) t,p,pname(jd)
 
@@ -2032,7 +2032,8 @@ c                                 check for negative poisson ratio
 
                  iwarn3 = iwarn3 + 1
                  wname3 = pname(jd)
-                 if (iwarn3.eq.11) call warn (49,r,180,'GETPHP') 
+
+                 if (iwarn3.eq.iopt(1)) call warn (49,r,180,'GETPHP') 
 
                end if
 
@@ -2144,22 +2145,25 @@ c                                 max solid prop
       end if 
 c                                 check and warn if necessary for negative
 c                                 expansivity
-      if (.not.sick(jd).and.v.gt.0d0.and.alpha.le.0d0.and.iwarn1.lt.6
-     *    .and.pname(jd).ne.wname1.and..not.rxn) then
+      if (.not.sick(jd).and.v.gt.0d0.and.alpha.le.0d0.and.
+     *    iwarn1.lt.iopt(1).and.pname(jd).ne.wname1.and..not.rxn) then
 
          write (*,1030) t,p,pname(jd)
          iwarn1 = iwarn1 + 1
          wname1 = pname(jd)
-         if (iwarn1.eq.6) call warn (49,r,179,'GETPHP') 
+
+         if (iwarn1.eq.iopt(1)) call warn (49,r,179,'GETPHP') 
 
       end if
 
-      if (ppois.and.iwarn2.lt.6.and.pname(jd).ne.wname2.and.pois) then 
+      if (ppois.and.iwarn2.lt.iopt(1).and.pname(jd).ne.wname2.
+     *                                               and.pois) then 
 
          iwarn2 = iwarn2 + 1
          wname2 = pname(jd)
          write (*,1040) t,p,pname(jd)
-         if (iwarn2.eq.6) call warn (49,r,178,'GETPHP')
+
+         if (iwarn2.eq.iopt(1)) call warn (49,r,178,'GETPHP')
 
       end if 
 c                                 accumulate non-seismic totals 
@@ -3093,7 +3097,7 @@ c                                 set missing data
          
       end if 
 
-      if ((.not.volume.or..not.shear).and.(iwarn.lt.11)) then
+      if ((.not.volume.or..not.shear).and.iwarn.lt.iopt(1)) then
 
          iwarn = iwarn + 1
 
@@ -3105,8 +3109,8 @@ c                                 set missing data
             end do 
          end if 
 
-         if (iwarn.eq.11) call warn (49,r,177,'GETSYP') 
-                  
+         if (iwarn.eq.iopt(1)) call warn (49,r,177,'GETSYP')
+
       end if  
 
 1000  format (/,'**warning ver177** at T(K)=',g12.4,' P(bar)=',g12.4,1x,

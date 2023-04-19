@@ -2110,7 +2110,7 @@ c----------------------------------------------------------------------
 
          msg = 'HSMRK/'//specie(i)
 
-         call volwrn (3,msg)
+         call conwrn (3,msg)
 
       else 
 
@@ -4554,9 +4554,9 @@ c                                 converged, compute ln(fugacity)
           
          else if (v.lt.0d0.or.it.gt.iopt(21)) then
 c                                 will use cork fugacities
-            iwarn = iwarn + 1
+            if (iwarn.lt.iopt(1)) then
 
-            if (iwarn.le.50.or.lopt(64)) then
+               iwarn = iwarn + 1
 
                if (jam.eq.1) then 
                   msg = 'PSEoS/H2O'
@@ -4564,10 +4564,9 @@ c                                 will use cork fugacities
                   msg = 'PSEoS/CO2'
                end if
 
-               call volwrn (1,msg)
+               call conwrn (1,msg)
 
-               if (iwarn.eq.50.and..not.lopt(64)) 
-     *                                   call warn (49,p,93,msg)
+               if (iwarn.eq.iopt(1)) call warn (49,p,93,msg)
 
             end if
 
@@ -4779,12 +4778,12 @@ c                                 get new gamma's
 
       if (bad) then 
 
-         if (nit.gt.iopt(21).and.iwarn.lt.100) then
+         if (nit.gt.iopt(21).and.iwarn.lt.iopt(1)) then
 
              write (*,'(a,2(g12.6,1x))') 
      *            'ugga rksi4 not converging T,P:',t,p
 
-         else if (iwarn.lt.100) then
+         else if (iwarn.lt.iopt(1)) then
 
              write (*,'(a,5(g12.6,1x))') 
      *            'ugga rksi4 not valid solution T,P:',t,p,x
@@ -4792,8 +4791,8 @@ c                                 get new gamma's
          end if 
 
          iwarn = iwarn + 1
-    
-         if (iwarn.eq.100) call warn (49,t,0,'RKSI4')
+
+         if (iwarn.eq.iopt(1)) call warn (49,t,0,'RKSI4')
 
          call setbad (fh2o)
 
@@ -5694,7 +5693,7 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer ins(5), isp, i1, i2, i3, i4, i5, i, itic, igood, ibad
+      integer ins(5), isp, i1, i2, i3, i4, i5, i, ibad
 
       logical bad
 
@@ -5718,10 +5717,10 @@ c----------------------------------------------------------------------
       double precision a0,a1,a2,a3 
       common/ coeffs /a0,a1,a2,a3
 
-      save isp, ins, i1, i2, i3, i4, i5, itic, igood, ibad 
-      data isp, ins, i1, i2, i3, i4, i5, itic, igood, ibad 
+      save isp, ins, i1, i2, i3, i4, i5, ibad 
+      data isp, ins, i1, i2, i3, i4, i5, ibad 
      *                                      /5, 14, 13, 12, 7, 15, 
-     *                                          14, 13, 12, 7, 15, 3*0/
+     *                                          14, 13, 12, 7, 15, 0/
 c----------------------------------------------------------------------
 c                                 zero species in case of degenerate compositions
       do i = 1, isp
@@ -5828,12 +5827,6 @@ c                                 closure => sio2:
          write (*,*) 'wugga rksi5 ',t,p,xc,y
       end if 
 
-c     if (itic.gt.200000) then 
-c        itic = 0 
-c        write (*,*) 'good,bad:',igood,ibad
-c     end if 
-
-c      if (nit.gt.20) write (*,*) 'rk5 long nit',nit
       end
 
       subroutine rkparm (ins, isp)
@@ -8120,16 +8113,16 @@ c                                 convert volume from j/bar to cm3/mol
           
          else if (vol.lt.0d0.or.it.gt.iopt(21)) then
 c                                 failed, use mrk fugacities
-            iwarn = iwarn + 1
 
-            if (iwarn.le.50.or.lopt(64)) then
+            if (iwarn.lt.iopt(1)) then
+
+               iwarn = iwarn + 1
 
                msg = 'ZD09/'//specie(i)
 
-               call volwrn (2,msg)
+               call conwrn (2,msg)
 
-               if (iwarn.eq.50.and..not.lopt(64)) 
-     *                                   call warn (49,p,93,msg)
+               if (iwarn.eq.iopt(1)) call warn (49,p,93,msg)
 
             end if
 
@@ -8225,14 +8218,13 @@ c                                 convert volume from j/bar to cm3/mol
           
          else if (v.lt.0d0.or.it.gt.iopt(21)) then
 c                                 use cork fugacity
-            iwarn = iwarn + 1
+            if (iwarn.le.iopt(1)) then
 
-            if (iwarn.le.50.or.lopt(64)) then
+               iwarn = iwarn + 1
 
-               call volwrn (1,'ZD05/H2O')
+               call conwrn (1,'ZD05/H2O')
 
-               if (iwarn.eq.50.and..not.lopt(64)) 
-     *                            call warn (49,p,93,'ZD05/H2O')
+               if (iwarn.eq.iopt(1)) call warn (49,p,93,'ZD05/H2O')
 
             end if
 

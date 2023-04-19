@@ -536,9 +536,6 @@ c----------------------------------------------------------------------
       logical refine, lresub
       common/ cxt26 /refine,lresub,tname
 
-      double precision units, r13, r23, r43, r59, zero, one, r1
-      common/ cst59 /units, r13, r23, r43, r59, zero, one, r1
-
       integer ipoint,kphct,imyn
       common/ cst60 /ipoint,kphct,imyn
 
@@ -578,9 +575,12 @@ c                                 get the refinement point composition
                call setxyp (ids,id,bad)
 c                                 save the composition for autorefine
                ststbl(id) = .true.
+
             else
+
                if (nrf(ids)) cycle
                call endpa (kd,id,ids)
+
             end if
 
             rkds = kd
@@ -627,36 +627,61 @@ c                                 refinement point was the same solution.
             call ingsol (ids)
             if (deriv(ids)) call ingend (ids)
          end if
-c                                 save the previous solution, 
-c                                 for lagged speciation with only
-c                                 one solvent species this is
-c                                 all that needs to be done.
-         if (iter.eq.1) then
+c                                 when initialized the dynamic list (jpoint+1:jphct)
+c                                 does not include the static solution, technically
+c                                 this could be recovered without calculation, but 
+c                                 here it is simply recalculated and saved. additionally
+c                                 for lagged speciation it is necessary to establish
+c                                 whether the solvent is pure by calculation.
+         if (iter.eq.1) then 
+
             gg = gsol1 (ids,.true.)
-         else 
-            gg = gsol1 (ids,.false.)
-         end if
-c                                 for electrolytic fluids set 
-c                                 kwak0 to record the state of the
-c                                 refinement point
-         kwak0 = rkwak
-         idif = 0
+c                                 electrolytic fluid, set kwak0 to record state
+            kwak0 = rkwak
 
-         if (nstot(ids).gt.1) then 
+            if (nstot(ids).gt.1) then 
+c                                 a normal solution or multicomponent solvent
+               call savrpc (gg,nopt(37),swap,idif)
 
-            call savrpc (gg,nopt(37),swap,idif)
+               if (lopt(61)) call begtim (15)
 
-            if (lopt(61)) call begtim (15)
+               call minfrc
+
+               if (lopt(61)) call endtim (15,.false.,'minfrc')
+
+            else if (.not.rkwak) then
+c                                 a speciated electrolytic fluid, skip
+c                                 pure 1-species solvent, this may cause
+c                                 bad warm start behavior
+               call savkwk (gg,0d0,swap,idif)
+
+            end if
+
+         else
+
+            idif = jdv(kd)
+c                                 iter > 1
+            if (lopt(32).and.ksmod(ids).eq.39) then
+c                                 for lagged speciation calculate and update
+c                                 the previous solution
+               gg = gsol1 (ids,.true.)
+c                                 electrolytic fluid, set kwak0 to record state
+               kwak0 = rkwak
+c                                 save with 0-threshold, i.e., should always 
+c                                 replace an existing point
+               call savkwk (gg,0d0,swap,idif)
+
+            end if
+
+            if (nstot(ids).gt.1) then
+
+               if (lopt(61)) call begtim (15)
 c                                  normal solution
-            call minfrc
+               call minfrc
 
-            if (lopt(61)) call endtim (15,.false.,'minfrc')
+               if (lopt(61)) call endtim (15,.false.,'minfrc')
 
-         else 
-c                                 don't save non-electrolytic pure fluids
-            if (rkwak) cycle
-c                                 save with 0-threshold
-            call savkwk (gg,0d0,swap,idif)
+            end if
 
          end if
 c                                 save the location so that the 
@@ -666,8 +691,6 @@ c                                 amount can be initialized
          lds = ids
 
       end do
-
-c     write (*,*) 'end of resub'
 
       end
 
@@ -1259,15 +1282,27 @@ c         end if
 
 
       do i = 1, np
+
          sum = 0d0
         
-            do k = 1, nstot(ksol(i,1))
-               sum = sum + pnew(i,k)
-            end do
+         do k = 1, nstot(ksol(i,1))
+            sum = sum + pnew(i,k)
+         end do
 c DEBUG691
-            if (sum.lt.one.or.sum.gt.1d0+zero) then
-               write (*,*) 'bad pa3 sum',ksol(i,1),sum
-            end if
+         if (sum.lt.one.or.sum.gt.1d0+zero) then
+            write (*,*) 'bad pa3 sum',ksol(i,1),sum
+
+           do j = 1, ntot
+              sum = 0d0
+              do k = 1, nstot(ksol(i,1))
+                 sum = sum + pa3(j,k)
+              end do
+
+              write (*,*) j, sum, kkp(j)
+
+           end do
+
+         end if
 
       end do
 c                                 make a list of solutions as ordered 
@@ -3152,6 +3187,8 @@ c                                 each iteration:
                call getpa (jds,i)
 
             end if
+
+            call chkpa (jds)
 c                                 save endmember fractions
             pa3(i,1:nstot(jds)) = pa(1:nstot(jds))
 c                                 get and save the composition

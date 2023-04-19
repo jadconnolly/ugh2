@@ -287,7 +287,7 @@ c                                 or exploratory
 c                                 get grid spacing
             call rdnumb (nopt(1),0d0,j,1,.false.)
             
-            if (j.eq.1) then 
+            if (j.eq.1.or..not.lopt(56)) then 
 
                write (*,'(/)')
 
@@ -347,10 +347,6 @@ c                                 round off tests:
          end do
  
       end do 
-
-c     call endtim (1,.true.,'tot')
-c     call endtim (2,.true.,'stx')
-c     call endtim (3,.true.,'plg')
 c                                 wrap up the calculation
       call finprp (dim,n5name,n6name,node) 
 
@@ -358,11 +354,13 @@ c                                 wrap up the calculation
      *       'PLT, sample_on_grid uses the',/,'highest resolution pos',
      *       'sible (',i4,'x',i4,'), if this is excessive set ',/,
      *       'sample_on_grid to false and restart WERAMI',/)
-1010  format (/,'**warning ver538** use of high level grids may genera',
-     *       'te noise due to data interpolation',/,'onto unpopulated ',
-     *       'nodes. If higher resolution is required, best practice is'
-     *       ,' to increase',/,'the auto-refine stage resolution of the'
-     *       ,' lowest level grid (2nd values of x/y_nodes).',
+1010  format (/,'**warning ver538** use of multi-level grids may gener',
+     *       'ate noise due to data',/,'interpolation onto unpopulated',
+     *       ' nodes. If exceptional resolution is required set',/,
+     *       'grid_levels to 1 1 and change the 2nd value of x/y_nodes',
+     *       'to obtain the desired resolution.',//,
+     *       'To disable [all] interactive warnings set warn_interact',
+     *       'ive to F.',
      *       //,'Continue (y/n)?')
 1040  format (/,'Change default variable range (y/n)?')
 1060  format (/,'Current limits on ',a,' are: ',g14.7,'->',g14.7,/,
@@ -777,7 +775,9 @@ c----------------------------------------------------------------------
 
       double precision units, r13, r23, r43, r59, zero, one, r1
       common/ cst59 /units, r13, r23, r43, r59, zero, one, r1
-      save / cst59 /
+
+      character fname*10, aname*6, lname*22
+      common/ csta7 /fname(h9),aname(h9),lname(h9)
 
       save warned, pi
       data warned/.false./
@@ -808,19 +808,25 @@ c                                 duplicate assignment because ias is in common
       jtri(1) = jloc
       wt(1) = 1d0
       linc = 2**(jlev - 1)
-
-      if (icog(jd).eq.iloc.and.jcog(jd).eq.jloc.and.ongrid) then 
 c                                 landed right on a node with data 
-          return
-       end if 
+      if (icog(jd).eq.iloc.and.jcog(jd).eq.jloc.and.ongrid) return
 c                                 exit if interpolation is off
       if (iopt(4).eq.0) return
 c                                 check for solvus
       if (solvs3(iam,np)) then 
 c                                 a solvus, turn interpolation off, warn and return
-         if (.not.warned.and.lopt(31)) then 
+         if (.not.warned.and.lopt(31)) then
+ 
             warned = .true.
+
             write (*,1000)
+
+            do i = 1, isoct
+               if (jdstab(i).gt.1) write (*,'(4x,a)') fname(i)
+            end do
+
+            write (*,1010)
+
          end if
 
          if (lopt(31)) return
@@ -1085,13 +1091,12 @@ c                                 not on a line:
 
       end if
 
-1000  format (/,'**warning ver637** Immiscibility occurs in one or ',
-     *          'more phases. Interpolation will ',/,
-     *          'be turned off at all affected nodes. ',
-     *          'override this feature at the risk of ',
-     *          'computing',/,'inconsistent properties ',
-     *          'by setting the option warning_ver637 to F',
-     *          ' and restarting WERAMI.',/)
+1000  format (/,'**warning ver637** Stable immiscibility is predicted ',
+     *          'by the following solution models:',/)
+1010  format (/,'Interpolation will be turned off at all affected node',
+     *          's. To override this',/,'behavior at the risk of compu',
+     *          'ting inconsistent properties set warning_ver637 to F ',
+     *        /,'and restart WERAMI.',/)
 
       end 
 
@@ -2992,7 +2997,7 @@ c----------------------------------------------------------------
 
       integer i, j, k, id, jk, ind(i11), jnd(i11), nsol, knd(i11), ksol
 
-      logical stble(h9), quit
+      logical stble(i11), quit
 
       double precision mode(3), smode(i11), dinc 
 
