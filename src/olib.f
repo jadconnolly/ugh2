@@ -785,7 +785,7 @@ c                                 composition fbulk
      *          ' Heat Capacity (J/K/kg) = ',g12.6,/,
      *          ' Specific Heat Capacity (J/K/m3) = ',g12.6,/)
 1070  format (/,'Variance (c-p+',i1,') = ',i2,/)
-1080  format (/,21x,'Complete Assemblage',28x,'Solid+Melt Only',
+1080  format (/,21x,'Complete Assemblage',30x,'Solid Only',
      *        /,14x,'mol',8x,'g',8x,'wt %',5x,'mol/kg',
      *          10x,'mol',8x,'g',8x,'wt %',5x,'mol/kg')
 1100  format (/,' Solid Enthalpy (J/kg) = ',g12.6,/,

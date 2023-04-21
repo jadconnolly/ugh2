@@ -31,7 +31,7 @@ c----------------------------------------------------------------------
       integer n
 
       write (n,'(/,a,//,a)') 
-     *     'Perple_X release 7.0.10, April 18, 2023.',
+     *     'Perple_X release 7.0.10, April 21, 2023.',
 
      *     'Copyright (C) 1986-2023 James A D Connolly '//
      *     '<www.perplex.ethz.ch/copyright.html>.'
@@ -8889,15 +8889,22 @@ c                                 set auto-refine dependent parameters
       if (icopt.eq.5) then 
 c                                 gridded minimization
          if (oned) then 
-            jlow = grid(4,index)
+c                                 this should be only for non-path 
+c                                 dependent 1d calculations set resolution 
+c                                 to 2-d x_nodes autorefine value, regardless
+c                                 of stage (1d cost is low).
+            jlow = grid(1,2)
             loopx = 1
-         else 
+
+         else
+
             jlow = grid(2,index)
             loopx = grid(1,index) 
+
          end if
 
          jlev = grid(3,index) 
-          
+
       else if (icopt.gt.5) then 
 c                                 1d/2d phase fractionation
          jlow = grid(4,index)
