@@ -668,8 +668,8 @@ c                                 the previous solution
 c                                 electrolytic fluid, set kwak0 to record state
                kwak0 = rkwak
 c                                 save with 0-threshold, i.e., should always 
-c                                 replace an existing point
-               call savkwk (gg,0d0,swap,idif)
+c                                 replace existing speciated points
+               if (.not.rkwak) call savkwk (gg,0d0,swap,idif)
 
             end if
 

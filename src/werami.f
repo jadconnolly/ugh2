@@ -1409,6 +1409,26 @@ c                                 in general
 1000  format ('Missing data at ',a,'=',g12.5,', ',a,'=',g12.5,
      *        ' assigned ',g12.5,' to all properties')
 
+      end
+
+      logical function bdnum (num) 
+c----------------------------------------------------------------------
+c test if num eq bad_number with check to avoid NaN fp error
+c----------------------------------------------------------------------
+      implicit none
+
+      double precision num
+
+      include 'perplex_parameters.h'
+c----------------------------------------------------------------------
+      bdnum = .false.
+
+      if (isnan(nopt(7))) then 
+         if (isnan(num)) bdnum = .true.
+      else
+         if (num.eq.nopt(7)) bdnum = .true.
+      end if
+
       end 
 
       subroutine outprp (dim)
@@ -3221,11 +3241,12 @@ c----------------------------------------------------------------
 
       character*8 ynm, n6name*100, rec*1
 
-      logical node
+      logical node, bdnum
 
       integer i, j, k, ipt, dim, ier
 
-      double precision ymx,ymn,xl(i11),yl(i11),x(3),dx,dy(i11),xmx,xmn
+      double precision ymx,ymn,xl(i11),yl(i11),x(3),dx,dy(i11),xmx,xmn,
+     *                 mzero
 
       character vnm*8
       common/ cxt18a /vnm(l3) 
@@ -3250,6 +3271,8 @@ c----------------------------------------------------------------
       common/ cst77 /prop(i11),prmx(i11),prmn(i11),
      *               kop(i11),kcx(i11),k2c(i11),iprop,
      *               first,kfl(i11),tname
+
+      external bdnum
 c----------------------------------------------------------------------
       if (dim.eq.1) then 
 
@@ -3276,7 +3299,7 @@ c                                 ind ne 1.
          end do 
 c                                 read the data to get the range  
          do           
-                  
+
             read (n5,*,iostat=ier) (x(i),i=1,ivar), (prop(i),i=1,iprop)
 
             ipt = ipt + 1
@@ -3291,6 +3314,8 @@ c                                 read the data to get the range
             if (ier.ne.0) exit 
 
             do i = 1, iprop
+c                                 don't count bad_number value modes
+               if (bdnum(prop(i))) cycle
 
                if (x(ind).gt.xmx) xmx = x(ind)
                if (x(ind).lt.xmn) xmn = x(ind)
@@ -3307,10 +3332,16 @@ c                                 cumulative mode
                      end if 
 
                   else 
+c                                 check for NaN badnumber value
+                     if (isnan(prop(i-1))) then
+                        mzero = 0d0
+                     else
+                        mzero = prop(i-1)
+                     end if 
 
-                     if (prop(i)-prop(i-1).gt.dy(i)) then
-                        dy(i) = prop(i)-prop(i-1)
-                        yl(i) = (prop(i)+prop(i-1))/2d0 
+                     if (prop(i)-mzero.gt.dy(i)) then
+                        dy(i) = prop(i) - mzero
+                        yl(i) = (prop(i) + mzero)/2d0 
                         xl(i) = x(ind)
                      end if
  

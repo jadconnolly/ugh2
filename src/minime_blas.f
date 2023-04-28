@@ -245,7 +245,7 @@ c-----------------------------------------------------------------------
       integer i, j, nvar, idif
 
       double precision ppp(*), gval, dgdp(*), psum, 
-     *                 gsol1, g, bsum, zsite(m10,m11)
+     *                 gsol1, g, zsite(m10,m11)
 
       external gsol1, zbad
 
@@ -310,7 +310,7 @@ c                                 level it
 
       if (lopt(57).and.outrpc) then
 c                                 try to eliminate bad results
-         if (psum.lt.one.or.psum.gt.1d0+zero.or.bsum.lt.zero) return
+         if (psum.lt.one.or.psum.gt.1d0+zero.or.psum.lt.zero) return
          if (zbad(pa,rids,zsite,'a',.false.,'a')) return
 c                                 save the composition
          call savrpc (g,nopt(37),saved,idif)
