@@ -3333,7 +3333,7 @@ c                                 cumulative mode
 
                   else 
 c                                 check for NaN badnumber value
-                     if (isnan(prop(i-1))) then
+                     if (bdnum(prop(i-1))) then
                         mzero = 0d0
                      else
                         mzero = prop(i-1)
