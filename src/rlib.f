@@ -3022,9 +3022,6 @@ c----------------------------------------------------------------------
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
 
-      logical abort1
-      common/ cstabo /abort1
-
       integer nq,nn,ns,ns1,sn1,nqs,nqs1,sn,qn,nq1,nsa
       common/ cst337 /nq,nn,ns,ns1,sn1,nqs,nqs1,sn,qn,nq1,nsa
 
@@ -21320,11 +21317,13 @@ c-----------------------------------------------------------------------
  
       include 'perplex_parameters.h'
 
-      character yes*1, text*3, name*100
+      character text*3, name*100
 
       integer ier, jnd(12,2), i, j, ind1, ind2
 
-      logical err, finish, inter
+      logical err, finish, inter, readyn
+
+      external readyn
 
       character*100 prject,tfname
       common/ cst228 /prject,tfname
@@ -21487,9 +21486,7 @@ c                                 are not available, find/use last interim resul
      *      'result is from the exploratory stage, the result may be '//
      *      'inconsistent or unreadable.'
 
-         read (*,'(a)') yes
-
-         if (yes.ne.'y'.and.yes.ne.'Y') then 
+         if (.not.readyn()) then
             stop
          else if (refine.and.jnd(i,1).eq.0) then 
 c                                 try reading solutions without refine data
@@ -21510,9 +21507,8 @@ c                                 if here must be auto and an irf file exists
 
             write (*,'(a)') 'Do you want to plot/analyze interim '//
      *                        'results (Y/N)?'
-            read (*,'(a)') yes
 
-            if (yes.eq.'y'.or.yes.eq.'Y') then
+            if (readyn()) then
 c                                 use intermediate results
                write (*,'(/,a,/)') 'Choose from the following interim'//
      *                             ' results [default is the last]:'

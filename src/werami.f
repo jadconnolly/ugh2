@@ -166,13 +166,15 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical node, change
+      logical node, change, readyn
 
       integer i, j, nxy(2), dim
 
       double precision tmin(2), tmax(2), dx(2)
 
-      character n6name*100, n5name*100, yes*1, tag*9
+      character n6name*100, n5name*100, tag*9
+
+      external readyn
 
       integer jvar
       double precision var,dvr,vmn,vmx
@@ -205,15 +207,13 @@ c----------------------------------------------------------------------
 c----------------------------------------------------------------------
       node = .false. 
       dim = 2
-c     call begtim (1)
 c                                 select the property
       call chsprp
 c                                 set up coordinates etc
 c                                 allow restricted plot limits
       write(*,1040)
-      read (*,'(a)') yes 
 
-      if (yes.eq.'y'.or.yes.eq.'Y') then 
+      if (readyn()) then 
 
          change = .false.
 
@@ -294,8 +294,8 @@ c                                 get grid spacing
             else
 
                write (*,1010)
-               read (*,'(a)') yes
-               if (yes.ne.'y'.and.yes.ne.'Y') goto 10 
+
+               if (.not.readyn()) goto 10 
 
             end if
 
@@ -2051,14 +2051,16 @@ c-------------------------------------------------------------------
 
       include 'perplex_parameters.h' 
 
-      character cprop*6, y*1
+      character cprop*6
 
-      logical max
+      logical max, readyn
 
       integer choice, index, ksol(k5), isol, i, j, icx, 
      *        jsol, ier, phase, mode
 
       double precision cmin(k5) ,cmax(k5), tcomp, gtcomp
+
+      external readyn
 
       character fname*10, aname*6, lname*22
       common/ csta7 /fname(h9),aname(h9),lname(h9)
@@ -2221,9 +2223,8 @@ c                                 the extremal variable
                write (*,1007) 
                call mkcomp (2+k5,phase)
                write (*,1025)
-               read (*,'(a)') y
 
-               if (y.eq.'y'.or.y.eq.'Y') then 
+               if (readyn()) then 
                   max = .true.
                else 
                   max = .false.
@@ -2453,13 +2454,15 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical node, ok
+      logical node, ok, readyn
 
       integer i, j, icurve, ivi, ivd, iord, ipts, jpts, ier, k(2), dim
 
       double precision coef(0:10), dxy(2), xyp(2,2), s, d
 
-      character*100 n5name, n6name, yes*1, text*320
+      character*100 n5name, n6name, text*320
+
+      external readyn
 
       integer jvar
       double precision var,dvr,vmn,vmx
@@ -2484,10 +2487,9 @@ c----------------------------------------------------------------------
 c                                 set up path information
       icurve = 0 
 c                                 ask if non-linear path
-10    write (*,1200) 
-      read (*,'(a)') yes
+10    write (*,1200)
 
-      if (yes.eq.'y'.or.yes.eq.'Y') then 
+      if (readyn()) then 
 
          icurve = 1
 c                                 select independent variable:
@@ -2514,9 +2516,8 @@ c                                 select independent variable:
          write (*,1340) text
 c                                 ask if ok.
          write (*,1320)
-         read (*,'(a)') yes 
 
-         if (yes.eq.'y'.or.yes.eq.'Y') goto 10
+         if (readyn()) goto 10
 c                                 it's ok.
          dxy(ivi) = vmx(ivi)-vmn(ivi)
          dxy(ivd) = vmx(ivd)-vmn(ivd)
@@ -3824,13 +3825,15 @@ c----------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical phluid
+      logical phluid, readyn
 
       integer i, j, icx, kprop, ier, lop, komp, mprop
 
       parameter (kprop=40)
 
-      character propty(kprop)*60, y*1, pname*10
+      character propty(kprop)*60, pname*10
+
+      external readyn
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
@@ -3922,11 +3925,10 @@ c                                 doing a second run, with an
 c                                 existing solvus criterion, ask
 c                                 whether to change.
             write (*,1030)
-            read (*,'(a)') y
-            if (y.ne.'y'.and.y.ne.'Y') stol(i) = .false.
-    
+            if (.not.readyn()) stol(i) = .false.
+
          end if
- 
+
       end do 
 c                                 property counter
       iprop = 0
@@ -3987,8 +3989,8 @@ c                                 get phase name
 c                                 the phase isn't fluid, ask if fluid should be 
 c                                 included in relative modes:
                 write (*,1120) 
-                read (*,'(a)') y
-                if (y.eq.'y'.or.y.eq.'Y') lflu = .true.
+
+                if (readyn()) lflu = .true.
 
              end if 
 c                                 write blurb about units
@@ -4016,8 +4018,8 @@ c                                 eject if no fluid phase
             else if (lopt(32).and.lopt(25)) then 
 c                                  ask which result is to be output
                write (*,1160)
-               read (*,'(a)') y
-               if (y.eq.'y'.or.y.eq.'Y') kfl(1) = .true.
+
+               if (readyn()) kfl(1) = .true.
 
             else if (.not.lopt(25)) then 
 c                                 eject if no aqueous species
@@ -4043,9 +4045,8 @@ c                                eject if other props already chosen:
             end if 
 c                                 all modes
              write (*,1070)
-             read (*,'(a)') y
 
-             if (y.eq.'y'.or.y.eq.'Y') then
+             if (readyn()) then
 c                                 warn about fancy_cumulative_modes
                 if (lopt(45)) then 
                    write (*,1170)
@@ -4064,8 +4065,8 @@ c                                 ask if fluid should be included:
              if (gflu) then 
 
                 write (*,1120) 
-                read (*,'(a)') y
-                if (y.eq.'y'.or.y.eq.'Y') lflu = .true.
+
+                if (readyn()) lflu = .true.
 
              end if 
 c                                 double loop necessary because solution 
@@ -4113,8 +4114,8 @@ c                                 ask if fluids included
             if (gflu.and.lop.eq.6) then 
 
                write (*,1120) 
-               read (*,'(a)') y
-               if (y.eq.'y'.or.y.eq.'Y') lflu = .true. 
+
+               if (readyn()) lflu = .true. 
 
             end if 
 
@@ -4161,11 +4162,12 @@ c                                 get phase index
 
             end if 
 
-            if (gflu) then 
+            if (gflu) then
+
                write (*,1120) 
-               read (*,'(a)') y
-               if (y.eq.'y'.or.y.eq.'Y') lflu = .true. 
-            end if         
+               if (readyn()) lflu = .true.
+
+            end if
 
             if (lop.eq.36) then 
 
@@ -4204,16 +4206,14 @@ c                                 save property choice
                
             if (icx.eq.0) then   
 c                                 ask if bulk or phase property
-               write (*,1110) 
-               read (*,'(a)') y
+               write (*,1110)
 
-               if (y.ne.'y'.and.y.ne.'Y') then 
+               if (.not.readyn()) then 
 c                                 it's a bulk property, ask if fluid
 c                                 should be included:
                   if (gflu) then 
-                     write (*,1120) 
-                     read (*,'(a)') y
-                     if (y.eq.'y'.or.y.eq.'Y') lflu = .true. 
+                     write (*,1120)
+                     if (readyn()) lflu = .true. 
                   end if 
 
                else 

@@ -313,11 +313,11 @@ c-----------------------------------------------------------------------
 
       integer i, j, idead, ier, it
 
-      logical pttrue(l2)
-
-      character y*1
+      logical pttrue(l2), readyn
 
       double precision errr(k5)
+
+      external readyn
 
       integer npt,jdv
       logical fulrnk
@@ -489,8 +489,8 @@ c                                 the bulk composition can be modified here,
 c                                 e.g., to add back previously fractionated
 c                                 phases.
                write (*,1060) 
-               read (*,1050) y
-               if (y.eq.'y'.or.y.eq.'Y') then 
+
+               if (readyn()) then 
                   write (*,1020) 
                   read (*,*) (dcomp(i), i = 1, jbulk)
                   do i = 1, jbulk

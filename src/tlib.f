@@ -31,7 +31,7 @@ c----------------------------------------------------------------------
       integer n
 
       write (n,'(/,a,//,a)') 
-     *     'Perple_X release 7.0.10, April 21, 2023.',
+     *     'Perple_X release 7.0.10, April 28, 2023.',
 
      *     'Copyright (C) 1986-2023 James A D Connolly '//
      *     '<www.perplex.ethz.ch/copyright.html>.'
@@ -330,19 +330,18 @@ c                                 optimization_max_it, max number of iterations
       iopt(20) = 40
 c                                 speciation_max_it - for speciation calculations
       iopt(21) = 100
-c                                 aq_bad_results 
-c                                       0 - err - treat as bad result (optimization error)
-c                                       1 - 101 - cease iteration at solute component saturation
-c                                       2 - 102
-c                                       3 - 103
-c                                      99 - ign - ignore 102/103 conditions and cease as in 101.
-      iopt(22) = 0
-      valu(5) = 'err'
-c                                 for infiltration/fractionation calculations set default to 101
-c     if (icopt.gt.6) then 
-c        iopt(22) = 1
-c        valu(5) = '101'
-c     end if 
+c                                 aq_bad_results:
+c                                 aq_error_ver100 - safe exit on pure + impure solvent during iteration
+      lopt(70) = .true.
+c                                 aq_error_ver101 - exit on undersaturated solute, set to false if the 
+c                                                   fluid is selected in routine fract
+      lopt(71) = .true.
+c                                 aq_error_ver102 - exit on pure + impure solvent with composition check
+      lopt(72) = .true.
+c                                 aq_error_ver103 - exit on extrapolation of HKF g-func
+      lopt(73) = .true.
+c                                 error_ver104 - exit on bad endmember EoS involved in a stable solution
+      lopt(74) = .true.
 c                                 solution_names 0 - model, 1 - abbreviation, 2 - full
       iopt(24) = 0
       valu(22) = 'mod'
@@ -619,6 +618,11 @@ c                                 phase composition key
             if (val.eq.'T') lopt(34) = .true.
 
          else if (key.eq.'aq_bad_results') then 
+
+            write (*,'(3(a,/))') 'aq_bad_results is obsolete in 7.0.10+'
+     *                         //' use aq_error_ver100-ver104 to',
+     *                           'modify'
+      
 
             if (val.eq.'err') then 
 c                                 abort on any hint of trouble
@@ -902,7 +906,6 @@ c                                 use cold starts for dynamic LP
             end if
 
             valu(39) = val
-
 
          else if (key.eq.'timing') then
 c                                 timing for VERTEX
@@ -5252,9 +5255,13 @@ c------------------------------------------------------------------------
  
       include 'perplex_parameters.h'
  
-      character y*1,n1name*100
+      character n1name*100
 
       integer ierr
+
+      logical readyn
+
+      external readyn
 
       character*100 prject,tfname
       common/ cst228 /prject,tfname
@@ -5297,9 +5304,8 @@ c                                 BUILD
             if (ierr.ne.0) then
 c                                 name exists
                write (*,1050) n1name
-               read (*,'(a)') y
 
-               if (y.eq.'Y'.or.y.eq.'y') then 
+               if (readyn()) then 
 c                                 overwrite it
                   open (n1,file=n1name)
 
@@ -5320,8 +5326,8 @@ c                                 VERTEX, MEEMUM, UNSPLT
             if (ierr.ne.0) then
 c                                 name does not exist
                write (*,1080) n1name
-               read (*,'(a)') y
-               if (y.eq.'Y'.or.y.eq.'y') then 
+
+               if (readyn()) then 
 c                                 try again
                   cycle 
 
@@ -5499,9 +5505,13 @@ c-----------------------------------------------------------------------
  
       include 'perplex_parameters.h'
  
-      character*100 name, y*1, ddata*14, text*140
+      character*100 name, ddata*14, text*140
 
       integer ierr, jam
+
+      logical readyn
+
+      external readyn
 
       data ddata/'hp02ver.dat   '/
 c-----------------------------------------------------------------------
@@ -5521,9 +5531,8 @@ c                                 system could not find the file
             if (jam.eq.0) call error (120,0d0,n2,name)
 c                                 if not vertex allow another try
             write (*,1010) name
-            read (*,'(a)') y
 
-            if (y.ne.'Y'.and.y.ne.'y') then
+            if (.not.readyn()) then
                write (*,1060)
                stop
             end if             
@@ -5611,11 +5620,15 @@ c----------------------------------------------------------------------
  
       include 'perplex_parameters.h'
 
+      logical readyn
+
       integer i,j,jopt,ict,ier,jscan
  
-      character*5 pname, rname, y*1
+      character*5 pname, rname
 
       double precision sum, ssum
+
+      external readyn
 
       integer ictr, itrans
       double precision ctrans
@@ -5643,8 +5656,8 @@ c                                 recombine components:
          write (*,1030)
          write (*,1040) (cmpnt(i), i = 1, icmpn)
          write (*,1050)
-         read (*,'(a)') y
-         if (y.ne.'Y'.and.y.ne.'y') exit
+
+         if (.not.readyn()) exit
 
          write (*,1060)
          read (*,'(a)') pname
@@ -5673,8 +5686,8 @@ c                                 ctransf, ask the user if the
 c                                 new component will be a special 
 c                                 component
                      write (*,1010) cmpnt(i),pname
-                     read (*,'(a)') y
-                     if (y.eq.'y'.or.y.eq.'Y') cycle
+
+                     if (readyn()) cycle
                      idspe(j) = 0 
 
                   end if 
@@ -5722,9 +5735,9 @@ c                                 get the component stoichiometries:
          write (*,1100) pname,(ctrans(icout(i),itrans),
      *                      cmpnt(icout(i)), i = 1, ict)
          write (*,1110)
-         read (*,'(a)') y
- 
-         if (y.eq.'y'.or.y.eq.'Y') then
+
+         if (readyn()) then
+
             sum = 0d0
             ssum = 0d0             
             do i = 1, ict
@@ -7659,9 +7672,13 @@ c----------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      character*5 y*1, units*13, text*195, what*9, sym*1
+      character units*13, text*195, what*9, sym*1
 
       integer jcomp, ier, i, ids, kount
+
+      logical readyn
+
+      external readyn
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
@@ -7680,9 +7697,8 @@ c----------------------------------------------------------------
 c----------------------------------------------------------------------
 c                                choose components vs species
       write (*,1000) fname(ids)
-      read (*,'(a)') y
 
-      if (y.eq.'y'.or.y.eq.'Y') then 
+      if (readyn()) then 
          spec(jcomp) = .true.
          what = ' species'
       else
@@ -7915,8 +7931,8 @@ c                                show the user the composition:
       end if 
  
       write (*,1090)
-      read (*,'(a)') y
-      if (y.eq.'y'.or.y.eq.'Y') goto 10
+
+      if (readyn()) goto 10
 
       kds(jcomp) = ids
 
@@ -8582,11 +8598,15 @@ c----------------------------------------------------------------------
  
       include 'perplex_parameters.h'
 
-      character y*1, badnam(h9)*10
+      character badnam(h9)*10
 
       integer ibad2, ibad1, igood, i, j, ier
 
       character n10nam*100,n11nam*100,n8nam*100
+
+      logical readyn
+
+      external readyn
 
       character prject*100,tfname*100
       common/ cst228 /prject,tfname
@@ -8640,10 +8660,9 @@ c                                 changed to .and. 9/10/19
                if (iopt(6).eq.1) then 
 c                                 manual mode, allow reinitialization
 c                                 or suppression.
-                  write (*,1060) 
-                  read (*,'(a)') y
+                  write (*,1060)
 
-                  if (y.eq.'y'.or.y.eq.'Y') then
+                  if (readyn()) then
 
                      iopt(6) = 0
 
@@ -8669,9 +8688,8 @@ c                                 to use the data
                write (*,'(/,a,a,/,a)') 'Auto-refine data exists from a',
      *                  ' previous calculation with VERTEX.',
      *                   'Do you want MEEMUM to use this data (y/n)?'
-               read (*,'(a)') y
 
-               if (y.ne.'y'.and.y.ne.'Y') then
+               if (.not.readyn()) then
 
                   iopt(6) = 0
 
@@ -13615,15 +13633,15 @@ c---------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      character y*1
+      logical readyn
 
+      external readyn
+c---------------------------------------------------------------------
       write (*,'(a)') 'Continue execution despite this warning (Y/N)?'
 
       if (lopt(56)) then
 c                                 read the choice
-         read (*,'(a)') y
-
-         if (y.ne.'y'.and.y.ne.'Y') then
+         if (.not.readyn()) then
 c                                 quit on warning
             stop
 
@@ -13647,3 +13665,20 @@ c                                 automatically continue
 
       end
 
+      logical function readyn()
+c----------------------------------------------------------------------
+c read yes/no answer, true if yes.
+c----------------------------------------------------------------------
+      implicit none
+
+      character y*1
+c--------------------------------------------
+      read (*,'(a)') y
+
+      if (y.ne.'y'.and.y.ne.'Y') then 
+         readyn = .false.
+      else
+         readyn = .true.
+      end if
+
+      end

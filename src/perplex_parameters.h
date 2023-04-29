@@ -52,7 +52,7 @@
 !                                 i9  - max number of solutions in solution model file
 !                                 i10 - max number of option values in perplex_option.dat
 !                                 i11 - max number of dependent properties in a tab format file
-      parameter (i6=2,i7=20,i8=28,i9=200,i10=70,i11=150)
+      parameter (i6=2,i7=20,i8=28,i9=200,i10=100,i11=150)
 !                                 j3  - max number of ordered species
 !                                 j4  - max number of species in the definition of a dependent species
 !                                 j5  - max number of stoichiometric limits on an ordered species
@@ -575,3 +575,6 @@ c                                 bulk assemblage counter dependent arrays
 
       logical dbg
       common/ cstdbg /dbg
+
+      logical abort1
+      common/ cstabo /abort1

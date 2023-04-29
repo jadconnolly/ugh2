@@ -94,8 +94,12 @@ c---------------------------------------------------------------------
       integer nrk,i,irk,ier
 
       parameter (nrk=27)
-   
-      character rkname(0:nrk)*63, y*1
+
+      logical readyn
+
+      character rkname(0:nrk)*63
+
+      external readyn
 
       character vname*8, xname*8
       common / csta2 /xname(k5),vname(l2)
@@ -271,10 +275,11 @@ c                                 variable:
          end if
 c                                 change default buffer
 20       write (*,1020)
-         read (*,1030) y
+
          ibuf = 2
          dlnfo2 = 0d0
-         if (y.eq.'y'.or.y.eq.'Y') then 
+
+         if (readyn()) then 
 
             write (*,1010) 
             read (*,*,iostat=ier) ibuf
@@ -299,13 +304,15 @@ c                                 ibuf = 3, constant fo2.
                goto 50
             end if 
 c                                 ibuf 2 or 1, permit del(fo2)
-30          write (*,1040) 
-            read (*,1030) y
-            if (y.eq.'y'.or.y.eq.'Y') then 
+30          write (*,1040)
+
+            if (readyn()) then
+
                write (*,1050) 
                read (*,*,iostat=ier) dlnfo2
                call rerror (ier,*30)
                dlnfo2 = 2.302585093d0 * dlnfo2
+
             end if 
          end if
       end if 
@@ -323,16 +330,16 @@ c                                 fugacities (hu = 1), otherwise they
 c                                 are H2O and CO2 (hu = 0).
          hu = 0 
 
-         if (iam.eq.4) then 
+         if (iam.eq.4) then
+
             write (*,1170)
-            read (*,1030) y 
-            if (y.eq.'y'.or.y.eq.'Y') hu = 1
+            if (readyn()) hu = 1
+
          end if 
 
-         write (*,1120) 
-         read (*,1030) y
+         write (*,1120)
 
-         if (y.eq.'y'.or.y.eq.'Y') then
+         if (readyn()) then
             write (*,1130) 
             read (*,*,iostat=ier) elag
             call rerror (ier,*50)
@@ -386,7 +393,6 @@ c                                get the salt content (elag):
      *          ' 4 - aQ-Ru-Cc-Tn-Gph',/,
      *          ' 5 - ln(f(O2))= a + (b + c*p)/t + d/t**2 + e/t**3 ',/)
 1020  format (/,'Modify default buffer (max H2O) (Y/N)? ')
-1030  format (a)
 1040  format (/,'Modify calculated fO2 by a constant (Y/N)?',/)
 1050  format (/,'Enter constant in units of log10(fO2):',/)
 1060  format (/,'Fluid equation of state: ',a)

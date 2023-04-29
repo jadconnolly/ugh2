@@ -63,9 +63,6 @@ c-----------------------------------------------------------------------
       double precision units, r13, r23, r43, r59, zero, one, r1
       common/ cst59 /units, r13, r23, r43, r59, zero, one, r1
 
-      logical abort1
-      common/ cstabo /abort1
-
       double precision wmach
       common/ cstmch /wmach(10)
 
@@ -142,14 +139,8 @@ c                                 final processing, .true. indicates static
 c                                 save lphct to recover static solution if
 c                                 no refinement 
          lphct = jphct 
-c                                 find discretization points
-c                                 for refinement
-c        if (lopt(28)) call begtim (3)
-
+c                                 find discretization points for refinement
          call yclos1 (x,clamda,jphct,quit)
-
-c        if (lopt(28)) call endtim (3,.true.,'Static YCLOS1 ')
-
 c                                 returns quit if nothing to refine
          if (quit) then 
 c                                 final processing, .true. indicates static
@@ -160,29 +151,29 @@ c                                 initialize refinement point pointers
             do i = 1, ipoint
                hkp(i) = 0 
             end do 
-
-c            if (lopt(28)) call begtim (4)
 c                                 reoptimize with refinement
             call reopt (idead,gtot)
 
-c            if (lopt(28)) call endtim (4,.true.,'Dynamic optimization ')
-
+            if (idead.eq.0) then 
 c                                 final processing, .false. indicates dynamic
-             if (idead.eq.0) then 
-
                call rebulk (abort,.false.)
 
                if (abort) then
-c                                 bad solution (lagged speciation) identified
-c                                 in avrger
-                  call lpwarn (102,'LPOPT0')
-                  if (iopt(22).gt.2) idead = 102
+c                                 abort is set for bad lagged speciation 
+c                                 solutions in avrger, two cases identified
+                  if (abort1) then
+c                                 abort1 indicates HKF gfunc out of range (only issued 
+c                                 for pure water).
+                     idead = 104
 
-               end if 
+                  else 
+c                                 pure and impure phases with same solvent
+c                                 composition coexist
+                     idead = 102
 
-               if (lopt(32)) then 
-c                                 if lagged speciation
-                  if (abort1) idead = 104
+                     call lpwarn (102,'LPOPT0')
+
+                  end if
 
                end if
 
@@ -438,12 +429,12 @@ c              quit = .true.
 c           end if
 
 c        end if
-
-c        if (lopt(28)) call begtim (7)
+c                                 idead is zero coming into yclos2:
 c                                 analyze solution, get refinement points
          call yclos2 (clamda,x,is,iter,opt,idead,quit)
-
-c        if (lopt(28)) call endtim (7,.true.,'YCLOS2 ')
+c                                 yclos2 can set idead to (if ~aq_bad_result):
+c                                 101 - undersaturated solute component and ~aq_bad_solute
+c                                 102 - 
 
          if (idead.gt.0) then 
 
@@ -510,7 +501,7 @@ c----------------------------------------------------------------------
 
       logical swap, bad, badsol
 
-      integer i, ids, lds, id, kd, iter, idif, ifail, help
+      integer i, ids, lds, id, kd, iter, idif
 
       double precision gg, gsol1
 
@@ -538,10 +529,6 @@ c----------------------------------------------------------------------
 
       integer ipoint,kphct,imyn
       common/ cst60 /ipoint,kphct,imyn
-
-      integer igood(h9), ibad(h9)
-      data igood, ibad/h9*0,h9*0/
-      save igood, ibad
 c----------------------------------------------------------------------
 c                                 reset refinement point flags
       do i = 1, jpoint
@@ -989,9 +976,6 @@ c                                  x-coordinates for the final solution
       double precision cptot,ctotal
       common/ cst78 /cptot(k19),ctotal,jdv(k19),npt
 
-      logical abort1
-      common/ cstabo /abort1
-
       character tname*10
       logical refine, lresub
       common/ cxt26 /refine,lresub,tname
@@ -1050,7 +1034,16 @@ c                                 get lagged speciation
 c                                 loaded into caq(i,1:ns+aqct)
                do k = 1, ns
                   pa(k) = pa3(i,k)
-               end do 
+               end do
+c                                 this was 691, abort1 was set only
+c                                 if HKF g out of range for pure water solvent
+c                                 this should be overridden if iopt(22) = 99, 
+c                                 as is no need to set quit and cycle
+c              if (abort1) then 
+c                 quit = .true.
+c                 abort = .true.
+c                 cycle 
+c              end if 
 
                if (quack(jdv(i))) then 
 c                                 pure solvent phase
@@ -1101,7 +1094,7 @@ c                                 if match check for a solvus
 c                                  special solvus test based on solvent 
 c                                  speciation for lagged aq model.
                      if (solvs4(i,kk)) cycle
-
+c                                  in 691 this was iopt(22) < 2
                      if (iopt(22).gt.2) then 
 c                                  check pure and impure solvent coexist
                         if (caq(i,na1).eq.0d0.and.caq(kk,na1).ne.0d0.or.
@@ -2423,11 +2416,14 @@ c                                 check bad eos results
                j = jd
             end if
 
-            if (j.ne.0) then 
+            if (j.ne.0) then
+c                                  badsol checks if a compound or
+c                                  endmember of a solution has an invalid EoS
                if (badsol(j)) then
-                  idead = 102
+                  idead = 105
                   return
                end if
+
             end if
 
             if (lopt(34)) then
