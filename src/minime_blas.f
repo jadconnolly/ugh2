@@ -18,7 +18,7 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical zbad, xref, swap
+      logical zbad, xref, swap, bndbad
 
       integer i, nvar, iter, iwork(m22), idif, idead,
      *        istate(m21), nclin, ntot
@@ -28,7 +28,7 @@ c-----------------------------------------------------------------------
      *                 clamda(m21),r(m19,m19),work(m23),
      *                 yt(m4),zsite(m10,m11), sum
 
-      external gsol2, gsol1
+      external gsol2, gsol1, zbad, bndbad
 
       integer nz
       double precision apz, zl, zu
@@ -139,15 +139,19 @@ c                                 reconstruct pa-array, this IS necessary.
       call ppp2pa (ppp,sum,nvar)
 c                                 reject bad site populations, these may not
 c                                 be useful
-      if (boundd(rids).and.sum.gt.nopt(55)) then
+      if (boundd(rids)) then
 
-         rcount(3) = rcount(3) + 1
-         return
+         if (bndbad()) then 
+            rcount(3) = rcount(3) + 1
+            return
+         end if
 
-      else if (zbad(pa,rids,zsite,fname(rids),.false.,fname(rids))) then
+      else
 
-         rcount(3) = rcount(3) + 1
-         return
+         if (zbad(pa,rids,zsite,fname(rids),.false.,fname(rids))) then
+            rcount(3) = rcount(3) + 1
+            return
+         end if
 
       end if
 
@@ -1960,4 +1964,61 @@ c           write (*,*) char,' from ',alfa,'to',newa,' rids',rids
 c             write (*,*) 'uh oh?',sum
           end if
 c                                 end of badalf
-      end 
+      end
+
+      logical function bndbad ()
+c-----------------------------------------------------------------------
+c check bounded solution compositions are within error
+c-----------------------------------------------------------------------
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      integer i
+
+      double precision sum
+
+      double precision z, pa, p0a, x, w, y, wl, pp
+      common/ cxt7 /y(m4),z(m4),pa(m4),p0a(m4),x(h4,mst,msp),w(m1),
+     *              wl(m17,m18),pp(m4)
+c-----------------------------------------------------------------------
+      sum = 0d0
+      bndbad = .false.
+
+      do i = 1, nstot(rids)
+
+         if (pa(i).lt.0d0) then
+
+            if (pa(i).lt.-nopt(50)) then
+               bndbad = .true.
+               return
+            else
+               pa(i) = 0d0
+            end if
+
+         else if (pa(i).gt.1d0) then
+
+            if (pa(i).gt.nopt(55)) then
+               bndbad = .true.
+               return
+            else
+               pa(i) = 1d0
+            end if
+
+         end if
+
+         sum = sum + pa(i)
+
+      end do
+
+      if (sum.gt.nopt(56).and.sum.lt.nopt(55)) then
+
+         pa(1:nstot(rids)) = pa(1:nstot(rids))/sum
+
+      else 
+
+         bndbad = .true.
+
+      end if 
+
+      end

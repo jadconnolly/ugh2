@@ -3059,8 +3059,6 @@ c                                 warn
             if (iwarn.lt.iopt(1)) then
 
                write (*,1000) t, p
-               if (ns.eq.1) write (*,'(/,a,/)') 
-     *                      'No result will be output.'
 
                iwarn = iwarn + 1
 
@@ -9159,7 +9157,11 @@ c                                 ordered endmembers
       dg  = dg + enth(k)  - v(2)*ds
       d2g = d2g - v(2)*d2s
 c                                 dg becomes the newton raphson increment
-      dg = -dg/d2g
+      if (d2g.ne.0d0) then
+         dg = -dg/d2g
+      else
+         dg = 0d0
+      end if
 
       end
 
@@ -14322,8 +14324,6 @@ c                                 solvent densities
       end if
 c                                 iterate on speciation
       call aqsolv (g0,gso,mo,tmu,is,gamm0,lnkw,bad)
-c                                 in new_solver.f needs to be debugged?
-c     call aqsol2 (g0,gso,mo,tmu,is,gamm0,lnkw,bad)
 
       if (bad) return
 c                                 back calculated bulk composition
@@ -14585,7 +14585,7 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i, j, k, it, jt, iexp, iwarn
+      integer i, j, k, it, jt, iexp, iwarn, iwarn0
 
       logical bad, kill, switch
 
@@ -14624,8 +14624,8 @@ c-----------------------------------------------------------------------
       double precision units, r13, r23, r43, r59, zero, one, r1
       common/ cst59 /units, r13, r23, r43, r59, zero, one, r1
 
-      save iwarn
-      data iwarn /0/
+      save iwarn, iwarn0
+      data iwarn, iwarn0 /0,0/
 c----------------------------------------------------------------------
       if (epsln.lt.nopt(34).or.abort.or.yf(1).eq.0d0) then
 c                                  vapor, same as checking lnkw
@@ -14692,10 +14692,15 @@ c                                 normalize by RT
             if (kill) then
                dg = 0d0
             else if (dabs(dg/rt).gt.nopt(57)) then
+
+               call spewrn (0,106,0,iwarn,bad,'AQSOLV')
                bad = .true.
                return
+
             else
+
                dg = dexp(dg/rt)
+
             end if
 
             if (q(i).ne.0d0) then
@@ -14717,6 +14722,7 @@ c                                  initialize iteration loop
 
          if (c(ion).eq.0d0) then
 c                                 no hydrogen or no oxygen
+            call spewrn (0,105,0,iwarn,bad,'AQSOLV')
             bad = .true.
             return
 
@@ -14793,13 +14799,17 @@ c                                 check for convergence
 
             if (dix.lt.nopt(50)) then
 c                                 converged
-c              call aqsol2 (g0,gso,mo,mu,is,gamm0,lnkw,bad)
-
                return
 
             else if (it.gt.iopt(21)) then
 
-               if (xdix.gt.dix.and.jt.lt.10) then
+               if (dix.lt.nopt(40)) then
+c                                 low quality bail out
+                  call spewrn (0,103,it,iwarn0,bad,'AQSOLV')
+
+                  return
+
+               else if (xdix.gt.dix.and.jt.lt.10) then
 c                                 try again?
                   it = 0
                   jt = jt + 1
@@ -14809,8 +14819,6 @@ c                                 try again?
 c                                 diverging
                   kill = .true.
                   bad = kill
-
-c                 call aqsol2 (g0,gso,mo,mu,is,gamm0,lnkw,bad)
 
                   exit
 
@@ -14839,13 +14847,7 @@ c                                 switch to the backup ion
 c                                 failure is the only path here
       if (kill.and.iwarn.lt.iopt(1)) then
 
-         call warn (64,is,it,' ')
-
-         call prtptx
-
-         iwarn = iwarn + 1
-
-         if (iwarn.eq.iopt(1)) call warn (49,0d0,64,'AQSOLV')
+         call spewrn (0,102,it,iwarn,bad,'AQSOLV')
 
       end if
 
@@ -14914,7 +14916,7 @@ c                                 dynamic
      *                  (cp2(i,id),i=1,jbulk)
       end if
 
-1000  format (i7,1x,i3,1x,i4,1x,a,20(g14.6,1x))
+1000  format (i7,1x,i4,1x,i4,1x,a,20(g14.6,1x))
 
       end
 
@@ -18057,8 +18059,6 @@ c                                 site fractions:
 c                                 convert the y's into p0a/pp/pa arrays indexed
 c                                 only by independent endmembers.
       call y2p0 (ids)
-
-      if (id.eq.2287) call chkpa (ids)
 
       end
 

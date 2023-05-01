@@ -1,0 +1,172 @@
+DEW17HP622ver_elements.dat     thermodynamic data file                                                                                      
+no_print | print generates print output
+plot     | obsolete 6.8.4+
+solution_model.dat     | solution model file, blank = none                                                                                                                                                                                                      
+AOC-REACTION                                                                                                                                                                                                                                                    
+AOC1-R-perplex_option.dat     | Perple_X option file                                                                                                                                                                                                               
+   12 calculation type: 0- composition, 1- Schreinemakers, 3- Mixed, 4- swash, 5- gridded min, 7- 1d fract, 8- gwash, 9- 2d fract, 10- 7 w/file input, 11- 9 w/file input, 12- 0d infiltration
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 number component transformations
+   21 number of components in the data base
+    0 component amounts, 0 - mole, 1 mass
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 05
+    0 ifug EoS for saturated phase
+    1 gridded minimization dimension (1 or 2)
+    0 special dependencies: 0 - P and T independent, 1 - P(T), 2 - T(P)
+ 0.00000      0.00000      0.00000      0.00000      0.00000     Geothermal gradient polynomial coeffs.
+
+begin thermodynamic component list
+Si    2  7.52580     0.185100E-01  0.00000     molar amount
+Al    2 0.845400     0.000000      0.00000     molar amount
+Fe    2  1.13110      0.00000      0.00000     molar amount
+Mg    2  9.55040     0.000000      0.00000     molar amount
+Ca    2 0.628500     0.11130E-01   0.00000     molar amount
+Na    2 0.936000E-01 0.106590      0.00000     molar amount
+K     2  0.00000     0.622000E-02  0.00000     molar amount
+H2    2  0.00000      1.00000      0.00000     molar amount
+C     2  0.00000     0.247390      0.00000     molar amount
+S2    2 0.190000E-02 0.829000E-02  0.00000     molar amount
+O2    2  13.8463      0.82446      0.00000     molar amount
+end thermodynamic component list
+
+
+begin saturated component list
+end saturated component list
+
+
+begin saturated phase component list
+end saturated phase component list
+
+
+begin independent potential/fugacity/activity list
+end independent potential list
+
+
+begin excluded phase list
+h2oL
+               | tan is a hypothetical talc endmember that is meant for a talc solution model
+               | that is not used here.
+tan
+               |--------------------------------------------------------------------------
+               | DEW/HKF data exclusions:
+               |--------------------------------------------------------------------------
+               | HKF data for ions of amino acids does not extrapolate plausibly to high P
+LACTATE,
+GLUTARAT
+GLYCOLAT
+FORMATE,
+PROPANOA
+ACETATE,
+               | HKF data for neutral C-O-H-S-N solute species is generally unreliable
+               | for high concentrations, it is therefore preferable to treat these
+               | species as solvent species (e.g., CO2, CO, CH4, ...). Regardless of 
+               | whether a species is treated as a solute (e.g., CO2,aq) or solvent (e.g. 
+               | CO2), it is critical that each species be represented by only one 
+               | thermodynamic entity (e.g., keeping both CO2 and CO2,aq) may have 
+               | catastrophic consequences.
+CO2,aq
+CO,aq
+METHANE,
+H2,aq
+O2,aq
+H2S,aq
+SO2,aq
+METHANE,
+H2CO3,aq
+ACETIC-A
+PROPANE,
+HEXANE,A
+ETHANE,A
+ETHANOL,
+ETHYLENE
+FORMIC-A
+BENZENE,
+METHANOL
+LACTIC-A
+LACTATE,
+GLUTARIC
+GLYCOLIC
+PROPANOL
+PROPANOI
+TOLUENE,
+                          |solvent reference state fluid species:
+S2
+SO2
+ H2S
+ CH4
+CO
+ H2
+O2
+ CO2
+                          |and, of course, it is necessary to exclude the usual nonsense h&p 
+                          |endmembers
+f3clin
+naph
+nta
+parg_dqf
+ts_dqf
+mrbG
+rieb
+gl
+zo
+mic
+kals
+nasGL
+kalGL
+woGL
+foGL
+odo
+tro
+ iron
+ gph
+ diam
+ ta
+ kjL
+ abh
+ san
+ an
+ phl
+ ab
+ lc
+ me 
+ mstp
+ sph
+coe
+stv
+ marb
+ arag
+ cc
+ mag
+ wa
+end excluded phase list
+
+
+begin solution phase list
+O(JH)     
+Cpx(JH)   
+Pl(JH)    
+Opx(JH)   
+Sp(JH)    
+Grt(JH)   
+COH-Fluid+
+Bio(WPH)
+Po(HP)
+end solution phase list
+
+   24000.0        1273.00        0.00000        0.00000        0.00000     max p, t, xco2, mu_1, mu_2
+   24000.0        1273.00        0.00000        0.00000        0.00000     min p, t, xco2, mu_1, mu_2
+   0.00000        0.00000        0.00000        0.00000        0.00000     unused place holder post 06
+
+ 1  2  4  5  3   index of the independent & sectioning variables
+
+ 300   0.050000    Number and size (mole) of water aliquots for 0d infilitration model

@@ -75,7 +75,7 @@ aq_output                 default | [T] output back-calculated solute chemistry 
 aq_oxide_components       default | [F] accomodate oxide components in aqueous speciation calculations
 aq_species                default | [20] maximum number of solute species output (ranked by concentration) for back-calculated results
 aq_lagged_iterations      default | [0] number of internal iterations for lagged speciation.
-aq_lagged_speciation      F T       | [F] do lagged solute chemistry when electrolyte data is available
+aq_lagged_speciation       T       | [F] do lagged solute chemistry when electrolyte data is available
 aq_solute_composition     default | [m] y => mole fractions, m => molality
 aq_solvent_composition    m       | [y] y => mole fractions, m => molality
 aq_solvent_solvus         default | [T] allow solvent phase separation without aq_bad_results error trigger
@@ -147,6 +147,6 @@ T_stop                    default | [0.] equilibration temperature (K) cut off
 variance                  default | [1 99] exploratory and auto-refine; maximum variance of traced equilibria; only relevant for CONVEX
 vrh/hs_weighting          default | [0.5] 0->1, weighting factor for the stiff average in VRH/HS averaging (see bounds)
 warning_ver637            default | [T] F -> warn and cease interpolation in WERAMI when immiscible solutions are present
-x_nodes                   default | [10 40] exploratory and auto-refine (grid parameters keyword group), lowest-level x grid resolution 
-y_nodes                   default | [10 40] exploratory and auto-refine (grid parameters keyword group), lowest-level y grid resolution
+x_nodes                   10 20 default | [10 40] exploratory and auto-refine (grid parameters keyword group), lowest-level x grid resolution 
+y_nodes                   10 20 default | [10 40] exploratory and auto-refine (grid parameters keyword group), lowest-level y grid resolution
 zero_mode                 default | [1e-6] 0->1, threshold below which the molar mode of a phase is set to 0; defaults to zero for fractionation calculations
