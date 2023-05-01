@@ -2958,12 +2958,15 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical solvnt(*), bad, abort, cslut(k19), cslvt(k19), error, skip
+      logical solvnt(*), bad, abort, cslut(k19), cslvt(k19), error, 
+     *        skip, readyn
 
       integer i, j, ier, ipvt(k8), iter, jter, imu(k8), kcp, lcp, mcp,
      *        inp(k8), is(*), kdv(k19)
 
       double precision comp(k8,k8), g, lc(k19,k19), lg(k19)
+
+      external readyn
 
       character cname*5
       common/ csta4  /cname(k5)
@@ -3042,9 +3045,11 @@ c                                 a component is present only in the solvent
 c                                 iteration will become unstable
                abort = .true.
 
-               write (*,*) 'Please report this case!'
+               write (*,*) 'disolved_non-solvent_component (GETMUS)'
+               write (*,*) 'Please report this case! Continue (Y/N)?'
 c                                 this code is useful, delete call errdbg
-               call errdbg ('disolved_non-solvent_component')
+               if (.not.readyn()) 
+     *            call errdbg ('disolved_non-solvent_component')
 c                                 otherwise delete this test and eliminate
 c                                 aq_error_ver101 test!
                write (n13,'(i4,1x,4(g14.6,1x),a)') 1000+solc(j), 

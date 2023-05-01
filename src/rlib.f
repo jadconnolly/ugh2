@@ -10425,7 +10425,7 @@ c---------------------------------------------------------------------
       end do
 
       if (dabs(sum-1d0).gt.nopt(50)) then 
-         write (*,*) 'wowonka ',sum
+         write (*,*) 'please report: wowonka ',sum
       end if
 
       end

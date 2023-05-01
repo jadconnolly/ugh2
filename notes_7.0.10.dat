@@ -1,0 +1,28 @@
+1) adds HCl EoS slot.
+2) corrects bounded renormalization in minfrc.
+3) standardizes warn limit (iopt(1), max_warn_limit), eliminates warn_no_limits.
+4) adds spewrn, changes name of volwrn to conwrn.
+5) modifies sample on grid warning in WERAMI.
+6) modifies warning ver637, WERAMI.
+7) modifies routine resub to eliminate unnecessary call to gsol1/savrpc for non-electrolytic fluids.
+8) routine gmodel moves dependent endmember (site occupancy) check to after boundd classification.
+9) standardizes routines spec1/gpmlt1: adds oscillatory case and low quality bailouts. eliminates incorrect increment of ordered species after solution. 
+10) corrects spec pointer (jd) for case k ~= 1 in routine gpder
+11) corrects mode 1 output to report "solid only" rather than "solid+melt", should note fluid_is_melt option.
+12) modifies 1-d gridded min to use x_nodes (auto-refine  stage value), rather than 1d_path (appropriate for fractionation). 
+13) changes bsum on 3rd conditional of savrpc test in gsol2/minime_blas.
+14) modifies resub to only call savkwk if speciated.
+15) WERAMI: adds bdnum to test if a number is bad_number.
+16) modifies range check loop in outmod to cycle on bad_number value.
+17) for cumulative modes in outmod, adds check for bad_number in prop(i-1) for computing dy (mzero).
+18) adds logical function readyn().
+19) adds logical function bndbad check for minfrc.
+20) corrects mode 1 calpr1 output to indicate fluid status of melt.
+21) rewires error traps for lagged speciation. replaces aq_bad_results with aq_error_ver100-104, no evident reason to modify defaults.
+22) adds special tolerance (aq_solvent_solvus_tol/nopt(37)) for error trap ver102/solvs4.
+23) adds error trap error_ver109 for results computed with bad EoS.
+24) adds d2g = 0 test for gderi1.
+25) modifies aqsolv to use low quality result (nopt(40) threshold) and spewrn on bad outcomes.
+26) reshuffles console option output to make error control a separate section.
+27) renames volume_tolerance_exp to function_tolerance_exp. 
+28) modifies titrat (0-d infiltration) to set verbos = true.
