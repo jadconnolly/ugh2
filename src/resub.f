@@ -1054,7 +1054,7 @@ c                                 ximp, xb, sum, and msol are dummies
                   call gaqlgd (ximp,xb,sum,msol,i,bad,.true.)
 
                   if (bad) then
-                     call errdbg ('shouldnt happen')
+                     call errdbg ('shouldnt happen, please report')
                   end if
 
                end if
