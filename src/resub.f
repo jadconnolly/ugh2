@@ -156,11 +156,20 @@ c                                 reoptimize with refinement
 c                                 final processing, .false. indicates dynamic
                call rebulk (abort,.false.)
 
-               if (abort) then
+               if (abort.or.abort1) then
+
+                  if (abort) then 
 c                                 abort is set for bad lagged speciation 
 c                                 solutions in avrger when pure and impure 
 c                                 phases with same solvent composition coexist
-                  idead = 102
+                     idead = 102
+
+                  else
+c                                 gaqlagd couldn't speciate a previously 
+c                                 speciated composition
+                     idead = 104
+
+                  end if
 
                   call lpwarn (idead,'LPOPT0')
 
@@ -204,7 +213,7 @@ c-----------------------------------------------------------------------
       parameter (liw=2*k21+3,lw=2*(k5+1)**2+7*k21+5*k5)
 
       double precision ax(k5), clamda(k21+k5), w(lw), tot(k5), gtot,
-     *                 ogtot, bl(k21+k5), bu(k21+k5), d2g(3), tol
+     *                 ogtot, bl(k21+k5), bu(k21+k5), tol
 
       integer is(k21+k5), iw(liw)
 
@@ -237,7 +246,6 @@ c                                 are identified in jdv(1..npt)
       quit = .false.
       opt = npt
       idead1 = 0
-      d2g(1) = ogtot
 
       jphct = jpoint
 c                                 global composition coordinate counter
@@ -249,6 +257,7 @@ c                                 iteration from static arrays
 c                                 resub can set idead 103 for out-of-bounds
 c                                 HKF-gfunc
       if (idead.gt.0) then
+         call lpwarn (idead,'REOPT')
          return
       end if
 c                                  initialization
@@ -294,8 +303,6 @@ c                                  set constraint states
 c                                 iter is incremented before the operations,
 c                                 i.e., on the nth iteration, iter is n+1
          iter = iter + 1
-c                                 set quit flag
-         if (iter.gt.iopt(20)) quit = .true.
 c                                 cold 0/warm 1 start
          if (iopt(38).eq.2) then
             jstart = 1
@@ -318,10 +325,13 @@ c                                  and bounds
      *               clamda,iw,liw,w,lw,idead,jstart,tol,lpprob)
 
          if (lopt(61)) call endtim (14,.false.,'dynamic optimization ')
+c                                 set quit flag, the idead = 3 case 
+c                                 resets quit to .false.
+         if (iter.gt.iopt(20)) quit = .true.
 
          if (idead.gt.0) then
 
-            if (idead.ne.3.or.quit) then 
+            if (idead.ne.3.or.idead.eq.3.and.idead1.ne.0) then 
 
                call lpwarn (idead,'REOPT')
                exit 
@@ -337,7 +347,7 @@ c                                  just in case:
 
                if (is(i).eq.1) cycle
 
-               do j = 1, icp 
+               do j = 1, icp
                   tot(j) = tot(j) - x(i)*cp2(j,i)
                end do
 
@@ -353,9 +363,9 @@ c                                  just in case:
 
                else if (dabs(tot(i)).gt.zero) then 
 
-c                  write (*,'(/,a,/)') '**warning ver333** '//
-c     *                   'You''ve got to ask yourself one '//
-c     *                   'question: Do I feel lucky? Well, do ya, punk?'
+                  write (*,'(/,a,/)') '**warning ver333** '//
+     *                   'You''ve got to ask yourself one '//
+     *                   'question: Do I feel lucky? Well, do ya, punk?'
 
                   idead1 = 3
 
@@ -365,24 +375,25 @@ c     *                   'question: Do I feel lucky? Well, do ya, punk?'
 
             if (idead1.eq.1) then
 c                                 let's blow this joint
-c              write (*,'(/,a,/)') 'bad result on idead = 3, let''s '//
-c    *                'blow this joint, the mass balance errors are:'
-c              write (*,'(4(g14.6,2x))') (tot(i),i=1,icp)
-               idead = 3
+               write (*,'(/,a,/)') 'bad result on idead = 3, let''s '//
+     *                'blow this joint, the mass balance errors are:'
+               write (*,'(4(g14.6,2x))') (tot(i),i=1,icp)
 
                call lpwarn (idead,'REOPT/MASS BALANCE')
 
                exit
 
-c           else if (idead.eq.3) then
-
-c              write (*,'(/,a,/)') '**warning ver333** '//
-c    *                   'You''ve got to ask yourself one '//
-c    *                   'question: Do I feel lucky? Well, do ya, punk?'
+            else if (idead1.eq.3) then
+c                                 do another iteration
+               if (quit)  quit = .false.
 
             end if
 
             idead = 0
+
+         else
+
+            idead1 = 0
 
          end if
 
@@ -391,27 +402,6 @@ c    *                   'question: Do I feel lucky? Well, do ya, punk?'
          else
             ogtot = gtot
          end if
-
-c        if (iter.le.3) then 
-c           d2g(iter) = gtot
-c        else
-c           d2g(1) = d2g(2)
-c           d2g(2) = d2g(3)
-c           d2g(3) = gtot
-c        end if
-
-c        if (iter.ge.3) then 
-c           curve = d2g(3) + d2g(1) - 2d0*d2g(2)
-c           write (*,'(g12.6,1x,i2,1x,g12.6)') curve, iter,gtot-ogtot
-c           write (*,'(g12.6,1x,i2,1x,g12.6)') curve/dabs(gtot), iter,
-c    *                                         (gtot-ogtot)/dabs(gtot)
-
-c           if (dabs(curve/gtot).eq.0d0.or.
-c    *          dabs((gtot-ogtot)/gtot).eq.0d0) then
-c              quit = .true.
-c           end if
-
-c        end if
 c                                 idead is zero coming into yclos2:
 c                                 analyze solution, get refinement points
          call yclos2 (clamda,x,is,iter,opt,idead,quit)
@@ -448,30 +438,7 @@ c                                  save the old count
 
       end do
 
-c     if (count.gt.8000) then
-
-c     write (*,*) ' '
-c     write (*,*) 'function calls ',count
-c     write (*,*) 'iterations ',rcount(1)
-c     if (rcount(1).gt.0) 
-c    *   write (*,*) 'function calls/iteration ',count/rcount(1)
-c     write (*,*) 'good : bad ',rcount(2), rcount(3), 
-c    *                          rcount(2) + rcount(3)
-c     if (rcount(1).gt.0)  
-c    *   write (*,*) 'iter/opt ', rcount(1)/(rcount(2) + rcount(3))
-c     write (*,*) ' '
-
-c     call prtptx
-
-c     end if
-
-c     rcount = 0
-
-      
-c     count = 0
-c     write (*,*) count
-
-c     write (*,*) 'end of reopt'
+      if (iter.gt.iopt(20).and.idead.eq.0) call lpwarn (108,'REOPT')
 
       end
 
@@ -609,7 +576,8 @@ c                                 whether the solvent is pure by calculation.
 
             gg = gsol1 (ids,.true.)
 
-            if (lopt(32).and.ksmod(ids).eq.39.and.nstot(ids).eq.1) then
+            if (lopt(32).and.ksmod(ids).eq.39.and.nstot(ids).eq.1.and.
+     *          abort1) then
 c                                 HKF g-func out-of-range error, only tested
 c                                 for pure H2O solvent
                idead = 103
@@ -974,6 +942,7 @@ c                                  x-coordinates for the final solution
       common/ cxt26 /refine,lresub,tname
 c-----------------------------------------------------------------------
       abort = .false.
+      abort1 = .false.
 c                                first check if solution endmembers are
 c                                among the stable compounds:
       do i = 1, ntot
@@ -1053,8 +1022,17 @@ c                                 impure solvent, get speciation
 c                                 ximp, xb, sum, and msol are dummies
                   call gaqlgd (ximp,xb,sum,msol,i,bad,.true.)
 
-                  if (bad) then
-                     call errdbg ('shouldnt happen, please report')
+                  if (bad.and.lopt(74)) then
+c                                 how/why this happens isn't clear to 
+c                                 me, since the present aqlgd calculation
+c                                 should be identical to one used to generate
+c                                 the point? at least for pure water, for 
+c                                 more complex solvents it's conceivable the
+c                                 composition was generated with a different
+c                                 set of chemical potentials
+                     abort1 = .true.
+                     return
+
                   end if
 
                end if
@@ -1089,6 +1067,7 @@ c                                  check pure and impure solvent coexist
      *                      caq(i,na1).ne.0d0.and.caq(kk,na1).eq.0d0) 
      *                                                              then 
 c                                  pure solvent and impure solvent coexist
+c                                  signals error ver102
                             abort = .true.
                             return
 
@@ -2464,28 +2443,19 @@ c                                 get mu's for lagged speciation
 
       else
 c                                 test is only set T for aqueous fluid
-         if (test) abort = .true.
+         if (test.and.lopt(71)) then
+            abort = .true.
+         else 
+            abort = .false.
+         end if
 
          call getmus (iter,iter-1,is,solvnt,abort)
 c                                 getmus sets abort T only if aqueous fluid
+c                                 and lopt(71) and a solute component is 
+c                                 undersaturated
          if (abort) then
-c                                 undersaturated solute component
-            if (lopt(71)) then
 c                                 report as error, no output
                idead = 101
-
-            else
-c                                 use the last mu's for output purposes
-               if (.not.mus) then
-                  call muwarn (quit,iter)
-                  mu(1:icp) = xmu(1:icp)
-               else
-                  quit = .true.
-               end if
-
-            end if
-
-            return
 
          else if (.not.mus) then
 
@@ -2810,7 +2780,7 @@ c                                 each iteration:
 
             end if
 
-            call chkpa (jds)
+c           call chkpa (jds)
 c                                 save endmember fractions
             pa3(i,1:nstot(jds)) = pa(1:nstot(jds))
 c                                 get and save the composition
@@ -3045,13 +3015,6 @@ c                                 a component is present only in the solvent
 c                                 iteration will become unstable
                abort = .true.
 
-               write (*,*) 'disolved_non-solvent_component (GETMUS)'
-               write (*,*) 'Please report this case! Continue (Y/N)?'
-c                                 this code is useful, delete call errdbg
-               if (.not.readyn()) 
-     *            call errdbg ('disolved_non-solvent_component')
-c                                 otherwise delete this test and eliminate
-c                                 aq_error_ver101 test!
                write (n13,'(i4,1x,4(g14.6,1x),a)') 1000+solc(j), 
      *                                             x, y, t, p,
      *                                'disolved_non-solvent_component'

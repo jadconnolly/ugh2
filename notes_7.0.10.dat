@@ -26,3 +26,9 @@
 26) reshuffles console option output to make error control a separate section.
 27) renames volume_tolerance_exp to function_tolerance_exp. 
 28) modifies titrat (0-d infiltration) to set verbos = true.
+29) Coincidence of weak solution (idead = 3) with iteration limit caused result to be reported as failed optimization.
+30) adds low quality warning for it limit in reopt.
+31) corrects (?) idead/idead1 usage for idead = 3.
+32) adds standardized warning and error traps from speci1 and gpmlt1 to speci2 and gpmelt.
+
+
