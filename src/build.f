@@ -37,7 +37,8 @@ c-----------------------------------------------------------------------
       integer i, k, l, iind, im, idum, ivct, jcth, j, ier, idep, 
      *        gct(i9), gid(i9,i9), ict, idsol, inames
 
-      logical eof, good, oned, findph, first, feos, chksol, readyn
+      logical eof, good, oned, findph, first, feos, chksol, readyn, 
+     *        liqdus
 
       external chksol, findph, readyn
 
@@ -190,6 +191,7 @@ c                                 initialization:
       isoct = 0 
       jmuct = 0
       first = .true. 
+      liqdus = .false.
 
       call redop1 (.false.,opname)
 
@@ -212,13 +214,20 @@ c                                 changed to 10 in varich if fileio.
          call mertxt (tfname,prject,'.aux',0)
          write (*,1500) tfname
 
+      else if (icopt.eq.8) then 
+c                                 liquidus diagrams are a special case of
+c                                 2d gridded minimization
+         liqdus = .true.
+         icopt = 2
+         write (*,1200) 
+
       end if
 c                                 choose chemical components
       call compch (ivct,feos,mname,pname,oname,uname)
 c                                 physical variable choices and ranges
 c                                 set icopt to its internal value:
-      call varich (c,ivct,iind,oned,idep,iord,jcth,
-     *             amount,dtext,opname,pname,cfname)
+      call varich (c,ivct,iind,oned,idep,iord,jcth,amount,dtext,opname,
+     *             pname,cfname,liqdus)
 c                                 warn about the use of chemical potentials
 c                                 in different types of calculations
       if (jmct.gt.0) then 
@@ -772,6 +781,14 @@ c                                 diagrams:
 1180  format (/,'For details on these models see: ',
      *        'www.perplex.ethz.ch/perplex_solution_model_glossary.html'
      *      /,'or read the commentary in the solution model file.',/)
+1200  format (/,'In this mode VERTEX maps the saturation surface of a ',
+     *        'phase over a two-dimensional',/,'composition space as a',
+     *        'function a thermodynamic potential (e.g., T or P).',
+     *     //,'The composition space is defined as a mixture of three ',
+     *        'multi-component compositions.',/,'The following prompts',
+     *        'are for the components, indpendent potential, and the',/,
+     *        'three compositions. VERTEX prompts for the identity of ',
+     *        'the saturated phase',//)
 1310  format (/,5(i2,1x),2x,a,/)
 1330  format (i2,1x,i2,1x,g13.6,1x,g13.6,1x,a)
 1340  format (5(g13.6,1x))
@@ -783,7 +800,9 @@ c                                 diagrams:
      *    5x,'5 - 1-d Phase fractionation',/,
      *    5x,'6 - 0-d Infiltration-reaction-fractionation',/,
      *    5x,'7 - 2-d Phase fractionation (FRAC2D and TITRATE ',
-     *               'reactive transport models)',//,
+     *               'reactive transport models)',/
+     *    5x,'8 - (pseudo-)Ternary saturation surfaces, e.g., liquidus',
+     *                'diagrams',//,
      *        'Use Convex-Hull minimization for Schreinemakers ',
      *        'projections or phase diagrams',/,
      *        'with > 2 independent variables. ',
@@ -1692,8 +1711,8 @@ c                                 component pointers for chkphi
 
       end 
 
-      subroutine varich (c,ivct,iind,oned,idep,iord,jcth,
-     *                   amount,dtext,opname,pname,cfname)
+      subroutine varich (c,ivct,iind,oned,idep,iord,jcth,amount,dtext,
+     *                   opname,pname,cfname,liqdus)
 c---------------------------------------------------------------------------
 c interatctively choose physical variables for build.
 c---------------------------------------------------------------------------
@@ -1704,7 +1723,7 @@ c---------------------------------------------------------------------------
       integer i, j, ivct, ier, iind, idep, iord, kvct, jc, icth,
      *        jcth, loopx, loopy, ind, ix, jst, jvct
 
-      logical oned, readyn
+      logical oned, readyn, liqdus
 
       character dtext*(*), amount*5, stext*11, nc(3)*2, 
      *          opname*(*), pname(*)*5, cfname*100
@@ -1945,68 +1964,88 @@ c                                  =====================
 c                                  gridded minimization:
          icopt = 5
          jvct = 0
-         icont = 1
+
+         if (.not.liqdus) then
+
+            icont = 1
 c                                  Select the x variable
-         call getxvr (ivct,jvct,icont,jc,oned,'x-axis')
+            call getxvr (ivct,jvct,icont,jc,oned,'x-axis')
 
-
-         if (ivct.eq.2.and.icont.eq.1) then 
+            if (ivct.eq.2.and.icont.eq.1) then 
 c                                 there is no C variable and there 
 c                                 are only 2 potentials, 
 c                                 the y variable must be iv(2)     
-            call redvar (2,1)
-            jvct = ivct   
-
-         else 
-c                                 select the y variable 
-            if (ivct.gt.1.or.icont.eq.2.and.icp.gt.2) then
-               jst = 2
-               if (icont.eq.2) jst = 1
-
-               do 
-
-                  write (*,2130)
-
-                  do 
-                     write (*,2140) (j,vname(iv(j)), j = jst, ivct)
-                     if (icp.gt.2.and.icont.eq.2) write (*,1480) j
-                     write (*,*) ' '
-                     read (*,*,iostat=ier) jc
-                     if (ier.eq.0) exit
-                     call rerr
-                  end do
- 
-                  if (jc.gt.ivct+1.or.jc.lt.jst) then
-                     write (*,1150)
-                     cycle 
-                  else if (jc.eq.ivct+1) then
-                     icont = 3
-                  end if
-
-                  exit 
-
-               end do 
-
-            else if (icont.eq.2) then
- 
-               jc = 1 
+               call redvar (2,1)
+               jvct = ivct
 
             else 
+c                                  select the y variable 
+               if (ivct.gt.1.or.icont.eq.2.and.icp.gt.2) then
 
-               jc = 2
+                  jst = 2
+
+                  if (icont.eq.2) jst = 1
+
+                  do 
+
+                     write (*,2130)
+
+                     do 
+                        write (*,2140) (j,vname(iv(j)), j = jst, ivct)
+                        if (icp.gt.2.and.icont.eq.2) write (*,1480) j
+                        write (*,*) ' '
+                        read (*,*,iostat=ier) jc
+                        if (ier.eq.0) exit
+                        call rerr
+                     end do
  
+                     if (jc.gt.ivct+1.or.jc.lt.jst) then
+                        write (*,1150)
+                        cycle 
+                     else if (jc.eq.ivct+1) then
+                        icont = 3
+                     end if
+
+                     exit 
+
+                  end do 
+
+               else if (icont.eq.2) then
+ 
+                  jc = 1 
+
+               else 
+
+                  jc = 2
+ 
+               end if
+
+               if (icont.lt.3) then 
+                  ind = 2
+                  if (icont.eq.2) ind = 1
+                  ix = iv(ind)
+                  iv(ind) = iv(jc)
+                  iv(jc) = ix
+                  jvct = jvct + 1
+                  call redvar (ind,1)
+               end if
+
             end if
 
-            if (icont.lt.3) then 
-               ind = 2
-               if (icont.eq.2) ind = 1
-               ix = iv(ind)
-               iv(ind) = iv(jc)
-               iv(jc) = ix
-               jvct = jvct + 1
-               call redvar (ind,1)
-            end if  
+         else 
+c                                 liquidus diagram, temporary values to trick
+c                                 getxvar
+            icont = icp
+            icp = 0
+c                                 get the independent potential
+            call getxvr (ivct,jvct,icont,jc,oned,
+     *                                          'independent potential')
+c                                 reset icp, icont
+            icp = icont
+            icont = 3
+
          end if
+
 c                                 get sectioning variables values:
          do j = jvct+1, ivct
             call redvar (j,2) 

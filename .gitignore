@@ -101,8 +101,6 @@ klb691_01.plt
 
 klb691.irf
 
-DEW19HP633ver_elements.dat
-
 perplex_option_lagged.dat
 
 weigang_seismic_data.txt
@@ -134,8 +132,6 @@ weigang_01.plt
 weigang_11.blk
 
 weigang_11.plt
-
-DEW19HP622ver_elements.dat
 
 wei_II_auto_refine.txt
 
@@ -205,8 +201,6 @@ w.tof
 
 bfast.dat
 
-DEW17HP622ver_oxides.dat
-
 *.ps
 
 weigang_2.txt
@@ -251,8 +245,6 @@ manuel_seismic_data.txt
 
 manuel.arf
 
-manuel.dat
-
 manuel.tim
 
 manuel.tof
@@ -282,8 +274,6 @@ paul_perplex_option.dat
 paul_seismic_data.txt
 
 paul.arf
-
-paul.dat
 
 paul.prn
 
@@ -507,8 +497,6 @@ guillaume.tim
 
 guillaume.tof
 
-hp02ver.dat
-
 jesse_auto_refine.txt
 
 jesse_seismic_data.txt
@@ -663,10 +651,6 @@ bp002.arf
 
 BP002.dat
 
-hp633ver.dat
-
-hp634ver.dat
-
 *.arf
 
 *.tim
@@ -686,23 +670,3 @@ maxkcmas_auto_refine.txt
 fort.7
 
 xperplex_option.dat
-
-weigang1_perplex_option.dat
-
-weigang1.dat
-
-aoc1_COH-Fluid\+.dat
-
-aoc1_fractionated_bulk.dat
-
-AOC1-R-perplex_option.dat
-
-weigang_perplex_option.dat
-
-KR003_perplex_option.dat
-
-KR004_perplex_option.dat
-
-KR4004.dat
-
-my_project.dat

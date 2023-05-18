@@ -297,7 +297,7 @@ c                                  set constraint states
 
       end if
 
-      iter = 2
+      iter = 1
 
       do
 c                                 iter is incremented before the operations,
@@ -397,7 +397,7 @@ c                                 do another iteration
 
          end if
 
-         if (dabs(gtot-ogtot).lt.nopt(21)) then 
+         if (dabs(gtot-ogtot).lt.nopt(21).and.iter.gt.2) then 
             quit = .true.
          else
             ogtot = gtot
