@@ -79,7 +79,7 @@ werami: werami.o $(LIBRARY)
 	$(COMP77) $(FFLAGS) $(FLINK) $@.o $(LIBRARY) -o $@
 
 pssect: psect.o $(LIBRARY)
-	$(COMP77) $(FFLAGS) $(FLINK) psect.o $(LIBRARY) -o $@
+	$(COMP77) $(FFLAGS) $(FLINK) psect.o $(LIBRARY) cont_lib.o -o $@
 
 pstable: pstable.o $(LIBRARY_PS)
 	$(COMP77) $(FFLAGS) $(FLINK) $@.o $(LIBRARY_PS) -o $@
