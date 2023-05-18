@@ -8105,31 +8105,31 @@ full_name    liquid
 
 2                          | model type: macroscopic
 3                          | 3 species
-SIO2     AL2O3    CAO      | endmember names
+SiO2     Al2O3    CaO      | endmember names
   0  0  0                  | endmember flags
 0  1   .1 0                | cartesian
 0  1   .1 0
 
 begin_excess_function
-w(SIO2 AL2O3 AL2O3 AL2O3)  63617.2     -23.7400  0  term 1
-w(SIO2 SIO2 AL2O3 AL2O3)  0.164266d7 -763.870  0  term 2
-w(SIO2 SIO2 SIO2 AL2O3)   -106635.      28.1300  0  term 3
-w(SIO2 CAO CAO CAO)       -898693.      240.770  0  term 4
-w(SIO2 SIO2 CAO CAO)      -350208.     -48.6200  0  term 5
-w(SIO2 SIO2 SIO2 CAO)     -14081.8     -35.4900  0  term 6
-w(AL2O3 CAO CAO CAO)      -455634.      2.47000  0  term 7
-w(AL2O3 AL2O3 CAO CAO)    -725166.      255.390  0  term 8
-w(AL2O3 AL2O3 AL2O3 CAO)  -240215.      26.7000  0  term 9
-w(SIO2 SIO2 AL2O3 CAO)    -.284791d7  1046.35  0  term 10
-w(SIO2 AL2O3 AL2O3 CAO)   -.214904d7  641.840  0  term 11
-w(SIO2 AL2O3 CAO CAO)       209109.     -313.360  0  term 12
+w(SiO2 Al2O3 Al2O3 Al2O3)  63617.2     -23.7400  0  term 1
+w(SiO2 SiO2 Al2O3 Al2O3)  0.164266d7 -763.870  0  term 2
+w(SiO2 SiO2 SiO2 Al2O3)   -106635.      28.1300  0  term 3
+w(SiO2 CaO CaO CaO)       -898693.      240.770  0  term 4
+w(SiO2 SiO2 CaO CaO)      -350208.     -48.6200  0  term 5
+w(SiO2 SiO2 SiO2 CaO)     -14081.8     -35.4900  0  term 6
+w(Al2O3 CaO CaO CaO)      -455634.      2.47000  0  term 7
+w(Al2O3 Al2O3 CaO CaO)    -725166.      255.390  0  term 8
+w(Al2O3 Al2O3 Al2O3 CaO)  -240215.      26.7000  0  term 9
+w(SiO2 SiO2 Al2O3 CaO)    -.284791d7  1046.35  0  term 10
+w(SiO2 Al2O3 Al2O3 CaO)   -.214904d7  641.840  0  term 11
+w(SiO2 Al2O3 CaO CaO)       209109.     -313.360  0  term 12
 end_excess_function
 
 1                                     1 site molecular entropy model
 
 3 1                                   3 species, site multiplicity 1
-z(SIO2) = 1 SIO2
-z(AL2O3) = 1 AL2O3
+z(SiO2) = 1 SiO2
+z(Al2O3) = 1 Al2O3
 
 end_of_model
                       --------------------------------------------------------
