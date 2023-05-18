@@ -801,7 +801,7 @@ c                                 diagrams:
      *    5x,'6 - 0-d Infiltration-reaction-fractionation',/,
      *    5x,'7 - 2-d Phase fractionation (FRAC2D and TITRATE ',
      *               'reactive transport models)',/
-     *    5x,'8 - (pseudo-)Ternary saturation surfaces, e.g., liquidus'.
+     *    5x,'8 - (pseudo-)Ternary saturation surfaces, e.g., liquidus',
      *                'diagrams',//,
      *        'Use Convex-Hull minimization for Schreinemakers ',
      *        'projections or phase diagrams',/,
