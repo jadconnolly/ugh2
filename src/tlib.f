@@ -20,6 +20,11 @@ c You should have received a copy of the GNU General Public License
 c along with Perple_X (file license.txt). If not see
 c <http://www.gnu.org/licenses/>.
 
+c To find definitions in code for common block names, use pattern below:
+c egrep 'common/ *[a-z0-9][a-z0-9]* */' *.[fh] |
+c    sed -e 's;^.*/ *\([a-z0-9][a-z0-9]*\) */.*$;\1;' |
+c    sort -u
+
 c----------------------------------------------------------------------
 
       subroutine vrsion (n)
@@ -86,6 +91,51 @@ c special internal values for lopt, iopt, nopt
 c               lop_28-30 
 c               iop_28-30
 c               nop_28-30
+
+c references in code to nopt as of May 15, 2023 (use pattern below to find them:
+c egrep 'nopt\([0-9][0-9]*\)' *.f |
+c    sed -e 's/^.*\(nopt([0-9]*)\).*$/\1/' |
+c    sort -u
+c )
+c
+c nopt: (x = unused; max i10)
+c  1  2  x  4  5  6  7  8  9 10
+c 11 12 13 14 15 16 17 18 19 20
+c 21  x  x  x 25 26 27 28 29 30
+c 31 32 33 34 35 36 37 38  x 40
+c 41 42  x  x  x  x  x 48 49 50
+c 51 52  x 54 55 56 57  x  x  x
+c  x  x  x  x 65
+
+c option variables - keyword associations
+
+c lopt(1)  - closed_c_space -> T = closed compositional variables
+c lopt(2)  - set in getprp -> T = cumulative modes
+c lopt(3)  - hard_limits -> T = on
+c lopt(4)  - Anderson-Gruneisen -> Helffrich Murnaghan correction
+c lopt(5)  - site_check -> T = reject invalid site fractions
+c lopt(6)  - melt_is_fluid -> T = classify melts as fluids in output
+c lopt(7)  - saturated phase in data base, set by topN2
+c lopt(8)  - approx_alpha -> T = approx exp(x)=1+x in volume integral
+c lopt(9)  - automatic solvus tolerance -> T
+c lopt(10) - pseudocompound_glossary
+c lopt(11) - auto_refine_file
+c lopt(12) - option_list_files
+c lopt(13) - true if user set finite zero mode check
+c lopt(14) - logarithmic_p
+c lopt(15) - spreadsheet format -> T = explicit output of independent variables
+c lopt(16) - bounds, T -> VRH averaging, F -> HS
+c lopt(17) - explicit_bulk_modulus, T-> use if available.
+c lopt(18) - refine_bad_nodes
+c lopt(19) - pause_on_error
+c lopt(20) - poisson_test
+c lopt(21) - species_output
+c lopt(22) - composition_constant
+c lopt(23) - composition_system
+c nopt(2)  - liquidus temperature resolution
+c nopt(5)  - speciation_tolerance
+c nopt(8)  - solvus_tolerance
+c nopt(20) - T_melt - kill melt endmembers at T < nopt(20)
 c----------------------------------------------------------------------
       implicit none
 
@@ -219,6 +269,8 @@ c                                 reserved for temporary use:
          iopt(i) = 0
       end do 
 c                                 -------------------------------------
+c                                 liquidus_resolution
+      nopt(2) = 5d0
 c                                 minimum replicate label distance
       nopt(4) = 0.025
 c                                 speciation_factor
@@ -813,6 +865,10 @@ c               obsolete
          else if (key.eq.'speciation_precision') then 
 
             read (strg,*) nopt(5)
+
+         else if (key.eq.'liquidus_resolution') then
+
+            read (strg,*) nopt(2)
 
          else if (key.eq.'optimization_precision') then 
 
@@ -1844,7 +1900,8 @@ c                                 generic subdivision parameters:
      *                     lopt(38),valu(13),lopt(39)
          end if 
 c                                 generic thermo parameters:
-         write (n,1012) nval1,nopt(12),nopt(20),lopt(8),lopt(4),nopt(5),
+         write (n,1012) nval1,nopt(2),
+     *                  nopt(12),nopt(20),lopt(8),lopt(4),nopt(5),
      *                  iopt(21),nopt(10),lopt(63),
      *                  iopt(25),iopt(26),iopt(27),
      *                  lopt(32),lopt(44),lopt(36),lopt(46),
@@ -1984,6 +2041,7 @@ c                                 generic thermo options
      *        4x,'solvus_tolerance        ',a7,3x,          
      *           '[aut] or 0->1; aut = automatic, 0 => ',
      *           'p=c pseudocompounds, 1 => homogenize',/,
+     *        4x,'liquidus resol. (K)  ',f6.1,7x,'[5]',/,
      *        4x,'T_stop (K)           ',f6.1,7x,'[0]',/,
      *        4x,'T_melt (K)             ',f6.1,5x,'[873]',/,
      *        4x,'approx_alpha            ',l1,9x,'[T] F',/,
@@ -6826,7 +6884,8 @@ c                                 strip out new double blanks
 c---------------------------------------------------------------------- 
 c getstg - subroutine to get first non-blank string  
 c          
-c     text - character string on input, first non-blank strg on output
+c     text - character string on input, first non-blank strg on output,
+c            with rest of text of line following.
 c----------------------------------------------------------------------
       implicit none
 
@@ -6853,11 +6912,12 @@ c                                 scan for blanks:
          exit 
       end do 
 
-      do i = ist, nchar
-         if (chars(i).ne.' ') cycle 
-         nchar = i-1
-         exit 
-      end do 
+c                                 left justify; don't remove rest of line
+c     do i = ist, nchar
+c        if (chars(i).ne.' ') cycle 
+c        nchar = i-1
+c        exit 
+c     end do 
 
       text = ' '
 
@@ -9028,7 +9088,7 @@ c-----------------------------------------------------------------------
 
       end if 
 c                                 set auto-refine dependent parameters
-      if (icopt.eq.5) then 
+      if (icopt.eq.5 .or. icopt.eq.2) then 
 c                                 gridded minimization
          if (oned) then 
 c                                 this should be only for non-path 
@@ -9092,7 +9152,7 @@ c-----------------------------------------------------------------------
       logical eof, first, err
 
       character*100 blank*1,string(3)*8,rname*5,name*8,strg*80,n2name,
-     *              n9name,y*1,sname*10,prt*3,plt*3
+     *              n9name,y*1,sname*10,prt*3,plt*3,line
 
       integer idum, nstrg, i, j, k, ierr, icmpn, jcont, kct
 
@@ -9197,6 +9257,9 @@ c-----------------------------------------------------------------------
       integer iam
       common/ cst4 /iam
 
+      character meltph*240
+      common/ cst88 /meltph
+
       save blank
       data blank/' '/
 c-----------------------------------------------------------------------
@@ -9236,6 +9299,8 @@ c                                 use error condition to determine which:
       read (n1,'(a)') tfname
 c                                 get first non-blank string 
       call getstg (tfname)
+      i = index(tfname,' ')
+      if (i.gt.1) tfname(i:) = ' '
 
       read (tfname,'(i2)',iostat=ierr) icopt 
 
@@ -9261,7 +9326,7 @@ c                                 file, get name:
 
          if (icopt.eq.10) then 
             icopt = 7
-         else 
+         else
             icopt = 9
          end if
 
@@ -9730,6 +9795,25 @@ c                                 set convergence criteria for routine univeq
       else if (icopt.eq.12) then 
 c                                 0-d infiltration
          read (n1,*,err=998) iopt(36), nopt(36)
+
+      end if
+
+      if (icopt.eq.2) then
+c                                 liquidus finding - read melt phase names
+c                                 skip blank lines
+         do 
+            read (n1,'(a)',iostat=ierr) meltph
+            if (ierr.ne.0) then
+               write(*,*) '**Bad/missing melt phase name(s)'
+               call error (27,r,i,n2name)
+            end if
+            i = index(meltph,'|')
+            if (i.ne.0) meltph(i:) = ' '
+            if (meltph.ne.blank) exit
+         end do
+c                                 one line list of melt phases should be OK;
+c                                 remove leading blanks
+         call getstg(meltph)
 
       end if 
 
