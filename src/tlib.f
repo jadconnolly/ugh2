@@ -13890,3 +13890,17 @@ c--------------------------------------------
       end if
 
       end
+
+      integer function nblen(str)
+c--------------------------------------------------------------- 
+c george's function for psgrid, 
+c replicates a function already in perple_x
+c nblen - function to return nonblank length of a string
+      character str*(*)
+      integer i
+
+      do i=len(str),1,-1
+         if (str(i:i) .ne. ' ') exit
+      end do
+      nblen = i
+      end

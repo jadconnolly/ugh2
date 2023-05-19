@@ -1065,10 +1065,13 @@ c----------------------------------------------------------------------
      *        nass, lass(k3),
      *        nliq, liq(h9), iliq, jliq, isol, nsol, msol,
      *        nssol, issol(k2),
-     *        iix, jix, ii(1), jj(1)
-      equivalence (iix,ii(1)), (jix,jj(1))
+     *        iix, jix
 
-      double precision lvmin, lvmax, v, x, y, vcon, cst, sum, wt,
+      integer itri(4),jtri(4),ijpt
+
+      equivalence (iix,itri(1)), (jix,jtri(1))
+
+      double precision lvmin, lvmax, v, x, y, vcon, cst, sum, wt(3),
      *         xc, yc, xp(3), yp(3), xx1, yy1, xx2, yy2, xx3, yy3,
      *         cvec(3), dinv(3,3), yssol(m14+2,k2), cssol(k2)
 
@@ -1419,7 +1422,10 @@ c                                 solution phase - find/save species proportions
 c                                 note ii <-> iix, jj <-> jix by equivalence
                         call getnam(text, i)
                         k = nstot(kkp(i))
-                        call getloc (ii,jj,1,1d0,lmult)
+
+                        wt(1) = 1d0
+                        call getloc (itri,jtri,1,wt,lmult)
+
 c                       print '(a,5(1x,i3))','iix, jix, id, nstot:',
 c    *                     iix,jix,i,nstot(kkp(i))
                         if (lmult .or. k.le.0) then
@@ -1454,7 +1460,8 @@ c        print*,'For crystallizing phase ',i,id,text(1:k)
 
          if (id.lt.0) then
 c                                 compound - get composition in cp3
-            call getcmp (1,id,id)
+            call getcmp (1,id)
+
          else
 c                                 solution - get endmember compositions
 c           print*,'id,lstot(id):',id,lstot(id)
@@ -1641,11 +1648,11 @@ c----------------------------------------------------------------------
 c                                 draw axes box
 10    call psrect (xmin,xmax,ymin,ymin+4d0*dcy,1d0,width,0)
 c                                 draw bottom horizontal axis
-      call psxtic (ymin, x0, dx, ytic, ytic1, ytic2)
+      call psxtic (ymin, x0, dx, ytic, ytic1, ytic2, .false.)
  
       call pssctr (ifont, nscale, nscale, 0d0)
 c                                  numeric axis labels:
-      call psxlbl (x0, dx)
+      call psxlbl (x0, dx, .false.)
 c                                  x-axis name
       call pssctr (ifont, nscale, nscale, 0d0)
 
