@@ -1071,11 +1071,11 @@ c----------------------------------------------------------------------
 
       equivalence (iix,itri(1)), (jix,jtri(1))
 
-      double precision lvmin, lvmax, v, x, y, vcon, cst, sum, wt(3),
+      double precision lvmin, lvmax, vlo, vhi, x, y, cst, sum, wt(3),
      *         xc, yc, xp(3), yp(3), xx1, yy1, xx2, yy2, xx3, yy3,
      *         cvec(3), dinv(3,3), yssol(m14+2,k2), cssol(k2)
 
-      double precision rline,thick,
+      double precision rline,thick,font,
      *                 labx(mcon),laby(mcon),
      *                 clinex(npts),cliney(npts),
      *                 linex(npts),liney(npts),
@@ -1173,22 +1173,9 @@ c     Smooth temperature grid
 
       call grdsmth(0.0d0, 5, 20, .false.)
 
-c                                 for every element in the compositional grid,
-c                                 find the bounding temperatures where liquid
-c                                 is the only phase to where it is present with
-c                                 another phase.
-
-
-c                                 define contour levels
-c     zt(1:loopx,1:loopy) = vmin(iv1) - dv(iv1)
-      vcon = tcont
-      ncon = 1 + nint((vmax(iv1)-vmin(iv1))/vcon)
-      do j = 1, ncon
-         v = vmin(iv1) + (j-1)*(vmax(iv1)-vmin(iv1))/(ncon-1)
-         z(j,1) = v
-      end do
-      print'(i3,1x,a,/,(10(1x,f6.1)))',
-     *   ncon,'contour levels:',(z(j,1),j=1,ncon)
+c     For every element in the compositional grid, find the bounding
+c     temperatures where liquid is the only phase to where it is present with
+c     another phase.
 
 c                                 determine temperature range in grid, copy to
 c                                 uniformly dense grid for contouring.
@@ -1216,9 +1203,18 @@ c                                 values are reflected across the diagonal.
       call deblnk (text)
       write(*,'(1x,a)') text(1:nblen(text))
 
-c     Contour result on compositional grid
+c                                 define contour levels
+      vlo = int(lvmin/tcont)*tcont
+      vhi = int((lvmax+0.5d0*tcont)/tcont)*tcont
+      ncon = 1 + nint((vhi-vlo)/tcont)
+      do j = 1, ncon
+         z(j,1) = vlo + (j-1)*(vhi-vlo)/(ncon-1)
+      end do
+      print'(i3,1x,a,/,(10(1x,f6.1)))',
+     *   ncon,'contour levels:',(z(j,1),j=1,ncon)
 
-      call pssctr (ifont,nscale*0.7d0,nscale*0.7d0,30d0)
+
+c     Contour result on compositional grid
 
 c                                 why is this loopx/loopy rather than ng?
       ix = loopx
@@ -1228,6 +1224,9 @@ c                                 why is this loopx/loopy rather than ng?
      *             clinex,cliney,cline,segs,
      *             npts,nseg,npcs,ipieces,npiece,
      *             ifirst,next,ilast)
+
+c                                 font size for contour labels
+      font = nscale*0.7d0
 
       ipiece = 1
       do k = 1, ncon
@@ -1280,16 +1279,38 @@ c                                 putative start.
 c                                 something to plot here
                   noth = min(ipts,j-jix)
                   if (noth.gt.1) then
+                     call pssctr (ifont,font,font,30d0)
                      call psbspl (linex(jix),liney(jix),noth,
      *                            rline,thick,0)
 c                    print*,'Line:',text(1:nblen(text)),noth,
 c    *                      linex(jix),liney(jix),
 c    *                      linex(jix+noth-1),liney(jix+noth-1)
+
+c                                 closed contour?  have to label it
+                     cst = dsqrt(
+     *                         (linex(jix)-linex(jix+noth-1))**2 +
+     *                         (liney(jix)-liney(jix+noth-1))**2
+     *                      )
+                     if (abs(cst).le.0.75d-3) then
+                        vlo = liney(jix)
+                        v1 = jix
+                        do l=jix+1,jix+noth-1
+                           cst = liney(l)
+                           if (cst.gt.vlo) then
+                              vlo = cst
+                              v1 = l
+                           end if
+                        end do
+                        call pssctr (ifont,font,font,0d0)
+                        call pstext(linex(v1)-0.04d0,liney(v1)+0.015d0,
+     *                              text,nblen(text))
+                     end if
                   end if
 c                                 label if it goes off right edge
                   if (noth.ge.1 .and. off .and. lmult) then
                      x = linex(jix+noth-1) + 0.02d0
                      y = liney(jix+noth-1)
+                     call pssctr (ifont,font,font,30d0)
                      call pstext (x,y,text,nblen(text))
 c                    print*,'Labeling (out):',text(1:nblen(text)),x,y
                   end if
@@ -1307,11 +1328,12 @@ c                                 add a label if came in across upper diag
                   linex(j) = x
                   liney(j) = y
                   call trneq (linex(j),liney(j))
-                  if (lmult .and.
+                  if (noth.gt.1 .and. lmult .and.
      *                   abs(x+y-1d0).lt.75d-3) then
+                     call pssctr (ifont,font,font,30d0)
                      call pstext (linex(j),liney(j),
      *                            text,nblen(text))
-c                     print*,'Labeling (in):',text(1:nblen(text)),x,y
+c                    print*,'Labeling (in):',text(1:nblen(text)),x,y
                   end if
                end do
 
@@ -1588,7 +1610,7 @@ c                                 process resulting paths
 
       end do
 
-      call psaxet (jop0,vcon)
+      call psaxet (jop0,tcont)
 
 1000  format(1x,i5,' x ',i5,' contour grid cells, liquidus between ',
      *       f7.1,' <=',a,'<=',f7.1)
