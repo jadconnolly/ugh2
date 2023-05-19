@@ -1514,6 +1514,8 @@ c---------------------------------------------------------------------
 
       double precision ttol,tliq
 
+      external nblen
+
       character tname*10
       logical refine, lresub
       common/ cxt26 /refine,lresub,tname
