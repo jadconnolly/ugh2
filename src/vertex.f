@@ -1570,6 +1570,9 @@ c---------------------------------------------------------------------
 
 c-----------------------------------------------------------------------
       output = refine .or. iopt(6).ne.2
+
+      got = .false. 
+
       if (init) then
 	 nliq = 0
          k = index(meltph,' ')
@@ -1672,7 +1675,6 @@ c                              now traverse compositional grid:
 c                              lower triangle; upper is symmetric across diag.
       do i = 1, loopx, kinc
          do j = 1, loopy-i + 1, kinc
-
 c                              determine compositions at lowest and
 c                              highest t; liquid should be present
             if (0.eq.mod(ktic,500).and.ktic.gt.0) then
@@ -1754,9 +1756,15 @@ c                                 but we don't expect to have many
 	    endif
  
 	 end do 
-      end do 
-      write(*,*)
+      end do
 
+c                              reflect the node at (loopx - kinc,j)
+c                              to (loopx - kinc, j + kinc)
+      i = 1
+      do j = loopy, 1 + kinc, -kinc
+         i = i + kinc 
+         igrd(i,j) = igrd(i-kinc,j-kinc)
+      end do
 c                               get hot points
       if (output .and. .not.init) then
          open (n8,file='/tmp/grid.dat',status='unknown',iostat=ier)
@@ -1767,8 +1775,8 @@ c                               get hot points
       kinc2 = kinc/2
       kinc21 = kinc2 + 1
 
-      do i = 1, loopx-1, kinc
-         do j = 1, loopy-i + 1, kinc
+      do i = 1, loopx - kinc, kinc
+         do j = 1, loopy - i*kinc, kinc
             call amihot (i,j,jhot,kinc)
             if (jhot.ne.0) then 
                ihot = min(l7,ihot + 1)
