@@ -1071,11 +1071,11 @@ c----------------------------------------------------------------------
 
       equivalence (iix,itri(1)), (jix,jtri(1))
 
-      double precision lvmin, lvmax, v, x, y, vcon, cst, sum, wt(3),
+      double precision lvmin, lvmax, vlo, vhi, x, y, cst, sum, wt(3),
      *         xc, yc, xp(3), yp(3), xx1, yy1, xx2, yy2, xx3, yy3,
      *         cvec(3), dinv(3,3), yssol(m14+2,k2), cssol(k2)
 
-      double precision rline,thick,
+      double precision rline,thick,font,
      *                 labx(mcon),laby(mcon),
      *                 clinex(npts),cliney(npts),
      *                 linex(npts),liney(npts),
@@ -1132,6 +1132,9 @@ c                                 working arrays
       double precision cp3,amt
       common/ cxt15 /cp3(k0,k19),amt(k19),kkp(k19),np,ncpd,ntot
 
+      character vnm*8
+      common/ cxt18a /vnm(l3)
+
       integer icont
       double precision dblk,cx
       common/ cst314 /dblk(3,k5),cx(2),icont
@@ -1170,32 +1173,20 @@ c     Smooth temperature grid
 
       call grdsmth(0.0d0, 5, 20, .false.)
 
-c                                 for every element in the compositional grid,
-c                                 find the bounding temperatures where liquid
-c                                 is the only phase to where it is present with
-c                                 another phase.
-
-
-c                                 define contour levels
-c     zt(1:loopx,1:loopy) = vmin(iv1) - dv(iv1)
-      vcon = tcont
-      ncon = 1 + nint((vmax(iv1)-vmin(iv1))/vcon)
-      do j = 1, ncon
-         v = vmin(iv1) + (j-1)*(vmax(iv1)-vmin(iv1))/(ncon-1)
-         z(j,1) = v
-      end do
-      print'(i3,1x,a,/,(10(1x,f6.1)))',
-     *   ncon,'contour levels:',(z(j,1),j=1,ncon)
+c     For every element in the compositional grid, find the bounding
+c     temperatures where liquid is the only phase to where it is present with
+c     another phase.
 
 c                                 determine temperature range in grid, copy to
 c                                 uniformly dense grid for contouring.
+c                                 contouring uses a rectangular grid, however.
 c                                 the ternary grid is the lower-left triangle of
 c                                 the square; for continuity in contouring, the
 c                                 values are reflected across the diagonal.
       lvmin = vmax(iv1)
       lvmax = vmin(iv1)
 
-      jcoor = 1 + (loopx-1)/jinc
+      ng = 1 + (loopx-1)/jinc
       ix = 0
       do i = 1, loopx, jinc
          ix = ix + 1
@@ -1203,26 +1194,39 @@ c                                 values are reflected across the diagonal.
          do j = 1, loopy-i+1, jinc
             iy = iy + 1
             zt(ix,iy) = tgrid(i,j)
-            zt(jcoor-iy+1,jcoor-ix+1) = tgrid(i,j)
+            zt(ng-iy+1,ng-ix+1) = tgrid(i,j)
             lvmin = min(lvmin,tgrid(i,j))
             lvmax = max(lvmax,tgrid(i,j))
          end do
       end do
-      write(text,1000) jcoor,jcoor,lvmin,lvmax
+      write(text,1000) ng,ng,lvmin,vnm(3)(1:nblen(vnm(3))),lvmax
       call deblnk (text)
       write(*,'(1x,a)') text(1:nblen(text))
 
+c                                 define contour levels
+      vlo = int(lvmin/tcont)*tcont
+      vhi = int((lvmax+0.5d0*tcont)/tcont)*tcont
+      ncon = 1 + nint((vhi-vlo)/tcont)
+      do j = 1, ncon
+         z(j,1) = vlo + (j-1)*(vhi-vlo)/(ncon-1)
+      end do
+      print'(i3,1x,a,/,(10(1x,f6.1)))',
+     *   ncon,'contour levels:',(z(j,1),j=1,ncon)
+
+
 c     Contour result on compositional grid
 
-      call pssctr (ifont,nscale*0.7d0,nscale*0.7d0,30d0)
-
+c                                 why is this loopx/loopy rather than ng?
       ix = loopx
-      iy = loopx
+      iy = loopy
       call contra (0d0,1d0,0d0,1d0,
      *             ncon,z,
      *             clinex,cliney,cline,segs,
      *             npts,nseg,npcs,ipieces,npiece,
      *             ifirst,next,ilast)
+
+c                                 font size for contour labels
+      font = nscale*0.7d0
 
       ipiece = 1
       do k = 1, ncon
@@ -1275,16 +1279,38 @@ c                                 putative start.
 c                                 something to plot here
                   noth = min(ipts,j-jix)
                   if (noth.gt.1) then
+                     call pssctr (ifont,font,font,30d0)
                      call psbspl (linex(jix),liney(jix),noth,
      *                            rline,thick,0)
 c                    print*,'Line:',text(1:nblen(text)),noth,
 c    *                      linex(jix),liney(jix),
 c    *                      linex(jix+noth-1),liney(jix+noth-1)
+
+c                                 closed contour?  have to label it
+                     cst = dsqrt(
+     *                         (linex(jix)-linex(jix+noth-1))**2 +
+     *                         (liney(jix)-liney(jix+noth-1))**2
+     *                      )
+                     if (abs(cst).le.0.75d-3) then
+                        vlo = liney(jix)
+                        v1 = jix
+                        do l=jix+1,jix+noth-1
+                           cst = liney(l)
+                           if (cst.gt.vlo) then
+                              vlo = cst
+                              v1 = l
+                           end if
+                        end do
+                        call pssctr (ifont,font,font,0d0)
+                        call pstext(linex(v1)-0.04d0,liney(v1)+0.015d0,
+     *                              text,nblen(text))
+                     end if
                   end if
 c                                 label if it goes off right edge
                   if (noth.ge.1 .and. off .and. lmult) then
                      x = linex(jix+noth-1) + 0.02d0
                      y = liney(jix+noth-1)
+                     call pssctr (ifont,font,font,30d0)
                      call pstext (x,y,text,nblen(text))
 c                    print*,'Labeling (out):',text(1:nblen(text)),x,y
                   end if
@@ -1302,11 +1328,12 @@ c                                 add a label if came in across upper diag
                   linex(j) = x
                   liney(j) = y
                   call trneq (linex(j),liney(j))
-                  if (lmult .and.
+                  if (noth.gt.1 .and. lmult .and.
      *                   abs(x+y-1d0).lt.75d-3) then
+                     call pssctr (ifont,font,font,30d0)
                      call pstext (linex(j),liney(j),
      *                            text,nblen(text))
-c                     print*,'Labeling (in):',text(1:nblen(text)),x,y
+c                    print*,'Labeling (in):',text(1:nblen(text)),x,y
                   end if
                end do
 
@@ -1416,7 +1443,6 @@ c                                 because its composition will be different
 c                                 solution phase - find/save species proportions
 c                                 note itri <-> iix, jtri <-> jix by equivalence
                         call getnam(text, i)
-
 
                         wt(1) = 1d0
                         call getloc (itri,jtri,1,wt,lmult)
@@ -1544,7 +1570,6 @@ c     values +1 where the solid is present, -1 where it is absent, and 0 where
 c     it is present with another solid.  The value 0 makes the contours overlay
 c     themselves for each phase separately in the crystallizing assemblage.
 
-      ng = 1 + (loopx-1) / jinc
       ntri = ng**2
       thick = 2d0
       rline = 1d0
@@ -1586,10 +1611,10 @@ c                                 process resulting paths
 
       end do
 
-      call psaxet (jop0,vcon)
+      call psaxet (jop0,tcont)
 
-1000  format(1x,i5,' x ',i5,' grid cells, liquidus between ',
-     *       f7.1,' <=T<=',f7.1)
+1000  format(1x,i5,' x ',i5,' contour grid cells, liquidus between ',
+     *       f7.1,' <=',a,'<=',f7.1)
 1001  format(3a,2(1x,i3),2(1x,f6.4))
       end
 
@@ -2148,14 +2173,17 @@ c                                 load face normals and vertex normals
          call crossd(v2, v0, v1)
          call nrmd(v2)
 c                                 make sure face normal points to +Z
-         if (v2(3).lt.0) then
-            v2(1) = -v2(1)
-            v2(2) = -v2(2)
-            v2(3) = -v2(3)
-         end if
-         fnrm(1,i) = v2(1)
-         fnrm(2,i) = v2(2)
-         fnrm(3,i) = v2(3)
+c        if (v2(3).lt.0) then
+c           v2(1) = -v2(1)
+c           v2(2) = -v2(2)
+c           v2(3) = -v2(3)
+c        end if
+c        fnrm(1,i) = v2(1)
+c        fnrm(2,i) = v2(2)
+c        fnrm(3,i) = v2(3)
+
+         if (v2(3).lt.0) v2(1:3) = -v2(1:3)
+         fnrm(1:3,i) = v2(1:3)
 
          vfn(vi1) = vfn(vi1) + 1
          j = vfn(vi1)
@@ -2261,19 +2289,22 @@ c                                 recalculate face normals and vertex normals
             call crossd(v2, v0, v1)
             call nrmd(v2)
 
-            if (v2(3).lt.0) then
-               v2(1) = -v2(1)
-               v2(2) = -v2(2)
-               v2(3) = -v2(3)
-            end if
-            fnrm(1,i) = v2(1)
-            fnrm(2,i) = v2(2)
-            fnrm(3,i) = v2(3)
+c           if (v2(3).lt.0) then
+c              v2(1) = -v2(1)
+c              v2(2) = -v2(2)
+c              v2(3) = -v2(3)
+c           end if
+            if (v2(3).lt.0) v2(1:3) = -v2(1:3)
+
+c           fnrm(1,i) = v2(1)
+c           fnrm(2,i) = v2(2)
+c           fnrm(3,i) = v2(3)
+            fnrm(1:3,i) = v2(1:3)
 
          end do
       end do
             
-c                                 copy result back into T grid us ig() 
+c                                 copy result back into T grid use ig() 
 c                                 to convert the dense grid indices that
 c                                 grdecod uses into the sparse grid indices
 c                                 that define the physical grid
