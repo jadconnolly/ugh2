@@ -21,7 +21,7 @@ cmas-option.dat        | Perple_X option file
     0 unused place holder, post 06
     0 unused place holder, post 05
     0 ifug EoS for saturated phase
-    3 gridded minimization dimension (1 or 2)
+    2 gridded minimization dimension (1 or 2)
     0 special dependencies: 0 - P and T independent, 1 - P(T), 2 - T(P)
  0.00000      0.00000      0.00000      0.00000      0.00000     Geothermal gradient polynomial coeffs.
 
