@@ -1384,7 +1384,7 @@ c                                 the molar amounts of the phases are in amt.
       else
 
          rcount(5) = rcount(5) + 1
- 
+
          igrd(i,j) = k2
          iap(k2) = k3
 
@@ -1574,46 +1574,49 @@ c-----------------------------------------------------------------------
       got = .false. 
 
       if (init) then
-	 nliq = 0
+
+         nliq = 0
          k = index(meltph,' ')
-	 do while (k.gt.1)
+
+         do while (k.gt.1)
 c                               see if named phase exists
-	    got = .false.
+            got = .false.
             k = k - 1
-	    do j = 1, isoct
-	       got = meltph(1:k).eq.fname(j)
-	       if (got) exit
-	    enddo
-	    if (.not.got) then
-	       do i = 1, iphct
-	          j = -i
-		  got = meltph(1:k).eq.names(i)
-		  if (got) exit
-	       enddo
-	    endif
+            do j = 1, isoct
+               got = meltph(1:k).eq.fname(j)
+               if (got) exit
+            enddo
+            if (.not.got) then
+               do i = 1, iphct
+                  j = -i
+                  got = meltph(1:k).eq.names(i)
+                  if (got) exit
+               enddo
+            endif
 c                               what's the verdict?
-	    if (.not.got) then
-	       write (*,*) '**',meltph(1:k),' not recognized.'
+            if (.not.got) then
+               write (*,*) '**',meltph(1:k),' not recognized.'
             else
                nliq = nliq + 1
                liq(nliq) = j
-	    endif
+            endif
 c                               done with this one, on to next
             meltph(1:k) = ' '
             call getstg(meltph)
             k = index(meltph,' ')
-	 enddo
+         enddo
 
-	 if (nliq.eq.0) then
-	    write (*,*) '**No liquids, no liquidus, no plot: simple!'
-	    stop
-	 endif
+         if (nliq.eq.0) then
+            write (*,*) '**No liquids, no liquidus, no plot: simple!'
+            stop
+         endif
 c                               force closed composition
          lopt(1) = .true.
 c                               force linear_model on
          iopt(18) = 1
-	 cr = char(13)
-	 tcopy = .true.
+         cr = char(13)
+         tcopy = .true.
+
       endif
 c                               initialize assemblage counter
       iasct = 0 
@@ -1660,6 +1663,7 @@ c                               increments at each level
       do j = 1, jlev
          jinc(j) = 2**(jlev-j)
       end do 
+
       kinc = jinc(1)
       jinc1 = kinc
 
@@ -1678,88 +1682,92 @@ c                              lower triangle; upper is symmetric across diag.
 c                              determine compositions at lowest and
 c                              highest t; liquid should be present
             if (0.eq.mod(ktic,500).and.ktic.gt.0) then
-	       write (*,1090) cr,ktic
-	    endif
-	    ktic = ktic + 1
+               write (*,1090) cr,ktic
+            endif
+            ktic = ktic + 1
 
 c                              set bulk composition this grid element
             cx(1) = (i-1)/dfloat(loopx-1)
             cx(2) = (j-1)/dfloat(loopy-1)
-	    call setblk
+            call setblk
 
-	    v(iv1) = vmin(iv1)
-	    call lpopt (i,j,idead)
-	    if (idead .ne. 0) then
-	       write (*,1020) 'low',i,j,cx
-	       tgrid(i,j) = vmin(iv1)
-	       nmiss = nmiss + 1
-	       cycle
-	    endif
-	    call clsliq(iap(igrd(i,j)), nliq, liq, l)
-	    if (l.eq.2) then
-	       if (.not.init) then
+            v(iv1) = vmin(iv1)
+            call lpopt (i,j,idead)
+            if (idead .ne. 0) then
+               write (*,1020) 'low',i,j,cx
+               tgrid(i,j) = vmin(iv1)
+               nmiss = nmiss + 1
+            cycle
+         endif
+         call clsliq(iap(igrd(i,j)), nliq, liq, l)
+         if (l.eq.2) then
+            if (.not.init) then
 c                              only suggest problem if past exploratory phase
-		  call psbtxt (iap(igrd(i,j)),assmb,l)
-		  write (text,1010) i,j,cx,'no','lowest',assmb(1:l)
-		  call deblnk (text)
-		  write (*,'(/,a)') text(1:nblen(text))
-	       endif
-	       tgrid(i,j) = vmin(iv1)
-	       nmiss = nmiss + 1
-	       cycle
-	    endif
-	    sgrd = igrd(i,j)
+               call psbtxt (iap(igrd(i,j)),assmb,l)
+               write (text,1010) i,j,cx,'no','lowest',assmb(1:l)
+               call deblnk (text)
+               write (*,'(/,a)') text(1:nblen(text))
+            endif
+           tgrid(i,j) = vmin(iv1)
+           nmiss = nmiss + 1
+           cycle
+         endif
+         sgrd = igrd(i,j)
 
-	    ktic = ktic + 1
-	    v(iv1) = vmax(iv1)
-	    call lpopt (i,j,idead)
+         ktic = ktic + 1
+         v(iv1) = vmax(iv1)
+         call lpopt (i,j,idead)
 
-	    call clsliq(iap(igrd(i,j)), nliq, liq, l)
-	    if (l .ne. 2 .or. idead.ne.0) then
-	       if (idead.ne.0) then
-		  write (*,1020) 'high',i,j,cx
-	       else
-		  if (.not.init) then
+         call clsliq(iap(igrd(i,j)), nliq, liq, l)
+         if (l .ne. 2 .or. idead.ne.0) then
+            if (idead.ne.0) then
+               write (*,1020) 'high',i,j,cx
+            else
+               if (.not.init) then
 c                              only suggest problem if past exploratory phase
-		     call psbtxt (iap(igrd(i,j)),assmb,l)
-		     write (text,1010) i,j,cx,'','highest',assmb(1:l)
-		     call deblnk (text)
-		     write (*,'(/,a)') text(1:nblen(text))
-		  endif
-		  tgrid(i,j) = vmax(iv1)
-		  igrd(i,1) = sgrd
-	       endif
-	       nmiss = nmiss + 1
-	       cycle
-	    endif
+                  call psbtxt (iap(igrd(i,j)),assmb,l)
+                  write (text,1010) i,j,cx,'','highest',assmb(1:l)
+                  call deblnk (text)
+                  write (*,'(/,a)') text(1:nblen(text))
+               endif
+               tgrid(i,j) = vmax(iv1)
+               igrd(i,1) = sgrd
+            endif
+            nmiss = nmiss + 1
+            cycle
+         endif
 
-	    call fndliq(i,j,ttol,ktic,nliq,liq,tliq)
+         call fndliq(i,j,ttol,ktic,nliq,liq,tliq)
 
 c                                 save liquidus assemblage
 c                                 slow to do linear search for duplicates
 c                                 but we don't expect to have many
-            sgrd = igrd(i,j)
-	    if (sgrd.eq.0) then
-	       print '(/,2(1x,i5),2(1x,f6.4),1x,a)',i,j,cx,'miss'
-	       nmiss = nmiss + 1
-	       cycle
-	    end if
-	    sgrd = iap(sgrd)
-	    tgrid(i,j) = tliq
-	    do k=1,nla
-	       got = sgrd .eq. la(k)
-	       if (got) exit
-	    enddo
-	    if (.not.got .and.nla.lt.k3) then
-	       nla = nla + 1
-	       la(nla) = sgrd
-	    endif
+         sgrd = igrd(i,j)
+         if (sgrd.eq.0) then
+            print '(/,2(1x,i5),2(1x,f6.4),1x,a)',i,j,cx,'miss'
+            nmiss = nmiss + 1
+            cycle
+         end if
+         sgrd = iap(sgrd)
+         tgrid(i,j) = tliq
+         do k=1,nla
+            got = sgrd .eq. la(k)
+            if (got) exit
+         enddo
+         if (.not.got .and.nla.lt.k3) then
+            nla = nla + 1
+            la(nla) = sgrd
+         endif
  
-	 end do 
+      end do 
       end do
-
-c                              reflect the node at (loopx - kinc,j)
-c                              to (loopx - kinc, j + kinc)
+c                              reflect the subdiagonal node at 
+c                              (i_diag, j_diag - kinc)
+c                              to the superdiagonal node
+c                              (i_diag + kinc, j_diag)
+c                              this is solely for amihot, i.e., 
+c                              the remaining code should never
+c                              reference superdiagonal nodes.
       i = 1
       do j = loopy, 1 + kinc, -kinc
          i = i + kinc 
@@ -1768,9 +1776,10 @@ c                              to (loopx - kinc, j + kinc)
 c                               get hot points
       if (output .and. .not.init) then
          open (n8,file='/tmp/grid.dat',status='unknown',iostat=ier)
-	 write(n8,*) 'loopx loopy jlev'
-	 write(n8,*) loopx,loopy,jlev
+         write(n8,*) 'loopx loopy jlev'
+         write(n8,*) loopx,loopy,jlev
       end if
+
       ihot = 0 
       kinc2 = kinc/2
       kinc21 = kinc2 + 1
@@ -1782,7 +1791,7 @@ c                               get hot points
                ihot = min(l7,ihot + 1)
                hotij(ihot,1) = i
                hotij(ihot,2) = j 
-	       if (output .and. .not.init) write(n8,*) 1,i,j
+        if (output .and. .not.init) write(n8,*) 1,i,j
 c                               cell is heterogeneous
 c                               fill in homogeneous diagonals
 c                               and edges
@@ -1824,13 +1833,13 @@ c                              the hot cell
             icent = iic + kinc
             jcent = jjc + kinc
 c                              forget cells already on grid diagonal
-	    if (jcent.gt.loopy-icent+1) cycle
+            if (jcent.gt.loopy-icent+1) cycle
             if (igrd(icent,jcent).eq.0) then 
-	       cx(1) = (icent-1)/dfloat(loopx-1)
-	       cx(2) = (jcent-1)/dfloat(loopy-1)
-	       call setblk
-	       call fndliq(icent,jcent,ttol,jtic,nliq,liq,tliq)
-	       tgrid(icent,jcent) = tliq
+               cx(1) = (icent-1)/dfloat(loopx-1)
+               cx(2) = (jcent-1)/dfloat(loopy-1)
+               call setblk
+               call fndliq(icent,jcent,ttol,jtic,nliq,liq,tliq)
+               tgrid(icent,jcent) = tliq
             end if 
 c                              now determine which of the diagonals
 c                              has a change
@@ -1848,7 +1857,7 @@ c                              cell is hot
                   hhot = hhot + 1
                   kotij(khot,1) = iic + iind(hh)*kinc
                   kotij(khot,2) = jjc + jind(hh)*kinc
-	          if (output.and..not.init)
+                  if (output.and..not.init)
      *               write(n8,*)k,kotij(khot,1),kotij(khot,2)
                   lhot(hh) = 1
 c                              compute assemblages at new nodes
@@ -1856,11 +1865,11 @@ c                              compute assemblages at new nodes
                      ii = iic + iiind(hh,kk)*kinc
                      jj = jjc + jjind(hh,kk)*kinc
                      if (igrd(ii,jj).eq.0.and.jj.le.loopy-ii+1) then 
-			cx(1) = (ii-1)/dfloat(loopx-1)
-			cx(2) = (jj-1)/dfloat(loopy-1)
-			call setblk
-			call fndliq(ii,jj,ttol,jtic,nliq,liq,tliq)
-			tgrid(ii,jj) = tliq
+                        cx(1) = (ii-1)/dfloat(loopx-1)
+                        cx(2) = (jj-1)/dfloat(loopy-1)
+                        call setblk
+                        call fndliq(ii,jj,ttol,jtic,nliq,liq,tliq)
+                        tgrid(ii,jj) = tliq
                      end if 
                   end do 
                end if 
@@ -1895,17 +1904,17 @@ c                                cell index is
                            jj = jjc + jind(icell)*kinc
                            kotij(khot,1) = ii
                            kotij(khot,2) = jj
-	                   if (output.and..not.init)write(n8,*)k,ii,jj
+                           if (output.and..not.init)write(n8,*)k,ii,jj
 c                                compute assemblage at cell nodes
                            do ll = 1, 4
                               iil = ii + iind(ll)*kinc
                               jjl = jj + jind(ll)*kinc
                               if (igrd(iil,jjl).eq.0
      *                            .and. jjl.le.loopy-iil+1) then              
-				 cx(1) = (iil-1)/dfloat(loopx-1)
-				 cx(2) = (jjl-1)/dfloat(loopy-1)
-				 call setblk
-				 call fndliq(iil,jjl,ttol,jtic,
+                                 cx(1) = (iil-1)/dfloat(loopx-1)
+                                 cx(2) = (jjl-1)/dfloat(loopy-1)
+                                 call setblk
+                                 call fndliq(iil,jjl,ttol,jtic,
      *                                       nliq,liq,tliq)
                                  tgrid(iil,jjl) = tliq
                               end if 
@@ -1958,30 +1967,30 @@ c                                 output grid data
          call outgrd (loopx, loopy, jinc(1), n4, 0)
 
 c                                 add liquidus assemblages to print file
-	 if (io3.eq.0) then 
+         if (io3.eq.0) then 
 
             write (n3,'(/,a,/)') 'Liquidus assemblages:'
-	    do i = 1, nla
-	       call psbtxt (la(i),text,k)
-	       write (n3,1040) i,la(i),'- ',text(1:nblen(text))
-	    end do
+            do i = 1, nla
+               call psbtxt (la(i),text,k)
+               write (n3,1040) i,la(i),'- ',text(1:nblen(text))
+            end do
 
-	 end if 
+         end if 
 
 c                                 write liquid ids and grid temps to aux file
          call mertxt (tfname,prject,'.liq',0)
          call inqopn (n8,tfname)
-	 write (n8,*) nliq,(liq(i),i=1,nliq)
-	 do i = 1, loopx
-	    do j = 1, loopx-i + 1
+         write (n8,*) nliq,(liq(i),i=1,nliq)
+         do i = 1, loopx
+            do j = 1, loopx-i + 1
 c                                 fill in missing temperatures
-	       if (tgrid(i,j).eq.0.and.i.ne.1)
+               if (tgrid(i,j).eq.0.and.i.ne.1)
      *            tgrid(i,j) = tgrid(i-1,j)
                write (n8,*) tgrid(i,j)
 c              if (tgrid(i,j).eq.0) print'(1x,a,2(1x,i2))','0:',i,j
-	    end do
-	 end do
-	 close (n8)
+            end do
+         end do
+         close (n8)
       endif
 
       init = .false.
@@ -2036,23 +2045,23 @@ c returns igrd(i,j) = 0 if failure to find assemblage
 c                                 iterate by narrowing interval to 1/2**16
 c                                 or to uncertainty < nopt(2)
       do k = 1, 16
-	 ktic = ktic + 1
-	 v(iv1) = (tlo+thi)/2
-	 call lpopt (i,j,idead)
-	 if (idead .ne. 0) then
-	    v(iv1) = vmax(iv1)
-	    sgrd = 0
-	    exit
-	 endif
-	 call clsliq(iap(igrd(i,j)), nliq, liq, l)
-	 if (l .eq. 2) then
-	    thi = v(iv1)
-	 else
-	    tlo = v(iv1)
-	    sgrd = igrd(i,j)
-	 endif
-	 if (0.eq.mod(ktic,500)) write (*,1090) char(13),ktic
-	 if (thi - tlo .lt. tol) exit
+  ktic = ktic + 1
+  v(iv1) = (tlo+thi)/2
+  call lpopt (i,j,idead)
+  if (idead .ne. 0) then
+     v(iv1) = vmax(iv1)
+     sgrd = 0
+     exit
+  endif
+  call clsliq(iap(igrd(i,j)), nliq, liq, l)
+  if (l .eq. 2) then
+     thi = v(iv1)
+  else
+     tlo = v(iv1)
+     sgrd = igrd(i,j)
+  endif
+  if (0.eq.mod(ktic,500)) write (*,1090) char(13),ktic
+  if (thi - tlo .lt. tol) exit
       end do
       igrd(i,j) = sgrd
       tliq = v(iv1)
@@ -2084,19 +2093,19 @@ c type = 2 if liquid only
       sol = .false.
       do i = 1, ntot
          do j = 1, nliq
-	    is = idasls(i,id) .eq. liqsls(j)
-	    if (is) exit
-	 end do
-	 liq = liq .or. is
-	 sol = sol .or. .not. is
+     is = idasls(i,id) .eq. liqsls(j)
+     if (is) exit
+  end do
+  liq = liq .or. is
+  sol = sol .or. .not. is
       end do
 
       if (liq) then
          if (sol) then
-	    type = 1
-	 else
-	    type = 2
-	 end if
+     type = 1
+  else
+     type = 2
+  end if
       end if
       end
 
