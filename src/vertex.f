@@ -1697,69 +1697,68 @@ c                              set bulk composition this grid element
                write (*,1020) 'low',i,j,cx
                tgrid(i,j) = vmin(iv1)
                nmiss = nmiss + 1
-            cycle
-         endif
-         call clsliq(iap(igrd(i,j)), nliq, liq, l)
-         if (l.eq.2) then
-            if (.not.init) then
-c                              only suggest problem if past exploratory phase
-               call psbtxt (iap(igrd(i,j)),assmb,l)
-               write (text,1010) i,j,cx,'no','lowest',assmb(1:l)
-               call deblnk (text)
-               write (*,'(/,a)') text(1:nblen(text))
+               cycle
             endif
-           tgrid(i,j) = vmin(iv1)
-           nmiss = nmiss + 1
-           cycle
-         endif
-         sgrd = igrd(i,j)
-
-         ktic = ktic + 1
-         v(iv1) = vmax(iv1)
-         call lpopt (i,j,idead)
-
-         call clsliq(iap(igrd(i,j)), nliq, liq, l)
-         if (l .ne. 2 .or. idead.ne.0) then
-            if (idead.ne.0) then
-               write (*,1020) 'high',i,j,cx
-            else
+            call clsliq(iap(igrd(i,j)), nliq, liq, l)
+            if (l.eq.2) then
                if (.not.init) then
 c                              only suggest problem if past exploratory phase
                   call psbtxt (iap(igrd(i,j)),assmb,l)
-                  write (text,1010) i,j,cx,'','highest',assmb(1:l)
+                  write (text,1010) i,j,cx,'no','lowest',assmb(1:l)
                   call deblnk (text)
                   write (*,'(/,a)') text(1:nblen(text))
                endif
-               tgrid(i,j) = vmax(iv1)
-               igrd(i,1) = sgrd
+               tgrid(i,j) = vmin(iv1)
+               nmiss = nmiss + 1
+               cycle
             endif
-            nmiss = nmiss + 1
-            cycle
-         endif
+            sgrd = igrd(i,j)
 
-         call fndliq(i,j,ttol,ktic,nliq,liq,tliq)
+            ktic = ktic + 1
+            v(iv1) = vmax(iv1)
+            call lpopt (i,j,idead)
+
+            call clsliq(iap(igrd(i,j)), nliq, liq, l)
+            if (l .ne. 2 .or. idead.ne.0) then
+               if (idead.ne.0) then
+                  write (*,1020) 'high',i,j,cx
+               else
+                  if (.not.init) then
+c                              only suggest problem if past exploratory phase
+                     call psbtxt (iap(igrd(i,j)),assmb,l)
+                     write (text,1010) i,j,cx,'','highest',assmb(1:l)
+                     call deblnk (text)
+                     write (*,'(/,a)') text(1:nblen(text))
+                  endif
+                  tgrid(i,j) = vmax(iv1)
+                  igrd(i,1) = sgrd
+               endif
+               nmiss = nmiss + 1
+               cycle
+            endif
+
+            call fndliq(i,j,ttol,ktic,nliq,liq,tliq)
 
 c                                 save liquidus assemblage
 c                                 slow to do linear search for duplicates
 c                                 but we don't expect to have many
-         sgrd = igrd(i,j)
-         if (sgrd.eq.0) then
-            print '(/,2(1x,i5),2(1x,f6.4),1x,a)',i,j,cx,'miss'
-            nmiss = nmiss + 1
-            cycle
-         end if
-         sgrd = iap(sgrd)
-         tgrid(i,j) = tliq
-         do k=1,nla
-            got = sgrd .eq. la(k)
-            if (got) exit
-         enddo
-         if (.not.got .and.nla.lt.k3) then
-            nla = nla + 1
-            la(nla) = sgrd
-         endif
- 
-      end do 
+            sgrd = igrd(i,j)
+            if (sgrd.eq.0) then
+               print '(/,2(1x,i5),2(1x,f6.4),1x,a)',i,j,cx,'miss'
+               nmiss = nmiss + 1
+               cycle
+            end if
+            sgrd = iap(sgrd)
+            tgrid(i,j) = tliq
+            do k=1,nla
+               got = sgrd .eq. la(k)
+               if (got) exit
+            enddo
+            if (.not.got .and.nla.lt.k3) then
+               nla = nla + 1
+               la(nla) = sgrd
+            endif
+         end do 
       end do
 c                              reflect the subdiagonal node at 
 c                              (i_diag, j_diag - kinc)
@@ -2045,23 +2044,23 @@ c returns igrd(i,j) = 0 if failure to find assemblage
 c                                 iterate by narrowing interval to 1/2**16
 c                                 or to uncertainty < nopt(2)
       do k = 1, 16
-  ktic = ktic + 1
-  v(iv1) = (tlo+thi)/2
-  call lpopt (i,j,idead)
-  if (idead .ne. 0) then
-     v(iv1) = vmax(iv1)
-     sgrd = 0
-     exit
-  endif
-  call clsliq(iap(igrd(i,j)), nliq, liq, l)
-  if (l .eq. 2) then
-     thi = v(iv1)
-  else
-     tlo = v(iv1)
-     sgrd = igrd(i,j)
-  endif
-  if (0.eq.mod(ktic,500)) write (*,1090) char(13),ktic
-  if (thi - tlo .lt. tol) exit
+        ktic = ktic + 1
+        v(iv1) = (tlo+thi)/2
+        call lpopt (i,j,idead)
+        if (idead .ne. 0) then
+           v(iv1) = vmax(iv1)
+           sgrd = 0
+           exit
+        endif
+        call clsliq(iap(igrd(i,j)), nliq, liq, l)
+        if (l .eq. 2) then
+           thi = v(iv1)
+        else
+           tlo = v(iv1)
+           sgrd = igrd(i,j)
+        endif
+        if (0.eq.mod(ktic,500)) write (*,1090) char(13),ktic
+        if (thi - tlo .lt. tol) exit
       end do
       igrd(i,j) = sgrd
       tliq = v(iv1)
@@ -2093,19 +2092,19 @@ c type = 2 if liquid only
       sol = .false.
       do i = 1, ntot
          do j = 1, nliq
-     is = idasls(i,id) .eq. liqsls(j)
-     if (is) exit
-  end do
-  liq = liq .or. is
-  sol = sol .or. .not. is
+           is = idasls(i,id) .eq. liqsls(j)
+           if (is) exit
+        end do
+        liq = liq .or. is
+        sol = sol .or. .not. is
       end do
 
       if (liq) then
          if (sol) then
-     type = 1
-  else
-     type = 2
-  end if
+           type = 1
+        else
+           type = 2
+        end if
       end if
       end
 
