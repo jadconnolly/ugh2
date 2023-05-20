@@ -1784,7 +1784,20 @@ c                               get hot points
       kinc21 = kinc2 + 1
 
       do i = 1, loopx - kinc, kinc
-         do j = 1, loopy - i*kinc, kinc
+c                                 georges original inner indexing:
+c        do j = 1, loopy - i*kinc, kinc
+c                                 this is the indexing that george checked
+c                                 may 20 with CaO-Al2O3
+c        do j = 1, loopy - i*kinc, kinc
+c                                 this is the indexing that i think is correct,
+c                                 it checks only sub-diagonal cells, the indexing
+c        j_diag = loopy - (i - 1)
+c
+c        do j = 1, j_diag - kinc or:
+
+         do j = 1, loopy - (i - 1) - kinc
+c                                 need to check that amihot is not
+c                                 somehow flagging superdiagonal nodes!
             call amihot (i,j,jhot,kinc)
             if (jhot.ne.0) then 
                ihot = min(l7,ihot + 1)
