@@ -1477,12 +1477,13 @@ c                                 because its composition will be different
                      issol(nssol) = i
                      if (i.gt.0) then
 c                                 solution phase - find/save species proportions
-c                                 note ii <-> iix, jj <-> jix by equivalence
+c                                 note itri <-> iix, jtri <-> jix by equivalence
                         call getnam(text, i)
-                        k = nstot(kkp(i))
 
                         wt(1) = 1d0
                         call getloc (itri,jtri,1,wt,lmult)
+
+                        k = nstot(kkp(i))
 
 c                       print '(a,5(1x,i3))','iix, jix, id, nstot:',
 c    *                     iix,jix,i,nstot(kkp(i))
@@ -2193,6 +2194,17 @@ c                                 load face normals and vertex normals
       do i=1,nfac
          call grdecod(i, gdim, vi1, vi2, vi3, i1, i2, i3)
          call subd(v0, vrtx(1,vi2), vrtx(1,vi1))
+
+         do j = 1, 3
+
+            if (isnan(vrtx(j,vi3))) then
+               write (*,*) 'whoa nelly! zeroed', 
+     *                     vi3, vrtx(j,vi3),nfac,i, j
+               vrtx(j,vi3) = 0d0
+            end if
+
+         end do
+
          call subd(v1, vrtx(1,vi3), vrtx(1,vi1))
          call crossd(v2, v0, v1)
          call nrmd(v2)

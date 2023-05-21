@@ -8407,7 +8407,7 @@ c                                 triggered by yclos2, error_ver109
          if (iwarn08.le.iopt(1)) then
 
             call warn (100,c,108,'Did not converge to optimization_pr'//
-     *                           'ecision within optimizaton_max it. '//
+     *                           'ecision within optimizaton_max_it. '//
      *                         'The low quality result will be output.')
 
             call prtptx
