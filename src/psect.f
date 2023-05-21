@@ -1057,7 +1057,7 @@ c----------------------------------------------------------------------
 
       character text*240, plu*4
 
-      logical off, lmult, lblphs(k3)
+      logical off, lmult, lyet, lblphs(k3)
 
       integer i, j, k, l, id, jcoor, nblen,
      *        v1, v2, v3, nsegs, iseg, tseg,
@@ -1071,9 +1071,9 @@ c----------------------------------------------------------------------
 
       equivalence (iix,itri(1)), (jix,jtri(1))
 
-      double precision lvmin, lvmax, vlo, vhi, x, y, cst, sum, wt(3),
+      double precision lvmin, lvmax, vlo, vhi, vrt, x, y, cst, sum,
      *         xc, yc, xp(3), yp(3), xx1, yy1, xx2, yy2, xx3, yy3,
-     *         cvec(3), dinv(3,3), yssol(m14+2,k2), cssol(k2)
+     *         cvec(3), dinv(3,3), yssol(m14+2,k2), cssol(k2), wt(3)
 
       double precision rline,thick,font,
      *                 labx(mcon),laby(mcon),
@@ -1249,21 +1249,22 @@ c                                 line is always thick & continuous at limits
 c                                 label contour if multiple of 100 K
          lmult = abs(int(z(k,1)/100d0)*100d0 - z(k,1)) .lt. 5d0
 
-         write(text,'(f10.1)') z(k,1)
+         write(text,'(i10)') nint(z(k,1))
          call deblnk(text)
 
          n = npiece(k)
          if (n.gt.0) then 
+            lyet = .false.
             do i = 1, n
                iix = ipieces(1,ipiece)
                ipts = ipieces(2,ipiece)
                 
 c                                 only retain pieces that stay within the
-c                                 bounds of a ternary plot.  assemble a
-c                                 string of points until one leaves plot
-c                                 area, then plot it, then find when/if
-c                                 it re-enters the area.  first point is
-c                                 putative start.
+c                                 bounds of a ternary plot (lower left triangle
+c                                 of the grid).  assemble a string of points
+c                                 until one leaves the plot area, then plot it,
+c                                 then find when/if it re-enters the area.
+c                                 first point is putative start.
                j = 1
                jix = 1
                do while (j.le.ipts)
@@ -1285,34 +1286,67 @@ c                                 something to plot here
 c                    print*,'Line:',text(1:nblen(text)),noth,
 c    *                      linex(jix),liney(jix),
 c    *                      linex(jix+noth-1),liney(jix+noth-1)
+                  end if
+c                                 label? find possible labeling points:
+c                                 highest point, rightmost point
+                  if (noth.gt.1 .and. lmult) then
+                     vhi = liney(jix)
+                     vrt = linex(jix)
+                     v1 = jix
+                     v2 = jix
+                     do l=jix+1,jix+noth-1
+                        if (liney(l).gt.vhi) then
+                           vhi = liney(l)
+                           v1 = l
+                        end if
+                        if (linex(l).gt.vrt) then
+                           vrt = linex(l)
+                           v2 = l
+                        end if
+                     end do
 
-c                                 closed contour?  have to label it
+c                                 closed contour?  label it at top
                      cst = dsqrt(
      *                         (linex(jix)-linex(jix+noth-1))**2 +
      *                         (liney(jix)-liney(jix+noth-1))**2
      *                      )
-                     if (abs(cst).le.0.75d-3) then
-                        vlo = liney(jix)
-                        v1 = jix
-                        do l=jix+1,jix+noth-1
-                           cst = liney(l)
-                           if (cst.gt.vlo) then
-                              vlo = cst
-                              v1 = l
-                           end if
-                        end do
+                     l = nblen(text)
+                     if (abs(cst).le.0.75d-3 .and. noth.gt.5) then
+                        x = linex(v1) - 0.04d0
+                        y = liney(v1) + 0.015d0
                         call pssctr (ifont,font,font,0d0)
-                        call pstext(linex(v1)-0.04d0,liney(v1)+0.015d0,
-     *                              text,nblen(text))
+                        call pstext(x,y,text,nblen(text))
+c                       print*,'island label:',text(1:l),noth
+                     else if (.not.lyet .and. noth.gt.5 .and. (
+     *                         liney(jix).lt.0.75d-3 .or.
+     *                         liney(jix+noth-1).lt.0.75d-3)
+     *                    ) then
+c                                 no label yet?  try top if goes off bottom
+                        x = linex(v1) - 0.04d0
+                        y = liney(v1) + 0.015d0
+                        call pssctr (ifont,font,font,0d0)
+                        call pstext (x,y,text,nblen(text))
+c                       print*,'top label:',text(1:l),noth,x,y,
+c    *                      linex(jix),liney(jix),
+c    *                      linex(jix+noth-1),liney(jix+noth-1)
+                     else if (.not.lyet .and. noth.gt.5) then
+c                                 no label yet?  try rightmost point
+                        x = linex(v2) + 0.005d0
+                        y = liney(v2)
+                        call pssctr (ifont,font,font,0d0)
+                        call pstext (x,y,text,nblen(text))
+c                       print*,'right label:',text(1:l),noth,x,y
                      end if
                   end if
 c                                 label if it goes off right edge
-                  if (noth.ge.1 .and. off .and. lmult) then
+                  if (noth.ge.5 .and. off .and. lmult) then
+                     lyet = .true.
                      x = linex(jix+noth-1) + 0.02d0
                      y = liney(jix+noth-1)
                      call pssctr (ifont,font,font,30d0)
                      call pstext (x,y,text,nblen(text))
-c                    print*,'Labeling (out):',text(1:nblen(text)),x,y
+c                    print*,'Labeling (out):',
+c    *                  text(1:nblen(text)),noth,x,y
                   end if
 
 c                                 find when something reappears in area
@@ -1328,12 +1362,14 @@ c                                 add a label if came in across upper diag
                   linex(j) = x
                   liney(j) = y
                   call trneq (linex(j),liney(j))
-                  if (noth.gt.1 .and. lmult .and.
-     *                   abs(x+y-1d0).lt.75d-3) then
+                  if (noth.gt.5 .and. lmult .and.
+     *                   abs(x+y-1d0).lt.0.75d-3) then
+                     lyet = .true.
                      call pssctr (ifont,font,font,30d0)
                      call pstext (linex(j),liney(j),
      *                            text,nblen(text))
-c                    print*,'Labeling (in):',text(1:nblen(text)),x,y
+c                    print*,'Labeling (in):',
+c    *                  text(1:nblen(text)),noth,x,y
                   end if
                end do
 
