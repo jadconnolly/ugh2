@@ -778,9 +778,13 @@ c psaxet - subroutine to output (sloppy) ternary diagram axes.
 
       integer jop0, i, j, nblen
 
+      logical readyn
+
+      external readyn
+
       include 'perplex_parameters.h'
  
-      character*8 record*32, yes*1
+      character*8 record*32
 
       integer jlow,jlev,loopx,loopy,jinc
       common/ cst312 /jlow,jlev,loopx,loopy,jinc
@@ -814,9 +818,8 @@ c----------------------------------------------------------------------
       if (jop0.eq.1) then
 
          write (*,'(/,a)') 'Modify default axes numbering (y/n)?'
-         read (*,'(a)') yes
 
-         if (yes.eq.'y'.or.yes.eq.'Y') then
+         if (readyn()) then
             write (*,1030) 'ternary axis horiz. axis', x0, dx
             read (*,*) x0, dx
             write (*,1030) 'ternary axis vert. axis', y0, dy
