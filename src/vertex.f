@@ -1957,7 +1957,7 @@ c                                fill hot cells
          write (*,1070) k,jtic
          ktic = ktic + jtic
  
-         write (*,1080) ktic,(loopx/kinc+1)*(loopy/kinc+1)
+         write (*,1080) ktic,(loopx/kinc)*(loopy/kinc+1)/2*16
 
          if (khot.eq.0.or.k.eq.jlev) exit 
 c                             now switch new and old hot list
