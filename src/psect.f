@@ -1059,24 +1059,27 @@ c----------------------------------------------------------------------
 
       logical off, lmult, lyet, lblphs(k3)
 
-      integer i, j, k, l, id, jcoor, nblen,
+      integer i, j, k, l, m, id, jcoor, iix, jix,
      *        v1, v2, v3, nsegs, iseg, tseg,
-     *        nlqd, noth,
-     *        nass, lass(k3),
-     *        nliq, liq(h9), iliq, jliq, isol, nsol, msol,
+     *        noth, grp, iass, ictr, kass, msol,
+     *        ii, jj, imn, imx, jmn, jmx, in, iend,
+     *        nliq, liq(h9), iliq, jliq, isol, nsol, ngrp,
      *        nssol, issol(k2),
-     *        iix, jix
+     *        lass(k2), lsol(k2), labs(k2), nabs(k2),
+     *        gixi(8), gixj(8)
 
       integer itri(4),jtri(4),ijpt
 
       equivalence (iix,itri(1)), (jix,jtri(1))
+
+      integer nblen
+      external nblen
 
       double precision lvmin, lvmax, vlo, vhi, vrt, x, y, cst, sum,
      *         xc, yc, xp(3), yp(3), xx1, yy1, xx2, yy2, xx3, yy3,
      *         cvec(3), dinv(3,3), yssol(m14+2,k2), cssol(k2), wt(3)
 
       double precision rline,thick,font,
-     *                 labx(mcon),laby(mcon),
      *                 clinex(npts),cliney(npts),
      *                 linex(npts),liney(npts),
      *                 cline(2,npts),segs(4,nseg)
@@ -1085,6 +1088,13 @@ c----------------------------------------------------------------------
      *        ipieces(2,npcs),npiece(mcon),segm(nseg),
      *        ifirst(mcon),next(nseg),ilast(mcon),ifnd(lg)
       equivalence (segm,next)
+
+      integer l7s
+      parameter (l7s=l7*l7/5)
+      integer nass, iassi(l7s), iassj(l7s), iassp(l7s), iasss(l7s),
+     *        iassk(l7,l7)
+      integer iassf
+      external iassf
 
       logical tcopy
       double precision tgrid
@@ -1146,6 +1156,12 @@ c                                 working arrays
       double precision z,zt
       common/ dim   /z(nx,ny),ix,iy,mvar
       common/ dim1  /zt(nx,ny)
+
+      data (gixi(i),gixj(i),i=1,8)/
+c         1     2     3      4    5     6    7    8
+     *  -1,-1, 0,-1, 1,-1, -1,0, 1,0, -1,1, 0,1, 1,1
+c        x  y  x  y  x  y   x y  x y   x y  x y  x y
+     */
 c----------------------------------------------------------------------
 
       call mertxt (tfname,prject,'.liq',0)
@@ -1484,24 +1500,18 @@ c                                 note itri <-> iix, jtri <-> jix by equivalence
                         call getloc (itri,jtri,1,wt,lmult)
 
                         k = nstot(kkp(i))
-
-c                       print '(a,5(1x,i3))','iix, jix, id, nstot:',
-c    *                     iix,jix,i,nstot(kkp(i))
                         if (lmult .or. k.le.0) then
-                           print 1001,'**Oh oh - no solid data for ',
-     *                        text(1:nblen(text)),' at ',iix,jix,cx
+c                                 this could be an error, but also could be an
+c                                 unstable solution so silently ignore it
+c                          print 1001,'**Oh oh - no solid data for ',
+c    *                        text(1:nblen(text)),' at ',iix,jix,cx
                            nssol = nssol - 1
                         else
                            yssol(1:k,nssol) = pa3(1,1:k)
-c                          print*,text(1:nblen(text)),' y:',
-c    *                        k,yssol(1:k,nssol)
-c                          yssol(1:icomp,nssol) = pcomp(1:k,i)
-c                          print*,text(1:nblen(text)),' y:',
-c    *                        icomp,yssol(1:icomp,nssol)
                         end if
                      end if
-                     call getnam (text, i)
-                     k = nblen (text(1:14))
+c                    call getnam (text, i)
+c                    k = nblen (text(1:14))
 c                    if (.not.off) print '(a,1x,a)',
 c    *                     'Found crystallizing phase:',text(1:k)
                   end if
@@ -1560,9 +1570,9 @@ c        print*,'y: ',(yy(j),j=1,3)
          end do
 
 c                                 project and clip to triangular area, label
-         call trneq (yy(2),yy(3))
          off = yy(2).lt.0d0 .or. yy(2).gt.1d0 .or.
      *         yy(3).lt.0d0 .or. yy(3).gt.1d0
+         call trneq (yy(2),yy(3))
          if (.not.off) then
             call pselip (yy(2), yy(3), 0.50d0*dcx, 0.50d0*dcy,
      *                   1d0, 0d0, 7, 0, 1)
@@ -1641,17 +1651,297 @@ c                                 process resulting paths
                call trneq (linex(jix),liney(jix))
             end do
             call psbspl (linex,liney,j,1d0,2d0,0)
-            call barycntr(j,linex,liney,x,y)
-            call pstext (x,y,text,nblen(text(1:14)))
+c                                 this is a crappy, low-budget way to get a
+c                                 label from the boundary line
+c           call barycntr(j,linex,liney,x,y)
+c           call pstext (x,y,text,nblen(text(1:14)))
          end do
 
       end do
 
+c     label each liquidus phase field.  we want to group based on the solids
+c     present, not the presence/absence of liquid.  lass(k) is an array that
+c     is indexed by assemblage k (from the grid, = iap(igrd(i,j))), that
+c     remaps the k to the set of solids that exist at the liquidus.
+
+      lass(1:iasct) = 0
+      nass = 0
+      iass = 1
+      do id = 1, iasct
+c                                 add solid(s), skip liquids
+         kass = iass
+         l = iavar(3,id)
+         do j = 1, iavar(3,id)
+            isol = idasls(j,id)
+            off = .false.
+            do k = 1, nliq
+               off = liq(k) .eq. isol
+               if (off) exit
+            end do
+            if (off) then
+               l = l - 1
+            else
+               lsol(iass) = isol
+               iass = iass + 1
+            end if
+         end do
+c                                 skip if all liquid(s)
+         if (l.le.0) then
+            lass(id) = 0
+            cycle
+         end if
+
+         nass = nass + 1
+         labs(nass) = kass
+         nabs(nass) = l
+
+c        text = ' '
+c        j = 1
+c        do k = 0, nabs(nass)-1
+c           call getnam(text(j:),lsol(labs(nass)+k))
+c           j = nblen(text)
+c           text(j+1:j+1) = '+'
+c           j = j + 2
+c        end do
+c        iend = max(0,nblen(text)-1)
+c        text(iend+1:iend+1) = ' '
+c        print '(a,1x,i3,1x,a)','..becomes',nass,text(1:iend)
+
+c                                 check if solids assemblage same as another
+         do j=1, nass-1
+            if (nabs(j).ne.nabs(nass)) cycle
+            off = .true.
+            do k = 0, nabs(nass)-1
+               off = off .and. lsol(labs(j)+k) .eq. lsol(labs(nass)+k)
+            end do
+            if (off) exit
+         end do
+c                                 if same, use previous assemblage
+         if (off) then
+c           print*,'..-> same as',j
+            nass = nass - 1
+            iass = kass
+            lass(id) = j
+            cycle
+         end if
+
+c                                 new solid assemblage; make name for debug
+c        print*,'..-> new entry:',nass
+         lass(id) = nass
+
+         text = ' '
+         j = 1
+         do k = 0, nabs(nass)-1
+            call getnam(text(j:),lsol(labs(nass)+k))
+            j = nblen(text)
+            text(j+1:j+1) = '+'
+            j = j + 2
+         end do
+         iend = nblen(text)-1
+         text(iend+1:iend+1) = ' '
+c        print '(a,1x,i3,1x,a)','Defined liq. ass.',nass,text(1:iend)
+      end do
+
+c                                 now have all solid assemblages, start grouping
+c                                 algorithm
+      do k = 1, nass
+
+c                                 form name of solids assembly for any messages
+         text = ' '
+         j = 1
+         do i = 0, nabs(k)-1
+            call getnam(text(j:),lsol(labs(k)+i))
+            j = nblen(text)
+            text(j+1:j+1) = '+'
+            j = j + 2
+         end do
+         iend = nblen(text)-1
+         text(iend+1:iend+1) = ' '
+c        print*,'Working on ',text(1:iend)
+
+         ngrp = 0
+         iassk(1:loopx,1:loopx) = 0
+         do i = 1, loopx, jinc
+            do j = 1, loopx-i+1, jinc
+               l = iap(igrd(i,j))
+               id = lass(l)
+               if (id .eq. 0 .or. id .ne. k) cycle
+               ngrp = ngrp + 1
+               iassi(ngrp) = i
+               iassj(ngrp) = j
+               iassp(ngrp) = ngrp
+               iasss(ngrp) = 1
+               iassk(i,j) = ngrp
+            end do
+         end do
+
+c                                 no members is possible if all refined away
+         if (ngrp .eq.0) cycle
+
+c                                 associate by neighboring points
+         do m = 1, ngrp
+            i = iassi(m)
+            j = iassj(m)
+            id = lass(m)
+            do l = 1, 8
+               iix = i + gixi(l)*jinc
+               jix = j + gixj(l)*jinc
+               if (iix.lt.1 .or. iix.gt.loopx) cycle
+               if (jix.lt.1 .or. jix.gt.loopx-iix+1) cycle
+               if (id .ne. lass(iap(igrd(iix,jix)))) cycle
+               in = iassk(iix,jix)
+c                                 in might be zero if neighbor had different
+c                                 solid assemblage
+               if (in.eq.0) cycle
+c              if (in.eq.0) then
+c                 print*,'**Oh oh - group coord not set:',iix,jix,i,j
+c                 cycle
+c              end if
+               ix = iassf(m ,ngrp,iassp)
+               iy = iassf(in,ngrp,iassp)
+c                                  skip if already in same group
+               if (ix .eq. iy) cycle
+c                                  merge the neighbors into same group, enlarge
+               if (iasss(ix).lt.iasss(iy)) then
+                  in = ix
+                  ix = iy
+                  iy = in
+               end if
+               iassp(iy) = ix
+               iasss(ix) = iasss(ix) + iasss(iy)
+            end do
+         end do
+
+c                                   now all fields grouped.  find each one,
+c                                   which is identified by its root, which
+c                                   points to itself.  all the other members
+c                                   in the group point back to the root.
+c                                   iassf function result ignored, but makes
+c                                   sure each cell points directly back to its
+c                                   root.
+         l = 0
+         do m = 1, ngrp
+            ictr = iassf(m,ngrp,iassp)
+            if (iassp(m) .eq. m) then
+               l = l + 1
+               iasss(l) = m
+            end if
+         end do
+
+c                                   now visit all members of the group and
+c                                   compute the barycenter, two ways: one
+c                                   on the rectangular grid, the other on the
+c                                   ternary grid.
+         grp = 0
+         cst = dfloat(loopx-1)
+         do i = 1, l
+            isol = iasss(i)
+            x = 0d0
+            y = 0d0
+            ii = 0
+            jj = 0
+            in = 0
+            do j=1,ngrp
+               if (iassp(j).eq.isol) then
+                  xc = (iassi(j)-1)/cst
+                  yc = (iassj(j)-1)/cst
+                  call trneq(xc,yc)
+                  x = x + xc
+                  y = y + yc
+                  ii = ii + iassi(j)-1
+                  jj = jj + iassj(j)-1
+                  in = in + 1
+               end if
+            end do
+c                                   skip singletons - numerical noise (there
+c                                   can be a lot of these)
+            if (in.le.1) cycle          
+
+            grp = grp + 1
+            x = x/in
+            y = y/in
+            ii = 1 + int(nint(float(ii)/in)/jinc)*jinc
+            jj = 1 + int(nint(float(jj)/in)/jinc)*jinc
+
+c                                   if label lands in wrong field, find closest
+            jcoor = lass(iap(igrd(ii,jj)))
+            if (jcoor .ne. lass(k)) then
+c              write (*,'(a,1p,2(1x,g10.3),0p,1x,3a)')
+c    *            '**oops - barycenter at ',
+c    *            (ii-1)/dfloat(loopx-1),(jj-1)/dfloat(loopy-1),
+c    *            ' for ',text(1:iend),' missed.'
+c              cycle
+               in = 1
+               cst = dsqrt(
+     *            dfloat(iassi(1)-ii)**2 + dfloat(iassj(1)-jj)**2
+     *         )
+               do j = 1, ngrp
+                  if (iassp(j).eq.isol) then
+                     vlo = dsqrt(
+     *                  dfloat(ii-iassi(j))**2 + dfloat(jj-iassj(j))**2
+     *               )
+                     if (vlo.lt.cst) then
+                        in = j
+                        cst = vlo
+                     end if
+                  end if
+               end do
+               x = (iassi(in)-1)/dfloat(loopx-1)
+               y = (iassj(in)-1)/dfloat(loopx-1)
+               call trneq(x,y)
+            end if
+c           print*,'Put ',text(1:iend),' at ',x,y
+c           call pselip (x,y, 0.25d0*dcx, 0.25d0*dcy, 1d0,0d0,0,0,1)
+            call pssctr (ifont,ascale,ascale, 0d0)
+            call pstext (x+dcx*ascale,y+.7d0*dcy*ascale,
+     *                   text,iend)
+         end do
+
+         if (grp.gt.1) write(*,1010)
+     *      text(1:iend),'assemblage has',grp,'stability fields.'
+      end do
+
+c                                 make main plot label
       call psaxet (jop0,tcont)
 
 1000  format(1x,i5,' x ',i5,' contour grid cells, liquidus between ',
      *       f7.1,' <=',a,'<=',f7.1)
 1001  format(3a,2(1x,i3),2(1x,f6.4))
+1010  format(2(a,1x),i3,1x,a)
+      end
+
+c----------------------------------------------------------------------
+      integer function iassf(i,n,iparent)
+c----------------------------------------------------------------------
+c iassf - function to find root node of a group.  Algorithm is the
+c     (merge-find algorithm); for explanation, see
+c     https://en.wikipedia.org/wiki/Disjoint-set_data_structure.
+c----------------------------------------------------------------------
+
+      implicit none
+
+      integer i,par,x,n,iparent(n),root
+
+c                                 go up tree to find root
+      root = i
+      do while (iparent(root) .ne. root)
+         root = iparent(root)
+      end do
+
+c                                 now go down and make all point to root
+c                                 directly to speed up next find operation
+      x = i
+      do while (iparent(x) .ne. root)
+         par = iparent(x)
+         if (par.le.0 .or. par.gt.n) then
+            print '(a,3(1x,i4,a))','IASSF: bad tree element at',
+     *         x,':',par,'>',n
+         end if
+         iparent(x) = root
+         x = par
+      end do
+c                                 return root
+      iassf = root
       end
 
 c----------------------------------------------------------------------
