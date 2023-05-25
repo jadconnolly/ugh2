@@ -1450,6 +1450,8 @@ c                                 get all liquid phases
 c                                 define crystallizing solids on liquidus
 c                                 liquid in igrd(-,2), liquidus in igrd(-,1)
       nssol = 0
+      wt(1) = 1d0
+
       do iix = 1, loopx, jinc
          cx(1) = (iix-1)/dfloat(loopx-1)
          do jix = 1, loopx-iix+1, jinc
@@ -1457,6 +1459,15 @@ c                                 liquid in igrd(-,2), liquidus in igrd(-,1)
             isol = iap(igrd(iix,jix))
             msol = iavar(1,isol)
             nsol = iavar(3,isol)
+c                                 get assemblage properties
+c                                 solution phase - find/save species proportions
+c                                 note itri <-> iix, jtri <-> jix by equivalence
+            call getloc (itri,jtri,1,wt,lmult)
+
+            if (lmult) then 
+               write (*,*) 'uh-oh nodata'
+               cycle
+            end if
 
 c                                 debug code to help find location in grid
 c           x = cx(1)
@@ -1469,18 +1480,24 @@ c           call pstext (x,y,text,nblen(text))
 c                                 the ones that aren't a named liquid
 c                                 are the solids
             do j = 1, nsol
+c                                 j indexes the arrays loaded by getloc
+c                                 kkp(j) will be the phase index [idasls(j,isol)]
                i = idasls(j,isol)
+ 
                do k = 1, nliq
                   off = i .eq. liq(k)
                   if (off) exit
-               end do
+              end do
 c                                 if off true, then is a liquid phase
-               if (.not.off) then
-                  do k = 1, nliq
-                     off = i .eq. liq(k)
-                     if (off) exit
-                  end do
-                  if (off) cycle
+              if (.not.off) then
+
+                 do k = 1, nliq
+                    off = i .eq. liq(k)
+                    if (off) exit
+                 end do
+
+                 if (off) cycle
+
                   do k = 1, nssol
                      off = i .eq. issol(k)
                      if (off) exit
@@ -1489,24 +1506,28 @@ c                                 if off true, then is a solid already in list;
 c                                 add it again if the solid is a solution phase
 c                                 because its composition will be different
                   if (.not.off .or. j.le.msol) then
+
                      if (nssol.lt.k2) nssol = nssol + 1
+
                      issol(nssol) = i
-                     if (i.gt.0) then
-c                                 solution phase - find/save species proportions
-c                                 note itri <-> iix, jtri <-> jix by equivalence
+
+                     call getnam(text, i)
+
+                     yssol(1:3,nssol) = pcomp(1:3,j)
+
+                     if (i.gt.1d99) then
+
                         call getnam(text, i)
 
-                        wt(1) = 1d0
-                        call getloc (itri,jtri,1,wt,lmult)
 
-                        k = nstot(kkp(i))
-                        if (lmult .or. k.le.0) then
-c                                 this could be an error, but also could be an
-c                                 unstable solution so silently ignore it
-c                          print 1001,'**Oh oh - no solid data for ',
-c    *                        text(1:nblen(text)),' at ',iix,jix,cx
-                           nssol = nssol - 1
+                        if (iix.eq.35.and.jix.eq.17) then
+                           write (*,*) iix
+                        end if 
+
+                        if (kkp(j).lt.0) then 
+                           yssol(1:k,nssol) = pcomp(1:3,1)
                         else
+                           k = nstot(kkp(j))
                            yssol(1:k,nssol) = pa3(1,1:k)
                         end if
                      end if
@@ -1526,27 +1547,12 @@ c                                 label composition of each liquidus phase
          call getnam (text, id)
          k = nblen (text(1:14))
 c        print*,'For crystallizing phase ',i,id,text(1:k)
-
-         if (id.lt.0) then
-c                                 compound - get composition in cp3
-            call getcmp (1,id)
-
-         else
-c                                 solution - get endmember compositions
-c           print*,'id,lstot(id):',id,lstot(id)
-            cp3(1:3,1) = 0d0
-            do j = 1, lstot(id)
-               do k = 1, 3
-                  cp3(k,1) = cp3(k,1) + yssol(j,i)*cp(k,jend(id,2+j))
-               end do
-            end do
-         end if
 c                                 find endmember proportions y()
 c                                 premultiply LHS by transpose,
          do j = 1,3
             cst = 0d0
             do k = 1,3
-               cst = cst + dblk(j,k)*cp3(k,1)
+               cst = cst + dblk(j,k)*yssol(k,i)
             end do
             cvec(j) = cst
          end do
