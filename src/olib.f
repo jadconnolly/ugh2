@@ -933,7 +933,7 @@ c                                 logarithmic_x option
       nodata = .false. 
 
       if (iam.ne.2) then 
-c                                 WERAMI: 
+c                                 WERAMI, PSSECT: 
          ias = iap(igrd(itri(1),jtri(1)))
 c                                 load the assemblage phase composition
 c                                 starting coordinates
@@ -1085,7 +1085,7 @@ c                                 a compound:
             end if
 
             if (iam.ne.2) then 
-c                                 WERAMI compund:
+c                                 WERAMI, PSSECT compund:
                props(16,i) = 0d0 
 
                do l = 1, ijpt
@@ -1608,9 +1608,9 @@ c                                 pointer copy for lagged aq calculations in gso
 c                                 make name and composition, 
 c                                 redundant for frendly
       call getnam (pname(jd),id)
-c                                 if WERAMI recover composition
+c                                 if WERAMI, PSSECT recover composition
 c                                 logical arg is irrelevant
-      if (iam.eq.3) call getcmp (jd,id)
+      if (iam.eq.3.or.iam.eq.7) call getcmp (jd,id)
 c                                 component counter for frendly is different
 c                                 than for all other programs
       if (iam.ne.5) then 
