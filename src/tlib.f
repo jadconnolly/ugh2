@@ -1854,7 +1854,8 @@ c                                 solvus tolerance text
      *    nopt(37), lopt(55), lopt(57), lopt(58), lopt(59)
 c                                 only vertex:
 c                                 context specific parameters:
-         if (icopt.le.3.and.(iam.eq.1.or.iam.eq.15)) then 
+         if ((icopt.eq.3.or.icopt.eq.1) .and.
+     *       (iam.eq.1.or.iam.eq.15)) then 
 c                                 non-adaptive calculations
 c                                 reaction format and lists
             if (icopt.gt.0) write (n,1160) grid(5,1),grid(5,2),rid(1,1),
@@ -1872,7 +1873,7 @@ c                                 1d multilevel grid
      *                  (grid(2,2)-1) * 2**(grid(3,2)-1) + 1,
      *                  grid(3,1),grid(3,2),l8
 
-            else if (iam.eq.1.and.icopt.eq.5) then
+            else if (iam.eq.1.and.(icopt.eq.5.or.icopt.eq.2)) then
 c                                 2d multilevel grid
                write (n,1200) grid(1,1),grid(1,2),l7,
      *                  (grid(1,1)-1) * 2**(grid(3,1)-1) + 1,
