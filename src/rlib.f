@@ -14281,7 +14281,8 @@ c                                 adaptive coordinates
       common/ cst40 /ids(h5,h6),isct(h5),icp1,isat,io2
 
       logical abort
-      common/ cstabo /abort
+      equivalence (abort,abort1)
+c     common/ cstabo /abort
 c                                 solution model names
       character fname*10, aname*6, lname*22
       common/ csta7 /fname(h9),aname(h9),lname(h9)
@@ -14645,7 +14646,8 @@ c-----------------------------------------------------------------------
       common/ cstcoh /yf(nsp),g(nsp),v(nsp)
 
       logical abort
-      common/ cstabo /abort
+      equivalence (abort,abort1)
+c     common/ cstabo /abort
 
       double precision units, r13, r23, r43, r59, zero, one, r1
       common/ cst59 /units, r13, r23, r43, r59, zero, one, r1
