@@ -1758,6 +1758,7 @@ c                                 form name of solids assembly for any messages
          iend = nblen(text)-1
          text(iend+1:iend+1) = ' '
 c        print*,'Working on ',text(1:iend)
+c        off = text(1:iend) .eq. 'sill+crd'
 
          ngrp = 0
          iassk(1:loopx,1:loopx) = 0
@@ -1782,7 +1783,7 @@ c                                 associate by neighboring points
          do m = 1, ngrp
             i = iassi(m)
             j = iassj(m)
-            id = lass(m)
+            id = lass(iap(igrd(i,j)))
             do l = 1, 8
                iix = i + gixi(l)*jinc
                jix = j + gixj(l)*jinc
@@ -1833,8 +1834,8 @@ c                                   compute the barycenter, two ways: one
 c                                   on the rectangular grid, the other on the
 c                                   ternary grid.
          grp = 0
-         cst = dfloat(loopx-1)
          do i = 1, l
+            cst = dfloat(loopx-1)
             isol = iasss(i)
             x = 0d0
             y = 0d0
@@ -1846,6 +1847,12 @@ c                                   ternary grid.
                   xc = (iassi(j)-1)/cst
                   yc = (iassj(j)-1)/cst
                   call trneq(xc,yc)
+c                 if (off) then
+c                    call pselip (
+c    *               xc,yc, 0.25d0*dcx, 0.25d0*dcy,
+c    *               1d0,0d0,0,0,1
+c    *            )
+c                 end if
                   x = x + xc
                   y = y + yc
                   ii = ii + iassi(j)-1
@@ -1853,9 +1860,6 @@ c                                   ternary grid.
                   in = in + 1
                end if
             end do
-c                                   skip singletons - numerical noise (there
-c                                   can be a lot of these)
-            if (in.le.1) cycle          
 
             grp = grp + 1
             x = x/in
