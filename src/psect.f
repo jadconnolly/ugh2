@@ -1167,7 +1167,7 @@ c----------------------------------------------------------------------
       call mertxt (tfname,prject,'.liq',0)
       open (n8,file=tfname,status='old',iostat=ier)
       if (ier.ne.0) then
-         write (*,*) '**Bad/missing liquidus grid file: ',
+         write (*,*) '**Bad/missing liquidus/solidus grid file: ',
      *         tfname(1:nblen(tfname))
          stop
       end if
@@ -1179,8 +1179,9 @@ c----------------------------------------------------------------------
          end do
       end if
       if (ier.ne.0) then
-         write (*,*) '**Bad/insufficient data in liquidus grid file: ',
-     *         tfname(1:nblen(tfname))
+         write (*,*)
+     *      '**Bad/insufficient data in liquidus/solidus grid file: ',
+     *      tfname(1:nblen(tfname))
          stop
       end if
       close (n8)
@@ -1254,13 +1255,7 @@ c                                 every other contour is dashed after first
             rline = 1d0
          end if
 
-         if (k.eq.1.or.k.eq.ncon) then 
-c                                 line is always thick & continuous at limits
-            thick = 2d0
-            rline = 1d0
-         else 
-            thick = 0d0
-         end if 
+         thick = 0d0
 
 c                                 label contour if multiple of 100 K
          lmult = abs(int(z(k,1)/100d0)*100d0 - z(k,1)) .lt. 5d0
@@ -1369,7 +1364,7 @@ c                                 find when something reappears in area
                   do while (j.le.ipts)
                      y = clinex(iix+j-1)*jinc
                      x = cliney(iix+j-1)*jinc
-                     if (x+y.lt.1d0) exit
+                     if (x+y.le.1d0) exit
                      j = j + 1
                   end do
 c                                 first newly visible point becomes start
@@ -1448,7 +1443,6 @@ c                                 get all liquid phases
       text = ' '
 
 c                                 define crystallizing solids on liquidus
-c                                 liquid in igrd(-,2), liquidus in igrd(-,1)
       nssol = 0
       wt(1) = 1d0
 
@@ -1487,61 +1481,32 @@ c                                 kkp(j) will be the phase index [idasls(j,isol)
                do k = 1, nliq
                   off = i .eq. liq(k)
                   if (off) exit
-              end do
+               end do
 c                                 if off true, then is a liquid phase
-              if (.not.off) then
+               if (off) cycle
 
-                 do k = 1, nliq
-                    off = i .eq. liq(k)
-                    if (off) exit
-                 end do
-
-                 if (off) cycle
-
-                  do k = 1, nssol
-                     off = i .eq. issol(k)
-                     if (off) exit
-                  end do
+               do k = 1, nssol
+                  off = i .eq. issol(k)
+                  if (off) exit
+               end do
 c                                 if off true, then is a solid already in list;
 c                                 add it again if the solid is a solution phase
 c                                 because its composition will be different
-                  if (.not.off .or. j.le.msol) then
+               if (.not.off .or. j.le.msol) then
+                  if (nssol.lt.k2) nssol = nssol + 1
+                  issol(nssol) = i
+                  yssol(1:3,nssol) = pcomp(1:3,j)
 
-                     if (nssol.lt.k2) nssol = nssol + 1
-
-                     issol(nssol) = i
-
-                     call getnam(text, i)
-
-                     yssol(1:3,nssol) = pcomp(1:3,j)
-
-                     if (i.gt.1d99) then
-
-                        call getnam(text, i)
-
-
-                        if (iix.eq.35.and.jix.eq.17) then
-                           write (*,*) iix
-                        end if 
-
-                        if (kkp(j).lt.0) then 
-                           yssol(1:k,nssol) = pcomp(1:3,1)
-                        else
-                           k = nstot(kkp(j))
-                           yssol(1:k,nssol) = pa3(1,1:k)
-                        end if
-                     end if
-c                    call getnam (text, i)
-c                    k = nblen (text(1:14))
-c                    if (.not.off) print '(a,1x,a)',
-c    *                     'Found crystallizing phase:',text(1:k)
-                  end if
+c                 call getnam (text, i)
+c                 k = nblen (text(1:14))
+c                 if (.not.off) print '(a,1x,a)',
+c    *               'Found crystallizing phase:',text(1:k)
                end if
             end do 
          end do 
       end do
 
-c                                 label composition of each liquidus phase
+c                                 label composition of each solid
       do i = 1, nssol
          id = issol(i)
          call getnam (text, id)
@@ -1598,73 +1563,10 @@ c                                 first one centered above location (a hack)
          end if
       end do
 
-c     Map out liquidus assemblages by finding grid points where solid is
-c     crystallizing, then contour.
-
-c                                 first remove repetitions of solutions
-      jcoor = 0
-      do i = 1, nssol
-         id = issol(i)
-         if (id.lt.0) then
-            jcoor = jcoor + 1
-            issol(jcoor) = id
-         else if (.not.lblphs(id)) then
-            jcoor = jcoor + 1
-            issol(jcoor) = id
-            lblphs(id) = .true.
-         end if
-      end do
-      nssol = jcoor
-
-c     For every crystallizing solid on the liquidus, contour the area where it
-c     crystallizes.  This is done by a series of contours of the grid, with
-c     values +1 where the solid is present, -1 where it is absent, and 0 where
-c     it is present with another solid.  The value 0 makes the contours overlay
-c     themselves for each phase separately in the crystallizing assemblage.
-
-      ntri = (ng-1)**2
-      thick = 2d0
-      rline = 1d0
-      do i = 1, nssol
-         id = issol(i)
-         call getnam (text, id)
-         k = nblen (text(1:14))
-         write(*,*) 'Contouring ',text(1:k),' field.'
-
-c                                 classify every triangle in grid
-         npeece = 0
-         nsegs = 0
-         do iix = 1, ntri
-            call liqphs(iix, id, nliq, liq, tseg)
-            if (tseg.ne.0) then
-               call seglnk(ng, tseg, npeece, ipieces, nsegs, segm)
-c              print*,'Path(s) so far:'
-c              do j=1,npeece
-c                 print'(1x,i2,1x,i3)',j,1+ipieces(2,j)-ipieces(1,j)
-c                 print'((8(1x,f8.1)))',
-c    *               (segm(jix)/10d0,jix=ipieces(1,j),ipieces(2,j))
-c              end do
-            end if
-         end do
-c                                 process resulting paths
-         do iix = 1, npeece
-            j = 0
-            do jix = ipieces(1,iix), ipieces(2,iix)
-               call segadd(j, segm(jix), linex, liney)
-               call pthchk(j,linex,liney)
-            end do
-            do jix = 1, j
-               call trneq (linex(jix),liney(jix))
-            end do
-            call psbspl (linex,liney,j,1d0,2d0,0)
-         end do
-
-      end do
-
-c     label each liquidus phase field.  we want to group based on the solids
-c     present, not the presence/absence of liquid.  lass(k) is an array that
-c     is indexed by assemblage k (from the grid, = iap(igrd(i,j))), that
-c     remaps the k to the set of solids that exist at the liquidus.
+c     we want to group based on the solids present, not the presence/absence of
+c     liquid.  lass(k) is an array that is indexed by assemblage k (from the
+c     grid, = iap(igrd(i,j))), that remaps the k to the set of solids that
+c     exist at the liquidus/solidus.
 
       lass(1:iasct) = 0
       nass = 0
@@ -1743,6 +1645,69 @@ c        print*,'..-> new entry:',nass
          text(iend+1:iend+1) = ' '
 c        print '(a,1x,i3,1x,a)','Defined liq. ass.',nass,text(1:iend)
       end do
+
+c     Map out liquidus/solidus assemblages by finding grid points where the
+c     unique solid assemblages are crystallizing, then outline.  This is done
+c     by building up a series of segments across the triangles making up the
+c     grid.  The path is described by a triangle number (T), and an
+c     odd-vertex-out indicator (S, 1<=S<=3), encoded as 10*T + S.
+
+      ntri = (ng-1)**2
+      thick = 2d0
+      rline = 1d0
+      do id = 1, nass
+c                                 form name of solids assembly for any messages
+         text = ' '
+         j = 1
+         do k = 0, nabs(id)-1
+            call getnam(text(j:),lsol(labs(id)+k))
+            j = nblen(text)
+            text(j+1:j+1) = '+'
+            j = j + 2
+         end do
+         k = nblen(text)-1
+         text(k+1:k+1) = ' '
+c        write(*,*) 'Outlining ',text(1:k),' field.'
+c        off = text(1:k) .eq. 'wo'
+
+c                                 classify every triangle in grid
+         npeece = 0
+         nsegs = 0
+         do i = 1, ntri
+            call liqphs(i, id, lass, tseg)
+            if (tseg.ne.0) then
+               call seglnk(ng, tseg, npeece, ipieces, nsegs, segm)
+c              if (off) then
+c                 print*,'Path(s) so far:'
+c                 do j=1,npeece
+c                    print'(1x,i2,1x,i3)',j,1+ipieces(2,j)-ipieces(1,j)
+c                    print'((8(1x,f8.1)))',
+c    *                  (segm(l)/10d0,l=ipieces(1,j),ipieces(2,j))
+c                 end do
+c              end if
+            end if
+         end do
+c                                 process resulting paths
+         do i = 1, npeece
+            l = 0
+            do j = ipieces(1,i), ipieces(2,i)
+               call segadd(l, segm(j), linex, liney)
+               call pthchk(l, linex, liney)
+            end do
+c                                 if closed path, skip drawing if short
+            cst = dsqrt(
+     *         (linex(1)-linex(l))**2 + (liney(1)-liney(l))**2
+     *      )
+            if (cst .le. 0.75d-3 .and. l.le.20) cycle
+            do j = 1, l
+               call trneq (linex(j), liney(j))
+            end do
+            call psbspl (linex, liney, l, 1d0, 2d0, 0)
+         end do
+
+      end do
+
+c     Label each liquidus/solidus phase field.
 
 c                                 now have all solid assemblages, start grouping
 c                                 algorithm
@@ -1910,7 +1875,7 @@ c           call pselip (x,y, 0.25d0*dcx, 0.25d0*dcy, 1d0,0d0,0,0,1)
 c                                 make main plot label
       call psaxet (jop0,tcont)
 
-1000  format(1x,i5,' x ',i5,' contour grid cells, liquidus between ',
+1000  format(1x,i5,' x ',i5,' contour grid cells between ',
      *       f7.1,' <=',a,'<=',f7.1)
 1001  format(3a,2(1x,i3),2(1x,f6.4))
 1010  format(2(a,1x),i3,1x,a)
@@ -3106,13 +3071,12 @@ c                                 now form inverse for return
       end do
       end
 
-      subroutine liqphs(tnum, id, nliq, liq, tseg)
+      subroutine liqphs(tnum, id, lass, tseg)
 c--------------------------------------------------------------- 
 c liqphs - given liquidus phase id, decide which vertexes of the
 c          triangle contain it.
-c  id - liquidus phase
-c  nliq - number of liquids
-c  liq(1..nliq) - what are the liquids?
+c  id - solid phase assemblage of interest
+c  lass(*) - remapping from iap(igrd(.,.)) to solid phase assemblage
 c  tseg - = 0 if id present in none or all of the vertexes
 c         = T.S encoding for boundary
 c--------------------------------------------------------------- 
@@ -3120,9 +3084,9 @@ c---------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer tnum, tseg, id, nliq, liq(nliq)
+      integer tnum, tseg, id, lass(*)
 
-      integer i, j, k, l, jliq, isol, nsol, v1, v2, v3
+      integer i, j, k, l, v1, v2, v3
       
       integer ii(2,3), i1(2), i2(2), i3(2)
       equivalence (i1,ii(1,1)),(i2,ii(1,2)),(i3,ii(1,3))
@@ -3137,26 +3101,15 @@ c---------------------------------------------------------------
 
       k = 1 + (loopx-1)/jinc
       call grdecod(tnum, k, v1, v2, v3, i1, i2, i3)
+      cst(1:3) = 0
       do i = 1, 3
          k = 1 + (ii(1,i)-1) * jinc
          l = 1 + (ii(2,i)-1) * jinc
-         isol = iap(igrd(k,l))
-         nsol = iavar(3,isol)
-         jliq = 0
-         got = .false.
-         do k = 1, nsol
-            do l = 1, nliq
-               if (liq(l).eq.idasls(k,isol)) jliq = jliq+1
-            end do
-            got = got .or. id.eq.idasls(k,isol)
-         end do
-         if (got) then
-c                                 if two solids, set zero; if one set one
-c           if (nsol-jliq.gt.1) then
-c              cst(i) = 0
-c           else
-               cst(i) = 1
-c           end if
+         j = iap(igrd(k,l))
+         if (j.eq.0) cycle
+
+         if (id .eq. lass(j)) then
+            cst(i) = +1
          else
             cst(i) = -1
          end if
