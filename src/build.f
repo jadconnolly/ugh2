@@ -32,15 +32,16 @@ c-----------------------------------------------------------------------
      *          mname(k5)*5, oname(k5)*5, pname(k5)*5, cfname*100,
      *          uname(k0)*5, group*28, aname(i9)*6, amount*5, new*3, 
      *          text*256, dtext*200, title*162, lname(i9)*22,
-     *          sname(i9)*10, tn1*6, tn2*22, fname(i9)*10
+     *          sname(i9)*10, tn1*6, tn2*22, fname(i9)*10,
+     *          liqs*240
 
       integer i, k, l, iind, im, idum, ivct, jcth, j, ier, idep, 
-     *        gct(i9), gid(i9,i9), ict, idsol, inames
+     *        gct(i9), gid(i9,i9), ict, idsol, inames, nblen
 
       logical eof, good, oned, findph, first, feos, chksol, readyn, 
      *        liqdus
 
-      external chksol, findph, readyn
+      external chksol, findph, readyn, nblen
 
       character prject*100,tfname*100
       common/ cst228 /prject,tfname
@@ -403,9 +404,14 @@ c                               got one, get the EoS
 
       end if 
 c                                read solution phases.
-      write (*,2500)
+      if (.not.liqdus) then
+         write (*,2500)
+         good = readyn()
+      else
+         good = .true.
+      end if
 
-      if (readyn()) then
+      if (good) then
 c                                 get the file containing the solution models
          do
  
@@ -564,6 +570,32 @@ c                                 check if name in list
                write (*,2310) tname
 
             end do  
+
+c                                 ask for melt phases
+            if (liqdus) then
+               write (*,2520)
+               liqs = '$'
+               do
+                  tname = ' '
+                  read (*,'(a)') tname
+                  if (tname.eq.' ') exit
+                  good = .false.
+                  do i = 1, ict
+                     good = tname.eq.fname(i)
+                     if (good) exit
+                  end do
+                  if (.not.good) then
+                     write (*,2310) tname
+                     cycle
+                  end if
+                  k = index(liqs,'$')
+                  liqs(k:) = fname(i) // ' $'
+                  call deblnk(liqs)
+               end do
+               k = index(liqs,'$')
+               liqs(k:) = ' '
+               if (k.eq.1 .or. liqs(1:k-1) .eq. ' ') write (*,2530)
+            end if
          end if
 
       else 
@@ -723,6 +755,10 @@ c                                 output variable choices and values:
          write (n1,1310) (iv(i), i = 1, l2),
      *  'independent variables indices'
       end if 
+
+      if (liqdus) then
+         write (n1,1350) liqs(1:nblen(liqs)),'| liquid phase(s)'
+      end if
 c                                 get conditions for composition
 c                                 diagrams:
       if (icopt.eq.0) then
@@ -792,6 +828,7 @@ c                                 diagrams:
 1310  format (/,5(i2,1x),2x,a,/)
 1330  format (i2,1x,i2,1x,g13.6,1x,g13.6,1x,a)
 1340  format (5(g13.6,1x))
+1350  format (a,1x,a)
 1490  format ('Specify computational mode:',//,
      *    5x,'1 - Convex-Hull minimization',/, 
      *    5x,'2 - Constrained minimization on a 2d grid [default]',/,
@@ -802,7 +839,7 @@ c                                 diagrams:
      *    5x,'7 - 2-d Phase fractionation (FRAC2D and TITRATE ',
      *               'reactive transport models)',/
      *    5x,'8 - (pseudo-)Ternary saturation surfaces, e.g., liquidus',
-     *                'diagrams',//,
+     *                ' diagrams',//,
      *        'Use Convex-Hull minimization for Schreinemakers ',
      *        'projections or phase diagrams',/,
      *        'with > 2 independent variables. ',
@@ -824,6 +861,11 @@ c                                 diagrams:
 2500  format (/,'Include solution models (Y/N)?')
 2510  format (/,'Select models from the following list, enter',
      *        ' 1 per line, press <enter> to finish',/)
+2520  format (/,'Melt phase(s) for liquidus finding.',/,
+     *        'Select models from the solution model list, enter',
+     *        ' 1 per line, press <enter> to finish',/)
+2530  format (/,'**warning** No liquids defined; the calculation can''t',
+     *        ' be done.  You need to define one or more liquids.')
 3000  format (a,1x,i1,1x,3(g12.6,1x),a,' amount')
 3010  format ('Enter the solution model file name [default = ',
      *        'solution_model.dat]: ')
@@ -1962,12 +2004,12 @@ c                                  swash, not a lot to do
       else if (icopt.eq.2) then
 c                                  =====================
 c                                  gridded minimization:
-         icopt = 5
          jvct = 0
 
          if (.not.liqdus) then
 
             icont = 1
+            icopt = 5
 c                                  Select the x variable
             call getxvr (ivct,jvct,icont,jc,oned,'x-axis')
 
