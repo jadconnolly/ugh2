@@ -1498,8 +1498,6 @@ c---------------------------------------------------------------------
 
       logical init, got, output
 
-      logical sgrid(l7,l7)
-
       character assmb*128, text*240, cr*1
 
       integer ier, kinc, kinc2, kinc21, icent, jcent, ie, je, ii, jj,
@@ -1653,7 +1651,6 @@ c                               for auto_refine).
             igrd(i,j) = 0
          end do 
       end do 
-      sgrid(1:l7,1:l7) = .true.
 c                               could check here if loopx*loopy, the
 c                               theoretical max number of assemblages
 c                               is > k2, but in practice the number of
@@ -1690,7 +1687,6 @@ c                              highest t; liquid should be present
             ktic = ktic + 1
 
 c                              set bulk composition this grid element
-            sgrid(i,j) = .false.
             cx(1) = (i-1)/dfloat(loopx-1)
             cx(2) = (j-1)/dfloat(loopy-1)
             call setblk
@@ -1802,10 +1798,13 @@ c
 c        do j = 1, j_diag - kinc or:
 
          do j = 1, loopy - (i - 1) - kinc, kinc
-            if (sgrid(i,j)) print*,'**Bad grid (init):',i,j
 c                                 need to check that amihot is not
 c                                 somehow flagging superdiagonal nodes!
-            call amihot (i,j,jhot,kinc)
+            if (igrd(i+kinc,j+kinc) .le. 0) then
+               jhot = 1
+            else
+               call amihot (i,j,jhot,kinc)
+            end if
             if (jhot.ne.0) then 
                ihot = min(l7,ihot + 1)
                hotij(ihot,1) = i
@@ -1853,10 +1852,7 @@ c                              the hot cell
             jcent = jjc + kinc
 c                              forget cells already on grid diagonal
             if (jjc.ge.loopy-(iic-1)-kinc) cycle
-            if (sgrid(icent,jcent)) print*,'**Bad grid (refine):',
-     *         icent,jcent,kinc
             if (igrd(icent,jcent).eq.0) then 
-               sgrid(icent,jcent) = .false.
                cx(1) = (icent-1)/dfloat(loopx-1)
                cx(2) = (jcent-1)/dfloat(loopy-1)
                call setblk
@@ -1874,8 +1870,14 @@ c                              has a change
                lhot(hh) = 0 
 
                if (jjc.ge.loopy-(iic-1)-kinc) cycle
-               if (sgrid(i,j)) print*,'**Bad grid (x):',i,j,kinc
-               if (iap(igrd(i,j)).ne.iap(igrd(icent,jcent))) then 
+               if (igrd(i,j).eq.0) then
+                  jhot = 1
+               else if (iap(igrd(i,j)).ne.iap(igrd(icent,jcent))) then
+                  jhot = 1
+               else
+                  jhot = 0
+               end if
+               if (jhot .gt. 0) then
 c                              cell is hot
                   khot = min(l7,khot + 1)
                   hhot = hhot + 1
@@ -1890,7 +1892,6 @@ c                              compute assemblages at new nodes
                      jj = jjc + jjind(hh,kk)*kinc
                      if (igrd(ii,jj).eq.0 .and.
      *                   jj.le.loopy-(ii-1)-kinc) then 
-                        sgrid(ii,jj) = .false.
                         cx(1) = (ii-1)/dfloat(loopx-1)
                         cx(2) = (jj-1)/dfloat(loopy-1)
                         call setblk
@@ -1908,8 +1909,6 @@ c                              edges
 c                              index the edge node
                   ii = iic + icind(hh)*kinc
                   jj = jjc + jcind(hh)*kinc
-                  if (sgrid(ii,jj))
-     *               print*,'**Bad grid (<3):',ii,jj,kinc
                   if (igrd(ii,jj).ne.0) then 
 c                              could have a second hot cell, check
 c                              both corners
@@ -1939,7 +1938,6 @@ c                                compute assemblage at cell nodes
                               jjl = jj + jind(ll)*kinc
                               if (igrd(iil,jjl).eq.0
      *                            .and. jjl.le.loopy-(iil-kinc)) then              
-                                 sgrid(iil,jjl) = .false.
                                  cx(1) = (iil-1)/dfloat(loopx-1)
                                  cx(2) = (jjl-1)/dfloat(loopy-1)
                                  call setblk
