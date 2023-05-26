@@ -5726,7 +5726,10 @@ c                                 which case id is a dummy. smo the total
 c                                 species molality it is necessary for 
 c                                 renormalization.
             call gaqlgd (gg,rcp,rsum,rsmo,id,bad,.false.)
-
+c                                 gaqlgd can set bad if
+c                                 1) fails to converge
+c                                 2) gfunc out of range for water solvent
+c                                 3) epsilon < vapor value for impure solvent
             if (.not.bad) rkwak = .false.
 
          end if
@@ -14202,7 +14205,7 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i, j, id
+      integer i, j, id, iwarn
 
       logical bad, recalc, lmus, feos
 
@@ -14279,15 +14282,13 @@ c                                 adaptive coordinates
 
       integer ids,isct,icp1,isat,io2
       common/ cst40 /ids(h5,h6),isct(h5),icp1,isat,io2
-
-      logical abort
-      equivalence (abort,abort1)
-c     common/ cstabo /abort
 c                                 solution model names
       character fname*10, aname*6, lname*22
       common/ csta7 /fname(h9),aname(h9),lname(h9)
 
-      save lmu, lmus
+      save lmu, lmus, iwarn
+
+      data iwarn/0/
 c----------------------------------------------------------------------
       if ((.not.mus .and..not.recalc).or.
      *    (.not.lmus.and.recalc)) then
@@ -14338,9 +14339,19 @@ c                                 the absent component
 
          call slvnt3 (gso,.false.,feos,id)
 
-         if (epsln.lt.nopt(34).or.abort) then
+         if (epsln.lt.nopt(34).or.abort1) then
 c                                 eos is predicting vapor phase
 c                                 solvent densities
+            if (.not.abort1.and.iwarn.lt.iopt(1)) then
+
+               iwarn = iwarn + 1
+
+               call conwrn (301,' ')
+
+               if (iwarn.eq.iopt(1)) call warn (49,p,93,'GAQLGD')
+
+            end if
+
             bad = .true.
             return
 
@@ -14645,17 +14656,13 @@ c-----------------------------------------------------------------------
       double precision yf,g,v
       common/ cstcoh /yf(nsp),g(nsp),v(nsp)
 
-      logical abort
-      equivalence (abort,abort1)
-c     common/ cstabo /abort
-
       double precision units, r13, r23, r43, r59, zero, one, r1
       common/ cst59 /units, r13, r23, r43, r59, zero, one, r1
 
       save iwarn, iwarn0
       data iwarn, iwarn0 /0,0/
 c----------------------------------------------------------------------
-      if (epsln.lt.nopt(34).or.abort.or.yf(1).eq.0d0) then
+      if (epsln.lt.nopt(34).or.abort1.or.yf(1).eq.0d0) then
 c                                  vapor, same as checking lnkw
          bad = .true.
          return
