@@ -1089,10 +1089,10 @@ c----------------------------------------------------------------------
      *        ifirst(mcon),next(nseg),ilast(mcon),ifnd(lg)
       equivalence (segm,next)
 
-      integer l7s
-      parameter (l7s=l7*l7/5)
+      integer l7s, l7g
+      parameter (l7s=l7*(l7-1)/2 / 5, l7g=l7 / 5)
       integer nass, iassi(l7s), iassj(l7s), iassp(l7s), iasss(l7s),
-     *        iassk(l7,l7)
+     *        iassk(l7g,l7g)
       integer iassf
       external iassf
 
