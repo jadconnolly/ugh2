@@ -1496,9 +1496,9 @@ c---------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical init, got, output
+      logical init, got, output, sol
 
-      character assmb*128, text*240, cr*1
+      character assmb*128, text*240, cr*1, what*8
 
       integer ier, kinc, kinc2, kinc21, icent, jcent, ie, je, ii, jj,
      *        iic, iil, jjc, jjl,
@@ -1559,8 +1559,8 @@ c---------------------------------------------------------------------
       character meltph*240
       common/ cst88 /meltph
 
-      save init,nliq,liq,cr
-      data init/.true./
+      save init,nliq,liq,cr, sol
+      data init/.true./, sol/.false./
 
       save iind, jind, iiind, jjind, icind, jcind
       data iind, jind   /0,0,1,1, 0,1,1,0/
@@ -1595,7 +1595,13 @@ c                               see if named phase exists
             endif
 c                               what's the verdict?
             if (.not.got) then
-               write (*,*) '**',meltph(1:k),' not recognized.'
+               if (meltph(1:k) .eq. 'solidus') then
+                  sol = .true.
+               else if (meltph(1:k) .eq. 'liquidus') then
+                  sol = .false.
+               else
+                  write (*,*) '**',meltph(1:k),' not recognized.'
+               end if
             else
                nliq = nliq + 1
                liq(nliq) = j
@@ -1607,7 +1613,8 @@ c                               done with this one, on to next
          enddo
 
          if (nliq.eq.0) then
-            write (*,*) '**No liquids, no liquidus, no plot: simple!'
+            write (*,*) '**No liquids, no liquidus/solidus, ',
+     *         'no plot: simple!'
             stop
          endif
 c                               force closed composition
@@ -1618,6 +1625,11 @@ c                               force linear_model on
          tcopy = .true.
 
       endif
+      if (sol) then
+         what = 'solidus'
+      else
+         what = 'liquidus'
+      end if
 c                               initialize assemblage counter
       iasct = 0 
       ibulk = 0 
@@ -1671,7 +1683,7 @@ c                               increments at each level
 
       ktic = 0
 
-      write (*,1050) 'Beginning',ttol
+      write (*,1050) 'Beginning',what(1:nblen(what)),ttol
 
       nmiss = 0
       nla = 0
@@ -1719,7 +1731,9 @@ c                              only suggest problem if past exploratory phase
             call lpopt (i,j,idead)
 
             call clsliq(iap(igrd(i,j)), nliq, liq, l)
-            if (l .ne. 2 .or. idead.ne.0) then
+            if (idead.ne.0 .or.
+     *          (.not.sol .and. l.ne.2) .or.
+     *          (sol .and. l.eq.0)) then
                if (idead.ne.0) then
                   write (*,1020) 'high',i,j,cx
                else
@@ -1737,7 +1751,7 @@ c                              only suggest problem if past exploratory phase
                cycle
             endif
 
-            call fndliq(i,j,ttol,ktic,nliq,liq,tliq)
+            call fndliq(i,j,ttol,sol,ktic,nliq,liq,tliq)
 
 c                                 save liquidus assemblage
 c                                 slow to do linear search for duplicates
@@ -1760,43 +1774,16 @@ c                                 but we don't expect to have many
             endif
          end do 
       end do
-c                              reflect the subdiagonal node at 
-c                              (i_diag, j_diag - kinc)
-c                              to the superdiagonal node
-c                              (i_diag + kinc, j_diag)
-c                              this is solely for amihot, i.e., 
-c                              the remaining code should never
-c                              reference superdiagonal nodes.
-c     Don't think any of this is necessary, since loops below exclude nodes on
-c     the diagonal, so amihot checks do not go beyond it.
-c     i = 1
-c     do j = loopy, 1 + kinc, -kinc
-c        i = i + kinc 
-c        igrd(i,j) = igrd(i-kinc,j-kinc)
-c     end do
-c                               get hot points
-      if (output .and. .not.init) then
-         open (n8,file='/tmp/grid.dat',status='unknown',iostat=ier)
-         write(n8,*) 'loopx loopy jlev'
-         write(n8,*) loopx,loopy,jlev
-      end if
+c                                 get hot points
 
       ihot = 0 
       kinc2 = kinc/2
       kinc21 = kinc2 + 1
 
       do i = 1, loopx - kinc, kinc
-c                                 georges original inner indexing:
 c        do j = 1, loopy - i*kinc, kinc
 c                                 this is the indexing that george checked
 c                                 may 20 with CaO-Al2O3
-c        do j = 1, loopy - i*kinc, kinc
-c                                 this is the indexing that i think is correct,
-c                                 it checks only sub-diagonal cells, the indexing
-c        j_diag = loopy - (i - 1)
-c
-c        do j = 1, j_diag - kinc or:
-
          do j = 1, loopy - (i - 1) - kinc, kinc
 c                                 need to check that amihot is not
 c                                 somehow flagging superdiagonal nodes!
@@ -1809,14 +1796,13 @@ c                                 somehow flagging superdiagonal nodes!
                ihot = min(l7,ihot + 1)
                hotij(ihot,1) = i
                hotij(ihot,2) = j 
-               if (output .and. .not.init) write(n8,*) 1,i,j
-c                               cell is heterogeneous
-c                               fill in homogeneous diagonals
-c                               and edges
+c                                 cell is heterogeneous
+c                                 fill in homogeneous diagonals
+c                                 and edges
                if (iopt(18).ne.0.and.kinc.gt.1) call filler (i,j,kinc)
             else 
-c                               cell is homogeneous
-c                               fill in entire cell
+c                                 cell is homogeneous
+c                                 fill in entire cell
                if (kinc.gt.1) call aminot (i,j,kinc,kinc2,kinc21)
             end if 
          end do 
@@ -1829,7 +1815,7 @@ c                               fill in entire cell
 c                              now refine on all higher levels:
       do k = 2, jlev
 c                              set T tolerance
-         write (*,1050) 'Continuing',ttol
+         write (*,1050) 'Continuing',what(1:nblen(what)),ttol
 c                              set new hot cell counter
          khot = 0 
          jtic = 0 
@@ -1838,7 +1824,7 @@ c                              now working on new level
          kinc2 = kinc/2
 c
          write (*,1065) ihot,k
-c                               flush stdout for paralyzer
+c                              flush stdout for paralyzer
          flush (6)      
 c                              compute assemblages at refinement
 c                              points
@@ -1856,7 +1842,7 @@ c                              forget cells already on grid diagonal
                cx(1) = (icent-1)/dfloat(loopx-1)
                cx(2) = (jcent-1)/dfloat(loopy-1)
                call setblk
-               call fndliq(icent,jcent,ttol,jtic,nliq,liq,tliq)
+               call fndliq(icent,jcent,ttol,sol,jtic,nliq,liq,tliq)
                tgrid(icent,jcent) = tliq
             end if 
 c                              now determine which of the diagonals
@@ -1883,8 +1869,6 @@ c                              cell is hot
                   hhot = hhot + 1
                   kotij(khot,1) = iic + iind(hh)*kinc
                   kotij(khot,2) = jjc + jind(hh)*kinc
-                  if (output.and..not.init)
-     *               write(n8,*)k,kotij(khot,1),kotij(khot,2)
                   lhot(hh) = 1
 c                              compute assemblages at new nodes
                   do kk = 1, 2
@@ -1895,7 +1879,7 @@ c                              compute assemblages at new nodes
                         cx(1) = (ii-1)/dfloat(loopx-1)
                         cx(2) = (jj-1)/dfloat(loopy-1)
                         call setblk
-                        call fndliq(ii,jj,ttol,jtic,nliq,liq,tliq)
+                        call fndliq(ii,jj,ttol,sol,jtic,nliq,liq,tliq)
                         tgrid(ii,jj) = tliq
                      end if 
                   end do 
@@ -1931,7 +1915,6 @@ c                                cell index is
                            jj = jjc + jind(icell)*kinc
                            kotij(khot,1) = ii
                            kotij(khot,2) = jj
-                           if (output.and..not.init)write(n8,*)k,ii,jj
 c                                compute assemblage at cell nodes
                            do ll = 1, 4
                               iil = ii + iind(ll)*kinc
@@ -1941,7 +1924,7 @@ c                                compute assemblage at cell nodes
                                  cx(1) = (iil-1)/dfloat(loopx-1)
                                  cx(2) = (jjl-1)/dfloat(loopy-1)
                                  call setblk
-                                 call fndliq(iil,jjl,ttol,jtic,
+                                 call fndliq(iil,jjl,ttol,sol,jtic,
      *                                       nliq,liq,tliq)
                                  tgrid(iil,jjl) = tliq
                               end if 
@@ -1983,7 +1966,6 @@ c                             now switch new and old hot list
          end do 
 
       end do 
-      if (output .and. .not.init) close(n8)
 
       write (*,1060) nmiss,loopx*(loopy+1)/2
       write (*,1080) ktic,loopx*(loopx+1)/2*16
@@ -2028,7 +2010,7 @@ c              if (tgrid(i,j).eq.0) print'(1x,a,2(1x,i2))','0:',i,j
      *        2(1x,f6.4))
 1030  format (f5.1,'% done with low level grid.')
 1040  format (2(i4,1x),a,a)
-1050  format (/,a,' liquidus temperature refinement ',
+1050  format (/,2(a,1x),'temperature refinement ',
      *        'to +/-',f6.2,' K tolerance.',/)
 1060  format (/,i6,' grid cells of ',i6,' failed liquidus search.',/)
 1065  format (i6,' grid cells to be refined at grid level ',i1)
@@ -2040,14 +2022,22 @@ c              if (tgrid(i,j).eq.0) print'(1x,a,2(1x,i2))','0:',i,j
 
       end 
 
-      subroutine fndliq(i,j,tol,ktic,nliq,liq,tliq)
+      subroutine fndliq(i,j,tol,sol,ktic,nliq,liq,tliq)
 c--------------------------------------------------------------- 
-c fndliq iterates on element (i,j) in the grid to locate the liquidus assemblage
-c returns igrd(i,j) = 0 if failure to find assemblage
+c fndliq iterates on element (i,j) in the grid to locate the liquidus or
+c solidus assemblage to within tolerance tol.
+c sol = .true. if finding solidus, = .false. if finding liquidus.
+c ktic is an iteration counter.
+c liq(1:nliq) is a list of liquid phases.
+c returns tliq with the temperature found.
+c on return, igrd(i,j) = 0 if there is a failure to find a liquidis/solidus
+c assemblage.
 
       implicit none
 
       include 'perplex_parameters.h'
+
+      logical sol
 
       integer i,j,ktic,nliq,liq(nliq)
       double precision tol,tliq
@@ -2081,7 +2071,9 @@ c                                 or to uncertainty < nopt(2)
            exit
         endif
         call clsliq(iap(igrd(i,j)), nliq, liq, l)
-        if (l .eq. 2) then
+        if (l .eq. 2 .and. .not.sol) then
+           thi = v(iv1)
+        else if (l .ge. 1 .and. sol) then
            thi = v(iv1)
         else
            tlo = v(iv1)
