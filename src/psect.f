@@ -1622,7 +1622,7 @@ c     values +1 where the solid is present, -1 where it is absent, and 0 where
 c     it is present with another solid.  The value 0 makes the contours overlay
 c     themselves for each phase separately in the crystallizing assemblage.
 
-      ntri = ng**2
+      ntri = (ng-1)**2
       thick = 2d0
       rline = 1d0
       do i = 1, nssol
@@ -1657,10 +1657,6 @@ c                                 process resulting paths
                call trneq (linex(jix),liney(jix))
             end do
             call psbspl (linex,liney,j,1d0,2d0,0)
-c                                 this is a crappy, low-budget way to get a
-c                                 label from the boundary line
-c           call barycntr(j,linex,liney,x,y)
-c           call pstext (x,y,text,nblen(text(1:14)))
          end do
 
       end do
@@ -1764,7 +1760,7 @@ c                                 form name of solids assembly for any messages
          iend = nblen(text)-1
          text(iend+1:iend+1) = ' '
 c        print*,'Working on ',text(1:iend)
-c        off = text(1:iend) .eq. 'sill+crd'
+c        off = text(1:iend) .eq. 'crd+an'
 
          ngrp = 0
          iassk(1:loopx,1:loopx) = 0
@@ -2793,8 +2789,8 @@ c                                  coordinates
       tseg = seg/10
       call grdecod(tseg, k, v1, v2, v3, i1, i2, i3)
       do k = 1, 3
-         xp(k) = ((ii(1,k)-1)*jinc)/dfloat(loopx+1)
-         yp(k) = ((ii(2,k)-1)*jinc)/dfloat(loopy+1)
+         xp(k) = ((ii(1,k)-1)*jinc)/dfloat(loopx-1)
+         yp(k) = ((ii(2,k)-1)*jinc)/dfloat(loopy-1)
       end do
       xx1 = 0.5d0*(xp(2)+xp(3))
       yy1 = 0.5d0*(yp(2)+yp(3))
@@ -3038,30 +3034,6 @@ c--------------------------------------------------------------------
          segs(jb) = segs(je)
          segs(je) = swap
       end do
-      end
-
-      subroutine barycntr(n,x,y,bx,by)
-c---------------------------------------------------------------------- 
-c barycntr - calculate barycenter of string of data points.
-
-c G Helffrich, Tokyo, Feb. 15, 2017. 
-c----------------------------------------------------------------------
-      implicit none
-      integer n
-      double precision x(n), y(n), bx, by
-
-      integer i
-
-      bx = 0
-      by = 0
-      do i = 1,n
-         bx = bx + x(i)
-         by = by + y(i)
-      end do
-      if (n.gt.0) then
-         bx = bx/n
-         by = by/n
-      end if
       end
 
       subroutine inv3x3(mat)
