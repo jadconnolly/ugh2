@@ -2203,7 +2203,7 @@ c                                11 - frac2d - with fileio (oned false)
 
       icth = icp + isat
       
-      if (icopt.gt.4) then 
+      if (icopt.gt.4 .or. icopt.eq.2) then 
 c                                 =========================
 c                                 Compositional constraints, only
 c                                 for constrained minimization
