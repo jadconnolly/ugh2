@@ -8201,10 +8201,17 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer jd
+      integer jd, i
 
       double precision p,t,xco2,u1,u2,tr,pr,rc,ps
       common/ cst5  /p,t,xco2,u1,u2,tr,pr,rc,ps
+
+      character specie*4
+      integer isp, ins
+      common/ cxt33 /isp,ins(nsp),specie(nsp)
+
+      double precision yf,g,v
+      common/ cstcoh /yf(nsp),g(nsp),v(nsp)
 
       character eos*(*)
 c----------------------------------------------------------------------
@@ -8224,7 +8231,7 @@ c                                 volume EoS
             write (*,1060)
          end if
 
-      else 
+      else if (jd.lt.200) then
 c                                 speciation calcs
          write (*,2000) eos, p, t
 
@@ -8241,6 +8248,11 @@ c                                 speciation calcs
          else if (jd.eq.106) then
             write (*,2070)
          end if
+
+      else
+c                                 set up fails
+         write (*,3000) p, t, (specie(ins(i)),yf(ins(i)), i = 1, isp)
+         write (*,3010) 
 
       end if
 
@@ -8272,6 +8284,13 @@ c                                 speciation calcs
 2060  format ('Speciation stoichiometrically frustrated, result will ',
      *        'be rejected')
 2070  format ('bad species Eos, result will be rejected')
+3000  format (/,'**warning ver093** aqueous speciation terminated:',/,
+     *        /,4x,'P(bar) = ',g12.6,/,4x,'T(K) = ',g12.6,//,
+     *          'for solvent composition:',/,
+     *          20(4x,'y(',a4,') = ',g12.6,/))
+3010  format (/,'Because solvent dielectic constant < aq_vapor_epsilo',
+     *          'n.',/)
+
       end
 
       subroutine lpwarn (idead,char)

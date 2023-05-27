@@ -1029,7 +1029,7 @@ c                                 should be identical to one used to generate
 c                                 the point? at least for pure water, for 
 c                                 more complex solvents it's conceivable the
 c                                 composition was generated with a different
-c                                 set of chemical potentials
+c                                 set of chemical potentials.
                      abort1 = .true.
                      return
 
