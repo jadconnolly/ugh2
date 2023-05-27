@@ -1089,8 +1089,10 @@ c----------------------------------------------------------------------
      *        ifirst(mcon),next(nseg),ilast(mcon),ifnd(lg)
       equivalence (segm,next)
 
+c     This temporary algorithm storage could be remapped to some other large,
+c     unused common area
       integer l7s, l7g
-      parameter (l7s=l7*(l7-1)/2 / 5, l7g=l7 / 5)
+      parameter (l7s=l7*(l7+1)/2 / 5, l7g=l7 / 5)
       integer nass, iassi(l7s), iassj(l7s), iassp(l7s), iasss(l7s),
      *        iassk(l7g,l7g)
       integer iassf
@@ -1164,6 +1166,12 @@ c        x  y  x  y  x  y   x y  x y   x y  x y  x y
      */
 c----------------------------------------------------------------------
 
+      if (loopx .gt. l7g) then
+         write (*,*)
+     *      '**Size of liquidus/solidus grid too small, recompile: ',
+     *      l7g,' <',loopx
+         stop
+      end if
       call mertxt (tfname,prject,'.liq',0)
       open (n8,file=tfname,status='old',iostat=ier)
       if (ier.ne.0) then
@@ -1734,6 +1742,11 @@ c        off = text(1:iend) .eq. 'crd+an'
                l = iap(igrd(i,j))
                id = lass(l)
                if (id .eq. 0 .or. id .ne. k) cycle
+               if (ngrp.ge.l7s) then
+                  write(*,*) '**Large field for ',text(1:iend),
+     *               '; label placement suboptimal.'
+                  go to 50
+               end if
                ngrp = ngrp + 1
                iassi(ngrp) = i
                iassj(ngrp) = j
@@ -1744,6 +1757,7 @@ c        off = text(1:iend) .eq. 'crd+an'
          end do
 
 c                                 no members is possible if all refined away
+50       continue
          if (ngrp .eq.0) cycle
 
 c                                 associate by neighboring points
