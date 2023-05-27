@@ -12733,7 +12733,7 @@ c                          excluded phases
       end if
 c                          solution models
       if (isoct.ne.0) then 
-         write (n3,1140)
+         write (n3,1130)
          write (n3,'(6(1x,a,1x))') (fname(i), i = 1, isoct)
       end if
 
