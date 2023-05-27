@@ -1710,7 +1710,8 @@ c                                 if closed path, skip drawing if short
             do j = 1, l
                call trneq (linex(j), liney(j))
             end do
-            call psbspl (linex, liney, l, 1d0, 2d0, 0)
+c           call psbspl (linex, liney, l, 1d0, 2d0, 0)
+            call pspyln (linex, liney, l, 1d0, 2d0, 0)
          end do
 
       end do
@@ -2427,7 +2428,7 @@ c     nvrt = loopx*(loopy+1)/2
 c     nfac = (loopx-1)**2
       gdim = 1 + (loopx-1)/jinc
       nvrt = gdim * (1+gdim) / 2
-      nfac = gdim**2
+      nfac = (gdim-1)**2
 
 c                                 zero face counts for each vertex
       vfn(1:nvrt) = 0
