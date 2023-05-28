@@ -1700,7 +1700,7 @@ c                                 process resulting paths
             l = 0
             do j = ipieces(1,i), ipieces(2,i)
                call segadd(l, segm(j), linex, liney)
-               call pthchk(l, linex, liney)
+               call segchk(l, linex, liney)
             end do
 c                                 if closed path, skip drawing if short
             cst = dsqrt(
@@ -1710,8 +1710,8 @@ c                                 if closed path, skip drawing if short
             do j = 1, l
                call trneq (linex(j), liney(j))
             end do
-c           call psbspl (linex, liney, l, 1d0, 2d0, 0)
-            call pspyln (linex, liney, l, 1d0, 2d0, 0)
+            call psbspl (linex, liney, l, 1d0, 2d0, 0)
+c           call pspyln (linex, liney, l, 1d0, 2d0, 0)
          end do
 
       end do
@@ -1734,7 +1734,7 @@ c                                 form name of solids assembly for any messages
          iend = nblen(text)-1
          text(iend+1:iend+1) = ' '
 c        print*,'Working on ',text(1:iend)
-c        off = text(1:iend) .eq. 'crd+an'
+c        off = text(1:iend) .eq. 'wo'
 
          ngrp = 0
          iassk(1:loopx,1:loopx) = 0
@@ -1829,6 +1829,7 @@ c                                   ternary grid.
                   xc = (iassi(j)-1)/cst
                   yc = (iassj(j)-1)/cst
                   call trneq(xc,yc)
+c                                   debug code to plot nodes for assemblage
 c                 if (off) then
 c                    call pselip (
 c    *               xc,yc, 0.25d0*dcx, 0.25d0*dcy,
@@ -2698,14 +2699,14 @@ c                                 even numbers (0, 2, ... point up)
       stop '**GRDDEC: GULP! Must be wrong "ng" for face "i"'
       end
 
-      subroutine pthchk (j, x, y)
+      subroutine segchk (j, x, y)
 c---------------------------------------------------------------------- 
-c pthchk - check triangular segment in list of path points.  Each segment
-c          is initially drawn, duplicating start/end points.  This routine
-c          examines the segments and flips/discards points as needed to
-c          minimize duplicates and keep a consistent sense of continuity
-c          to the path
-c  j - number of points
+c segchk - Paths are described by segments across triangles.  Each segment has
+c          a start and end point.  The next segment will join with one end or
+c          the other of the previous segment, so there is always a duplicate
+c          point.  Look at the previous segment and figure out how to joint up
+c          the new segment.
+c  j - number of path points
 c  x, y - arrays containing path coordinates
 c---------------------------------------------------------------------- 
       implicit none
@@ -2718,17 +2719,55 @@ c----------------------------------------------------------------------
 
       tol = 0.1d0*dist(1,2)
 
+c     This part examines the first two segments and joins them into into
+c     a continuous line of three points, eliminating one of the duplicated
+c     points.
+
       if (j.eq.4) then
-         if (dist(1,4).lt.tol .or. dist(1,3).lt.tol) then
-            x(3) = x(4)
-            y(3) = y(4)
+         if (dist(1,3).lt.tol) then
+c           1 and 3 are same: delete 1, keep 2,3,4
+            do i = 1,3
+               x(i) = x(i+1)
+               y(i) = y(i+1)
+            end do
+         else if (dist(1,4).lt.tol) then
+c           1 and 4 are same: flip 1 & 2, keep 3
             xh = x(1)
             yh = y(1)
             x(1) = x(2)
             y(1) = y(2)
-            j = 3
+            x(2) = xh
+            y(2) = yh
+         else if (dist(2,3).lt.tol) then
+c           2 and 3 are same: delete 3, keep 1, 2 4
+            x(3) = x(4)
+            y(3) = y(4)
          end if
-      else if (j.ge.3) then
+         j = 3
+         return
+      end if
+
+c     This handles adding the third segment.  The first two were turned into
+c     three points, but we need to check whether the line comprised by those
+c     first three points need to be flipped to maintain contiguity with the
+c     new segment.  If one of the new segment's points coincides with point 1,
+c     then we do.
+
+      if (j.eq.5) then
+         if (dist(1,4).lt.tol) then
+            xh = x(1)
+            yh = y(1)
+            x(1) = x(3)
+            y(1) = y(3)
+            x(3) = xh
+            y(3) = yh
+         endif
+      end if
+
+c     Done with initial cases.  Now decide how the new segment joins the line.
+c     There is always a duplicate point that gets deleted.
+
+      if (j.ge.3) then
          if (dist(j-2,j-1).lt.tol) then
             x(j-1) = x(j)
             y(j-1) = y(j)
@@ -2743,6 +2782,35 @@ c segadd - add triangular segment to list of path points.
 c  j - number of points in path
 c  seg - path across triangle encoded as T.S 
 c  linex, liney - arrays containing path points
+c
+c   Encoding of path is a triangle number in the grid T and a segment
+c   across the triangle S.  1 <= S <= 6
+c
+c   Vertex labeling scheme for up- and down-pointing triangles.
+c
+c   3 x    X is                             2 x - - - x 3
+c     | \    upward-pointing                    \  X  |
+c     |   \    triangle                           \   |
+c     |  X  \                       X is downward-  \ |
+c     x - - - x                       pointing        x
+c     1       2                         triangle      1
+c
+c   Detail of each triangle blown up to show segment labeling scheme.
+c   
+c   3 .      segment 1 cuts out       2 ............... 3
+c     . .    vertex 1, 2 cuts out         .     |\    .
+c     .   .    2, and 3 cuts out            .   2  3  .
+c     .--3--.    3.                           . |    \.
+c     . \    |.                                 .--1--.
+c     .   1  2  .                                 .   .
+c     .     \|    .                                 . .
+c     ...............                                 .
+c     1             2                                 1
+c
+c   Segment numbers 4, 5 & 6 are same as 1, 2 & 3 but ALSO go through
+c   center of each triangle.  They get drawn by three line segments rather
+c   than one line segment for 1, 2 & 3.
+c
 c---------------------------------------------------------------------- 
       implicit none
 
@@ -2818,7 +2886,7 @@ c                                  coordinates
          linex(j) = xx2
          liney(j) = yy2
       else
-         write(*,*) '**PSCLIQ: bad triangle code',seg
+         write(*,*) '**SEGADD: bad triangle segment code',seg
       end if
       end
 
