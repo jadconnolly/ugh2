@@ -2704,7 +2704,7 @@ c----------------------------------------------------------------------
 c segchk - Paths are described by segments across triangles.  Each segment has
 c          a start and end point.  The next segment will join with one end or
 c          the other of the previous segment, so there is always a duplicate
-c          point.  Look at the previous segment and figure out how to joint up
+c          point.  Look at the previous segment and figure out how to join up
 c          the new segment.
 c  j - number of path points
 c  x, y - arrays containing path coordinates
@@ -2808,7 +2808,7 @@ c     ...............                                 .
 c     1             2                                 1
 c
 c   Segment numbers 4, 5 & 6 are same as 1, 2 & 3 but ALSO go through
-c   center of each triangle.  They get drawn by three line segments rather
+c   center of each triangle.  They get drawn by two line segments rather
 c   than one line segment for 1, 2 & 3.
 c
 c---------------------------------------------------------------------- 
