@@ -1630,7 +1630,6 @@ c                                 check if solids assemblage same as another
          end do
 c                                 if same, use previous assemblage
          if (off) then
-c           print*,'..-> same as',j
             nass = nass - 1
             iass = kass
             lass(id) = j
@@ -1638,7 +1637,6 @@ c           print*,'..-> same as',j
          end if
 
 c                                 new solid assemblage; make name for debug
-c        print*,'..-> new entry:',nass
          lass(id) = nass
 
          text = ' '
@@ -1676,7 +1674,7 @@ c                                 form name of solids assembly for any messages
          k = nblen(text)-1
          text(k+1:k+1) = ' '
 c        write(*,*) 'Outlining ',text(1:k),' field.'
-c        off = text(1:k) .eq. 'wo'
+c        off = text(1:k) .eq. 'pswo'
 
 c                                 classify every triangle in grid
          npeece = 0
@@ -1706,12 +1704,12 @@ c                                 if closed path, skip drawing if short
             cst = dsqrt(
      *         (linex(1)-linex(l))**2 + (liney(1)-liney(l))**2
      *      )
-            if (cst .le. 0.75d-3 .and. l.le.20) cycle
+c           if (cst .le. 0.75d-3 .and. l.le.20) cycle
             do j = 1, l
                call trneq (linex(j), liney(j))
             end do
-            call psbspl (linex, liney, l, 1d0, 2d0, 0)
-c           call pspyln (linex, liney, l, 1d0, 2d0, 0)
+c           call psbspl (linex, liney, l, 1d0, 2d0, 0)
+            call pspyln (linex, liney, l, 1d0, 2d0, 0)
          end do
 
       end do
@@ -1734,7 +1732,7 @@ c                                 form name of solids assembly for any messages
          iend = nblen(text)-1
          text(iend+1:iend+1) = ' '
 c        print*,'Working on ',text(1:iend)
-c        off = text(1:iend) .eq. 'wo'
+c        off = text(1:iend) .eq. 'pswo'
 
          ngrp = 0
          iassk(1:loopx,1:loopx) = 0
@@ -1773,18 +1771,14 @@ c                                 associate by neighboring points
                if (jix.lt.1 .or. jix.gt.loopx-iix+1) cycle
                if (id .ne. lass(iap(igrd(iix,jix)))) cycle
                in = iassk(iix,jix)
-c                                 in might be zero if neighbor had different
+c                                 in will be zero if neighbor had different
 c                                 solid assemblage
                if (in.eq.0) cycle
-c              if (in.eq.0) then
-c                 print*,'**Oh oh - group coord not set:',iix,jix,i,j
-c                 cycle
-c              end if
                ix = iassf(m ,ngrp,iassp)
                iy = iassf(in,ngrp,iassp)
-c                                  skip if already in same group
+c                                 skip if already in same group
                if (ix .eq. iy) cycle
-c                                  merge the neighbors into same group, enlarge
+c                                 merge the neighbors into same group, enlarge
                if (iasss(ix).lt.iasss(iy)) then
                   in = ix
                   ix = iy
@@ -1795,13 +1789,13 @@ c                                  merge the neighbors into same group, enlarge
             end do
          end do
 
-c                                   now all fields grouped.  find each one,
-c                                   which is identified by its root, which
-c                                   points to itself.  all the other members
-c                                   in the group point back to the root.
-c                                   iassf function result ignored, but makes
-c                                   sure each cell points directly back to its
-c                                   root.
+c                                 now all fields grouped.  find each one,
+c                                 which is identified by its root, which
+c                                 points to itself.  all the other members
+c                                 in the group point back to the root.
+c                                 iassf function result ignored, but call
+c                                 makes sure each cell points directly back
+c                                 to its root.
          l = 0
          do m = 1, ngrp
             ictr = iassf(m,ngrp,iassp)
@@ -1811,10 +1805,10 @@ c                                   root.
             end if
          end do
 
-c                                   now visit all members of the group and
-c                                   compute the barycenter, two ways: one
-c                                   on the rectangular grid, the other on the
-c                                   ternary grid.
+c                                 now visit all members of the group and
+c                                 compute the barycenter, two ways: one
+c                                 on the rectangular grid, the other on the
+c                                 ternary grid.
          grp = 0
          do i = 1, l
             cst = dfloat(loopx-1)
@@ -1829,7 +1823,7 @@ c                                   ternary grid.
                   xc = (iassi(j)-1)/cst
                   yc = (iassj(j)-1)/cst
                   call trneq(xc,yc)
-c                                   debug code to plot nodes for assemblage
+c                                 debug code to plot nodes for assemblage
 c                 if (off) then
 c                    call pselip (
 c    *               xc,yc, 0.25d0*dcx, 0.25d0*dcy,
@@ -1850,7 +1844,7 @@ c                 end if
             ii = 1 + int(nint(float(ii)/in)/jinc)*jinc
             jj = 1 + int(nint(float(jj)/in)/jinc)*jinc
 
-c                                   if label lands in wrong field, find closest
+c                                 if label lands in wrong field, find closest
             jcoor = lass(iap(igrd(ii,jj)))
             if (jcoor .ne. lass(k)) then
 c              write (*,'(a,1p,2(1x,g10.3),0p,1x,3a)')
@@ -2910,6 +2904,29 @@ c   npiece - number of pieces in the path (updated)
 c   piece - pieces in the path (updated)
 c   nsegs - number of elements in the segment array
 c   segs - segments in the segment array, encoded as T.S
+c
+c   A path is divided into a number of pieces.  Each piece (1-npiece) describes
+c   a contiguous run of segments.  ipiece(1:2,n) has the start
+c   and end of piece n.  ipiece(:,n) points into the segs(nsegs) array,
+c   which holds the triangle & segment number encoded as 10*T + S (T.S).
+c
+c   A sketch for npiece = 4, nsegs = 10;
+c   1st piece 3 triangles, 2nd 1, 3rd 2, 4th 4.
+c
+c   piece(,1)   piece(,2)   piece(,3)   piece(,4)           nsegs
+c   +---+---+   +---+---+   +---+---+   +---+---+             |
+c   | 1 | 3 |   | 4 | 4 |   | 5 | 6 |   | 7 |10 |             |
+c   +-|-+-|-+   +-|-+-|-+   +-|-+-|-+   +-|-+-|-+             |
+c     |   |       |   |       |   |       |   |               |
+c     |   |       |   +---+   |   |       |   |               |
+c     |   |       +-----+ |   |   |       |   |               |
+c     |   |             | |   |   |       |   +-------------+ |
+c     |   +-------+     | |   |   +-+     |                 | |
+c     v           v     v v   v     v     v                 v v
+c   +-----------------------------------------------------------+
+c   | T.S | T.S | T.S | T.S | T.S | T.S | T.S | T.S | T.S | T.S |
+c   +-----------------------------------------------------------+
+c segs(1)   (2)   (3)   (4)   (5)   (6)   (7)   (8)   (9)   (10)
 c--------------------------------------------------------------------
 
       implicit none
@@ -2964,6 +2981,7 @@ c                                 don't add length 1 piece more than once
                end if
                if (ngot .gt. 2) then
                   write(0,*) '**SEGLNK:  Logic error; >2 links'
+                  ngot = 2
                end if
                gots(ngot) = n*10 + if
             end if
@@ -2981,16 +2999,13 @@ c                                 move everything down in list
          end do
 c                                 add new entry to end (of poss. flipped seg.)
          segs(piece(2,n)+1) = tseg
+         piece(2,n) = piece(2,n)+1
          nsegs = nsegs + 1
 c                                 adjust old indices
-         do i = 1,npiece
-            do j = 1,2
-               if (piece(j,i) .gt. piece(2,n)) then
-                  piece(j,i) = piece(j,i) + 1
-               end if
-            end do
+         do i = n+1,npiece
+            piece(1,i) = piece(1,i) + 1
+            piece(2,i) = piece(2,i) + 1
          end do
-         piece(2,n) = piece(2,n)+1
       else if (ngot.eq.2) then
 c                                 triangle joins two other pieces together
 c                                 first determine which piece starts at
@@ -3015,47 +3030,62 @@ c                                 handle cases where flipping needed
             call segflp(piece(1,v2),segs)
          end if
 
-c                                 now segs starting at v1 precede segs at v2
-c                                 move part between segs to end
-         nc = piece(2,v2) - piece(2,v1)
+c        This tricky and belabored section of code moves things around in the
+c        segs array (and updates the piece array).  Everything in the segs array
+c        after v2 has to be shifted up by one to make room for the new triangle.
+c        Any part of the segs array between v1 & v2 has to be shifted out of the
+c        way, the new, joining triangle added to the end of v1, and then v2
+c        shifted down to become contiguous with the lengthened v1.  Then
+c        anything that was between v1 & v2 has to be shifted back to after v1.
+
+c                                 move everything past v2 up to make room
+         do i=nsegs,piece(2,v2)+1,-1
+            segs(i+1) = segs(i)
+         end do
+c                                 move the v2 piece to end to make room;
+c                                 avoid clobbering the upward-shfted segments
+         nc = piece(2,v2) - piece(1,v2)
+         jp = piece(1,v2)
+         do i = 0, nc
+            segs(nsegs+2+i) = segs(jp+i)
+         end do
+c                                 if any, move segs between v1 and v2 to end
          jm = piece(1,v2) - piece(2,v1) - 1
-         jb = piece(2,v1)
-         do i = 1, nc
-            segs(1+nsegs+i) = segs(jb+i)
-         end do
-c                                 move up segments after join
-         do i = 0, nsegs-piece(2,v2)-1
-            segs(nsegs+1-i) = segs(nsegs-i)
-         end do
-c                                 add connecting triangle to segments
-         jb = jb + 1
-         segs(jb) = tseg
-c                                 move connecting segments
-         jp = 1 + piece(2,v2)-piece(1,v2)
-         js = 1 + nsegs + jm
-         do i = 1, jp
-            segs(jb+i) = segs(js+i)
-         end do
-c                                 copy back part between previous segs
-         jb = jb + jp
          do i = 1, jm
-            segs(jb+i) = segs(1+nsegs+i)
+            segs(nsegs+2+nc+i) = segs(piece(2,v1)+i)
          end do
-         nsegs = nsegs + 1
-c                                 reconfigure pointers
-         do i = 1, npiece
-            if (piece(1,i).gt.piece(2,v1)) then
-               piece(1,i) = piece(1,i) + jp + 1
-               piece(2,i) = piece(2,i) + jp + 1
-            end if
+c                                 add the connecting triangle
+         jb = piece(2,v1) + 1
+         segs(jb) = tseg
+c                                 move v2's now connected segments
+         do i = 1, nc+1
+            segs(jb+i) = segs(nsegs+1+i)
          end do
+         piece(2,v1) = piece(2,v1) + nc + 2
 c                                 remove piece describing joined-up segment
          do i = 0, npiece-v2
             piece(1,v2+i) = piece(1,v2+i+1)
             piece(2,v2+i) = piece(2,v2+i+1)
          end do
          npiece = npiece - 1
-         piece(2,v1) = piece(2,v1) + 1 + jp
+c                                 copy back (any) part between the two joined-up
+c                                 segs
+         jb = piece(2,v1)
+         do i = 1, jm
+            segs(jb+i) = segs(nsegs+2+nc+i)
+         end do
+         nsegs = nsegs + 1
+c                                 reconfigure any piece pointers between v1 & v2
+         jp = nc + 2
+         do i = v1+1, v2-1
+            piece(1,i) = piece(1,i) + jp
+            piece(2,i) = piece(2,i) + jp
+         end do
+c                                 reconfigure any piece pointers beyond v2
+         do i = v2, npiece
+            piece(1,i) = piece(1,i) + 1
+            piece(2,i) = piece(2,i) + 1
+         end do
 
       else
 c                                 add new entry as new piece
