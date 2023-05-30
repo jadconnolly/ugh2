@@ -4,3 +4,7 @@ y_nodes 21 41            | grid nodes at init and autorefine stages
 grid_levels 2 2          | grid levels at init and autorefine stages
 output_iteration_G     F | debug
 output_iteration_detai F | debug
+
+liquidus_resolution    1
+initial_resolution default 1/20
+GFSM T
