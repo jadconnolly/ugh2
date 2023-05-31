@@ -2042,7 +2042,7 @@ c                                 generic thermo options
      *        4x,'solvus_tolerance        ',a7,3x,          
      *           '[aut] or 0->1; aut = automatic, 0 => ',
      *           'p=c pseudocompounds, 1 => homogenize',/,
-     *        4x,'liquidus resol. (K)  ',f6.1,7x,'[5]',/,
+     *        4x,'liquidus res. (K,bar)',f6.1,7x,'[5]',/,
      *        4x,'T_stop (K)           ',f6.1,7x,'[0]',/,
      *        4x,'T_melt (K)             ',f6.1,5x,'[873]',/,
      *        4x,'approx_alpha            ',l1,9x,'[T] F',/,
