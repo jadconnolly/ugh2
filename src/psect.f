@@ -1062,7 +1062,7 @@ c----------------------------------------------------------------------
       integer i, j, k, l, m, id, jcoor, iix, jix,
      *        v1, v2, v3, nsegs, iseg, tseg,
      *        noth, grp, iass, ictr, kass, msol,
-     *        ii, jj, imn, imx, jmn, jmx, in, iend,
+     *        ii, jj, imn, imx, jmn, jmx, in, iend, cflag,
      *        nliq, liq(h9), iliq, jliq, isol, nsol, ngrp,
      *        nssol, issol(k2),
      *        lass(k2), lsol(k2), labs(k2), nabs(k2),
@@ -1267,10 +1267,18 @@ c                                 why is this loopx/loopy rather than ng?
 c                                 font size for contour labels
       font = nscale*0.7d0
 
+      lmult = abs(int(z(1,1)/100d0)*100d0 - z(1,1)) .lt. 5d0
+
+      if (lmult) then
+         cflag = 0
+      else
+         cflag = 1
+      end if
+
       ipiece = 1
       do k = 1, ncon
 
-         if (0.eq.mod(k,2)) then
+         if (cflag.eq.mod(k,2)) then
 c                                 every other contour is dashed after first
             rline = 7d0
          else
