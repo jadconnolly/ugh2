@@ -492,8 +492,9 @@ c                                 plot program internal options
       logical spline, half, tenth, lgrid, fill, label
       integer ifont, bbox
       double precision xfac, cscale, nscale, ascale, rlabel, width, 
-     *                 tcont
-      common/ ops /xfac,cscale,nscale,ascale,rlabel,width,tcont,bbox(4),
+     *                 tcont, pcont
+      common/ ops /xfac,cscale,nscale,ascale,rlabel,width,tcont,pcont,
+     *             bbox(4),
      *             ifont,spline,half,tenth,lgrid,fill,label
 c                                 solptr(i) points to the position of 
 c                                 solution model i in the input list
