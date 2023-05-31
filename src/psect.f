@@ -1055,7 +1055,7 @@ c----------------------------------------------------------------------
 
       integer jop0, iop5, iop6, iop7
 
-      character text*240, plu*4
+      character text*240, plu*4, typ*8
 
       logical off, lmult, lyet, lblphs(k3)
 
@@ -1077,7 +1077,8 @@ c----------------------------------------------------------------------
 
       double precision lvmin, lvmax, vlo, vhi, vrt, x, y, cst, sum,
      *         xc, yc, xp(3), yp(3), xx1, yy1, xx2, yy2, xx3, yy3,
-     *         cvec(3), dinv(3,3), yssol(m14+2,k2), cssol(k2), wt(3)
+     *         cvec(3), dinv(3,3), yssol(m14+2,k2), cssol(k2), wt(3),
+     *         cont
 
       double precision rline,thick,font,
      *                 clinex(npts),cliney(npts),
@@ -1179,7 +1180,14 @@ c----------------------------------------------------------------------
      *         tfname(1:nblen(tfname))
          stop
       end if
-      read (n8,*,iostat=ier) nliq,(liq(i),i=1,min(h9,nliq))
+      read (n8,'(a)',iostat=ier) text
+      if (ier.eq.0) then
+         read (text,*,iostat=ier) nliq,(liq(i),i=1,min(h9,nliq)),typ
+         if (ier.ne.0) then
+            typ = 'liquidus'
+            read (text,*,iostat=ier) nliq,(liq(i),i=1,min(h9,nliq))
+         end if
+      end if
       if (ier.eq.0) then
          do i=1,loopx
             read (n8,*,iostat=ier) (tgrid(i,j),j=1,loopy-i+1)
@@ -1229,14 +1237,20 @@ c                                 values are reflected across the diagonal.
       write(*,'(1x,a)') text(1:nblen(text))
 
 c                                 define contour levels
-      vlo = int(lvmin/tcont)*tcont
-      vhi = int((lvmax+0.5d0*tcont)/tcont)*tcont
-      ncon = 1 + nint((vhi-vlo)/tcont)
+      if (0.ne.index(vnm(3),'T')) then
+         cont = tcont
+         text = '(i3,1x,a,/,(10(1x,f6.1)))'
+      else
+         cont = pcont
+         text = '(i3,1x,a,/,(9(1x,f7.0)))'
+      end if
+      vlo = int(lvmin/cont)*cont
+      vhi = int((lvmax+0.5d0*cont)/cont)*cont
+      ncon = 1 + nint((vhi-vlo)/cont)
       do j = 1, ncon
          z(j,1) = vlo + (j-1)*(vhi-vlo)/(ncon-1)
       end do
-      print'(i3,1x,a,/,(10(1x,f6.1)))',
-     *   ncon,'contour levels:',(z(j,1),j=1,ncon)
+      write(*,text) ncon,'contour levels:',(z(j,1),j=1,ncon)
 
 
 c     Contour result on compositional grid
@@ -1458,7 +1472,9 @@ c                                 define crystallizing solids on liquidus
          cx(1) = (iix-1)/dfloat(loopx-1)
          do jix = 1, loopx-iix+1, jinc
             cx(2) = (jix-1)/dfloat(loopx-1)
-            isol = iap(igrd(iix,jix))
+            isol = igrd(iix,jix)
+            if (isol.le.0) cycle
+            isol = iap(isol)
             msol = iavar(1,isol)
             nsol = iavar(3,isol)
 c                                 get assemblage properties
@@ -1738,7 +1754,9 @@ c        off = text(1:iend) .eq. 'pswo'
          iassk(1:loopx,1:loopx) = 0
          do i = 1, loopx, jinc
             do j = 1, loopx-i+1, jinc
-               l = iap(igrd(i,j))
+               l = igrd(i,j)
+               if (l .le. 0) cycle
+               l = iap(l)
                id = lass(l)
                if (id .eq. 0 .or. id .ne. k) cycle
                if (ngrp.ge.l7s) then
@@ -1769,7 +1787,9 @@ c                                 associate by neighboring points
                jix = j + gixj(l)*jinc
                if (iix.lt.1 .or. iix.gt.loopx) cycle
                if (jix.lt.1 .or. jix.gt.loopx-iix+1) cycle
-               if (id .ne. lass(iap(igrd(iix,jix)))) cycle
+               grp = igrd(iix,jix)
+               if (grp .le. 0) cycle
+               if (id .ne. lass(iap(grp))) cycle
                in = iassk(iix,jix)
 c                                 in will be zero if neighbor had different
 c                                 solid assemblage
@@ -1883,10 +1903,10 @@ c           call pselip (x,y, 0.25d0*dcx, 0.25d0*dcy, 1d0,0d0,0,0,1)
       end do
 
 c                                 make main plot label
-      call psaxet (jop0,tcont)
+      call psaxet (jop0,typ,cont)
 
 1000  format(1x,i5,' x ',i5,' contour grid cells between ',
-     *       f7.1,' <=',a,'<=',f7.1)
+     *       f12.1,' <=',a,'<=',f12.1)
 1001  format(3a,2(1x,i3),2(1x,f6.4))
 1010  format(2(a,1x),i3,1x,a)
       end
@@ -3218,7 +3238,9 @@ c---------------------------------------------------------------
       do i = 1, 3
          k = 1 + (ii(1,i)-1) * jinc
          l = 1 + (ii(2,i)-1) * jinc
-         j = iap(igrd(k,l))
+         j = igrd(k,l)
+         if (j.le.0) cycle
+         j = iap(j)
          if (j.eq.0) cycle
 
          if (id .eq. lass(j)) then

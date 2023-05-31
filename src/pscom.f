@@ -767,7 +767,7 @@ c                                       modfied GH, 12/23/21
 
       end
 c----------------------------------------------------------------------
-      subroutine psaxet (jop0, vcon)
+      subroutine psaxet (jop0, typ, vcon)
  
 c psaxet - subroutine to output (sloppy) ternary diagram axes.
 
@@ -777,6 +777,8 @@ c psaxet - subroutine to output (sloppy) ternary diagram axes.
      *                 xtic2,ytic2,tmin,x,y,xv(4),yv(4),yc,vcon
 
       integer jop0, i, j, nblen
+
+      character typ*(*)
 
       logical readyn
 
@@ -891,9 +893,10 @@ c                                       contour levels & units (if any)
          i = index(vnm(3),'(')
          j = index(vnm(3),')')
          if (i.gt.0 .and. j.gt.0) then
-            write (record,1010) vcon,vnm(3)(i+1:j-1),'contours'
+            write (record,1010) vcon,vnm(3)(i+1:j-1),typ(1:nblen(typ)),
+     *         'contours'
          else
-            write (record,1010) vcon,'contours'
+            write (record,1010) vcon,typ(1:nblen(typ)),'contours'
          endif
          call deblnk (record)
             
@@ -902,7 +905,7 @@ c                                       contour levels & units (if any)
       endif
  
 1000  format (a,'=',g11.5)
-1010  format (f6.1,2(1x,a))
+1010  format (f6.1,3(1x,a))
 1030  format (/,'Enter the starting value and interval for',
      *          ' major tick marks on',/,'the ',a,'-axis (',
      *          ' current values are:',2(1x,g9.3),')',/, 
@@ -1460,6 +1463,8 @@ c                                 a replicate label
       rlabel = 0.025d0
 c                                 t contour interval
       tcont = 50d0
+c                                 p contour interval
+      pcont = 1000d0
 c                                 -------------------------------------
 c                                 look for file
       opname = 'perplex_plot_option.dat'
@@ -1563,6 +1568,9 @@ c                                 perplex_pdf, do nothing
          else if (key.eq.'contour_t_interval') then
 c                                 temperature contour interval
             read (strg,*) tcont
+         else if (key.eq.'contour_p_interval') then
+c                                 pressure contour interval
+            read (strg,*) pcont
          else if (key.ne.'|') then 
 
             write (*,1110) key
@@ -1580,7 +1588,7 @@ c                                 --------------------------------------
 c                                 output 
       write (*,1000) 
 
-      write (*,1010) nscale, bbox, tcont, fill, label, plopt(3),
+      write (*,1010) nscale, bbox, tcont, pcont, fill, label, plopt(3),
      *               rlabel, ascale, font, lgrid, half, width, dsx, 
      *               dsy, dtx, dty, drot, xfac, spline, tenth, 
      *               cscale
@@ -1597,6 +1605,7 @@ c                                 -------------------------------------
      *        28x,i4,6x,'[800] x-length (pts)',/,
      *        28x,i4,6x,'[800] y-length (pts)',/,
      *        4x,'contour_t_interval     ',f7.2,4x,'>0 [50.0]',/,
+     *        4x,'contour_p_interval     ',f7.2,4x,'>0 [1000.0]',/,
      *        4x,'field_fill             ',l1,10x,'[T] F',/,
      *        4x,'field_label            ',l1,10x,'[T] F',/,
      *        4x,'numeric_field_label    ',l1,10x,'[F] T, if T ',

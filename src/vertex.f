@@ -1498,12 +1498,12 @@ c---------------------------------------------------------------------
 
       logical init, got, output, sol
 
-      character assmb*128, text*240, cr*1, what*8
+      character assmb*128, text*240, cr*1, what*8, unit*8, pt*1
 
       integer ier, kinc, kinc2, kinc21, icent, jcent, ie, je, ii, jj,
      *        iic, iil, jjc, jjl,
      *        jtic, htic, ktic, icell, ihot, jhot, hhot, khot,
-     *        nla, la(k3), nliq, liq(h9), nlqd, noth,
+     *        nla, la(k3), nliq, liq(h9), nlqd, noth, opts,
      *        i, j, k, l, h, hh, kk, ll, sgrd, nmiss, idead,
      *        nblen
 
@@ -1525,6 +1525,9 @@ c---------------------------------------------------------------------
 
       integer ipot,jv,iv1,iv2,iv3,iv4,iv5
       common/ cst24 /ipot,jv(l2),iv1,iv2,iv3,iv4,iv5
+
+      character vnm*8
+      common/ cxt18a /vnm(l3)  
 
       double precision vmax,vmin,dv
       common/ cst9  /vmax(l2),vmin(l2),dv(l2)
@@ -1574,6 +1577,8 @@ c-----------------------------------------------------------------------
       got = .false. 
 
       if (init) then
+
+         call getvar
 
          nliq = 0
          k = index(meltph,' ')
@@ -1625,11 +1630,30 @@ c                               force linear_model on
          tcopy = .true.
 
       endif
+
       if (sol) then
          what = 'solidus'
+         opts = 1
       else
          what = 'liquidus'
+         opts = 0
       end if
+
+      ii = index(vnm(3),'(')
+      jj = index(vnm(3),')')
+      if (ii.gt.0 .and. jj.gt.0) then
+         unit = vnm(3)(ii+1:jj-1)
+      else
+         unit = '(?)'
+      end if
+
+      if (0.ne.index('KC',unit(1:1))) then
+         pt = 'T'
+      else
+         pt = 'P'
+         opts = opts + 2
+      end if
+         
 c                               initialize assemblage counter
       iasct = 0 
       ibulk = 0 
@@ -1683,7 +1707,8 @@ c                               increments at each level
 
       ktic = 0
 
-      write (*,1050) 'Beginning',what(1:nblen(what)),ttol
+      write (*,1050) 'Beginning',what(1:nblen(what)),pt,
+     *                ttol,unit(1:nblen(unit))
 
       nmiss = 0
       nla = 0
@@ -1706,17 +1731,32 @@ c                              set bulk composition this grid element
             v(iv1) = vmin(iv1)
             call lpopt (i,j,idead)
             if (idead .ne. 0) then
-               write (*,1020) 'low',i,j,cx
+               write (*,1020) 'low',pt,i,j,cx
                tgrid(i,j) = vmin(iv1)
                nmiss = nmiss + 1
                cycle
             endif
+
             call clsliq(iap(igrd(i,j)), nliq, liq, l)
-            if (l.eq.2) then
+            if (pt.eq.'T' .and. l.eq.2) then
                if (.not.init) then
 c                              only suggest problem if past exploratory phase
                   call psbtxt (iap(igrd(i,j)),assmb,l)
-                  write (text,1010) i,j,cx,'no','lowest',assmb(1:l)
+                  write (text,1010) i,j,cx,
+     *               'no solid(s)','lowest',pt,assmb(1:l)
+                  call deblnk (text)
+                  write (*,'(/,a)') text(1:nblen(text))
+               endif
+               tgrid(i,j) = vmin(iv1)
+               nmiss = nmiss + 1
+               cycle
+            endif
+            if (pt.eq.'P' .and. l.eq.0) then
+               if (.not.init) then
+c                              only suggest problem if past exploratory phase
+                  call psbtxt (iap(igrd(i,j)),assmb,l)
+                  write (text,1010) i,j,cx,
+     *               'no liquid','lowest',pt,assmb(1:l)
                   call deblnk (text)
                   write (*,'(/,a)') text(1:nblen(text))
                endif
@@ -1729,36 +1769,53 @@ c                              only suggest problem if past exploratory phase
             ktic = ktic + 1
             v(iv1) = vmax(iv1)
             call lpopt (i,j,idead)
+            if (idead.ne.0) then
+               write (*,1020) 'high',pt,i,j,cx
+               nmiss = nmiss + 1
+               cycle
+            end if
 
             call clsliq(iap(igrd(i,j)), nliq, liq, l)
-            if (idead.ne.0 .or.
-     *          (.not.sol .and. l.ne.2) .or.
-     *          (sol .and. l.eq.0)) then
-               if (idead.ne.0) then
-                  write (*,1020) 'high',i,j,cx
-               else
-                  if (.not.init) then
+            if (pt.eq.'T' .and.
+     *          ((.not.sol .and. l.ne.2) .or.
+     *                (sol .and. l.eq.0))) then
+               if (.not.init) then
 c                              only suggest problem if past exploratory phase
-                     call psbtxt (iap(igrd(i,j)),assmb,l)
-                     write (text,1010) i,j,cx,'','highest',assmb(1:l)
-                     call deblnk (text)
-                     write (*,'(/,a)') text(1:nblen(text))
-                  endif
-                  tgrid(i,j) = vmax(iv1)
-                  igrd(i,1) = sgrd
+                  call psbtxt (iap(igrd(i,j)),assmb,l)
+                  write (text,1010)
+     *               i,j,cx,'solid(s)','highest',pt,assmb(1:l)
+                  call deblnk (text)
+                  write (*,'(/,a)') text(1:nblen(text))
                endif
+               tgrid(i,j) = vmax(iv1)
+               igrd(i,1) = sgrd
+               nmiss = nmiss + 1
+               cycle
+            endif
+            if (pt.eq.'P' .and. l.ne.0) then
+               if (.not.init) then
+c                              only suggest problem if past exploratory phase
+                  call psbtxt (iap(igrd(i,j)),assmb,l)
+                  write (text,1010)
+     *               i,j,cx,'liquid','highest',pt,assmb(1:l)
+                  call deblnk (text)
+                  write (*,'(/,a)') text(1:nblen(text))
+               endif
+               tgrid(i,j) = vmax(iv1)
+               igrd(i,1) = sgrd
                nmiss = nmiss + 1
                cycle
             endif
 
-            call fndliq(i,j,ttol,sol,ktic,nliq,liq,tliq)
+            call fndliq(i,j,ttol,opts,ktic,nliq,liq,tliq)
 
 c                                 save liquidus assemblage
 c                                 slow to do linear search for duplicates
 c                                 but we don't expect to have many
             sgrd = igrd(i,j)
             if (sgrd.eq.0) then
-               print '(/,2(1x,i5),2(1x,f6.4),1x,a)',i,j,cx,'miss'
+               if (.not.init)
+     *            print '(/,2(1x,i5),2(1x,f6.4),1x,a)',i,j,cx,'miss'
                nmiss = nmiss + 1
                cycle
             end if
@@ -1781,13 +1838,12 @@ c                                 get hot points
       kinc21 = kinc2 + 1
 
       do i = 1, loopx - kinc, kinc
-c        do j = 1, loopy - i*kinc, kinc
-c                                 this is the indexing that george checked
-c                                 may 20 with CaO-Al2O3
          do j = 1, loopy - (i - 1) - kinc, kinc
 c                                 need to check that amihot is not
 c                                 somehow flagging superdiagonal nodes!
-            if (igrd(i+kinc,j+kinc) .le. 0) then
+c           if (igrd(i+kinc,j+kinc).le.0 .or.
+c    *          igrd(i,j+kinc).le.0 .or. igrd(i+kinc,j).le.0) then
+            if (igrd(i+kinc,j+kinc).le.0) then
                jhot = 1
             else
                call amihot (i,j,jhot,kinc)
@@ -1815,7 +1871,8 @@ c                                 fill in entire cell
 c                              now refine on all higher levels:
       do k = 2, jlev
 c                              set T tolerance
-         write (*,1050) 'Continuing',what(1:nblen(what)),ttol
+         write (*,1050) 'Continuing',what(1:nblen(what)),pt,
+     *                  ttol,unit(1:nblen(unit))
 c                              set new hot cell counter
          khot = 0 
          jtic = 0 
@@ -1842,7 +1899,7 @@ c                              forget cells already on grid diagonal
                cx(1) = (icent-1)/dfloat(loopx-1)
                cx(2) = (jcent-1)/dfloat(loopy-1)
                call setblk
-               call fndliq(icent,jcent,ttol,sol,jtic,nliq,liq,tliq)
+               call fndliq(icent,jcent,ttol,opts,jtic,nliq,liq,tliq)
                tgrid(icent,jcent) = tliq
             end if 
 c                              now determine which of the diagonals
@@ -1858,7 +1915,10 @@ c                              has a change
                if (jjc.ge.loopy-(iic-1)-kinc) cycle
                if (igrd(i,j).eq.0) then
                   jhot = 1
+               else if (igrd(icent,jcent).eq.0) then
+                  jhot = 1
                else if (iap(igrd(i,j)).ne.iap(igrd(icent,jcent))) then
+c              if (iap(igrd(i,j)).ne.iap(igrd(icent,jcent))) then
                   jhot = 1
                else
                   jhot = 0
@@ -1879,7 +1939,7 @@ c                              compute assemblages at new nodes
                         cx(1) = (ii-1)/dfloat(loopx-1)
                         cx(2) = (jj-1)/dfloat(loopy-1)
                         call setblk
-                        call fndliq(ii,jj,ttol,sol,jtic,nliq,liq,tliq)
+                        call fndliq(ii,jj,ttol,opts,jtic,nliq,liq,tliq)
                         tgrid(ii,jj) = tliq
                      end if 
                   end do 
@@ -1904,6 +1964,7 @@ c                              both corners
                         icell = icell + kk - 1
                         if (icell.gt.4) icell = 1
                         
+                        if (igrd(je,je).eq.0) cycle
                         if (iap(igrd(ii,jj)).ne.iap(igrd(ie,je)).and.
      *                     lhot(icell).eq.0) then 
 c                               new cell
@@ -1924,7 +1985,7 @@ c                                compute assemblage at cell nodes
                                  cx(1) = (iil-1)/dfloat(loopx-1)
                                  cx(2) = (jjl-1)/dfloat(loopy-1)
                                  call setblk
-                                 call fndliq(iil,jjl,ttol,sol,jtic,
+                                 call fndliq(iil,jjl,ttol,opts,jtic,
      *                                       nliq,liq,tliq)
                                  tgrid(iil,jjl) = tliq
                               end if 
@@ -1989,7 +2050,7 @@ c                                 add liquidus assemblages to print file
 c                                 write liquid ids and grid temps to aux file
          call mertxt (tfname,prject,'.liq',0)
          call inqopn (n8,tfname)
-         write (n8,*) nliq,(liq(i),i=1,nliq)
+         write (n8,*) nliq,(liq(i),i=1,nliq),' ',what
          do i = 1, loopx
             do j = 1, loopx-i + 1
 c                                 fill in missing temperatures
@@ -2005,13 +2066,13 @@ c              if (tgrid(i,j).eq.0) print'(1x,a,2(1x,i2))','0:',i,j
       init = .false.
 
 1010  format ('**Assemblage',2(1x,i5),2(1x,f6.4),' has ',a,
-     *        ' solid(s) at ',a,' T: ',a)
-1020  format (/,'**Unable to define ',a,' T assemblage: ind.',2(1x,i5),
-     *        2(1x,f6.4))
+     *        ' at',2(1x,a),': ',a)
+1020  format (/,'**Unable to define',2(1x,a),' assemblage: ind.',
+     *        2(1x,i5),2(1x,f6.4))
 1030  format (f5.1,'% done with low level grid.')
 1040  format (2(i4,1x),a,a)
-1050  format (/,2(a,1x),'temperature refinement ',
-     *        'to +/-',f6.2,' K tolerance.',/)
+1050  format (/,3(a,1x),'refinement ',
+     *        'to +/-',f6.2,1x,a,1x,'tolerance.',/)
 1060  format (/,i6,' grid cells of ',i6,' failed liquidus search.',/)
 1065  format (i6,' grid cells to be refined at grid level ',i1)
 1070  format (/,7x,'refinement at level ',i1,' involved ',i6,
@@ -2022,24 +2083,32 @@ c              if (tgrid(i,j).eq.0) print'(1x,a,2(1x,i2))','0:',i,j
 
       end 
 
-      subroutine fndliq(i,j,tol,sol,ktic,nliq,liq,tliq)
+      subroutine fndliq(i,j,tol,opts,ktic,nliq,liq,tliq)
 c--------------------------------------------------------------- 
 c fndliq iterates on element (i,j) in the grid to locate the liquidus or
 c solidus assemblage to within tolerance tol.
-c sol = .true. if finding solidus, = .false. if finding liquidus.
+c opts are search options, encoded as two bits:
+c    x 0 = finding liquidus
+c    x 1 = finding solidus
+c    0 x = T search (high -> liquid, low -> solid)
+c    1 x = P search (low -> liquid, high -> solid)
 c ktic is an iteration counter.
 c liq(1:nliq) is a list of liquid phases.
 c returns tliq with the temperature found.
-c on return, igrd(i,j) = 0 if there is a failure to find a liquidis/solidus
+c on return, igrd(i,j) = 0 if there is a failure to find a liquidus/solidus
 c assemblage.
+c 
+c clsliq returns: type = 0 if no liquid
+c                 type = 1 if liquid + solid
+c                 type = 2 if liquid only
 
       implicit none
 
       include 'perplex_parameters.h'
 
-      logical sol
+      logical sol, pl
 
-      integer i,j,ktic,nliq,liq(nliq)
+      integer opts, i,j,ktic,nliq,liq(nliq)
       double precision tol,tliq
 
       integer k, l, idead, sgrd
@@ -2053,6 +2122,9 @@ c assemblage.
 
       double precision vmax,vmin,dv
       common/ cst9  /vmax(l2),vmin(l2),dv(l2)
+
+      sol = mod(opts,2) .eq. 1
+      pl = opts/2 .eq. 1
 
       tlo = vmin(iv1)
       thi = vmax(iv1)
@@ -2069,16 +2141,41 @@ c                                 or to uncertainty < nopt(2)
            v(iv1) = vmax(iv1)
            sgrd = 0
            exit
-        endif
+        end if
         call clsliq(iap(igrd(i,j)), nliq, liq, l)
-        if (l .eq. 2 .and. .not.sol) then
-           thi = v(iv1)
-        else if (l .ge. 1 .and. sol) then
-           thi = v(iv1)
+        if (pl) then
+           if (l .eq. 0) then
+c                                 s: upper bound, save solid
+              thi = v(iv1)
+              sgrd = igrd(i,j)
+           else if (l .eq. 1) then
+c                                 s+l: save solid
+              sgrd = igrd(i,j)
+              if (sol) then
+c                                 solidus: lower bound
+                 tlo = v(iv1)
+              else
+c                                 liquidus: upper bound
+                 thi = v(iv1)
+              end if
+           else
+c                                 l: lower bound
+              tlo = v(iv1)
+           end if
         else
-           tlo = v(iv1)
-           sgrd = igrd(i,j)
-        endif
+           if (l .eq. 2 .and. .not.sol) then
+c                                 if liquidus and all liquid, upper bound
+              thi = v(iv1)
+           else if (l .ge. 1 .and. sol) then
+c                                 if solidus and some liquid, upper bound
+              thi = v(iv1)
+              sgrd = igrd(i,j)
+           else
+c                                 lower bound, keep solid assemblage
+              tlo = v(iv1)
+              sgrd = igrd(i,j)
+           end if
+        end if
         if (0.eq.mod(ktic,500)) write (*,1090) char(13),ktic
         if (thi - tlo .lt. tol) exit
       end do
@@ -2248,7 +2345,11 @@ c                               get hot points
 
       do i = 1, loopx-1, kinc
          do j = 1, loopy-1, kinc
-            call amihot (i,j,jhot,kinc)
+            if (igrd(i,j+kinc).le.0 .or. igrd(i+kinc,j).le.0) then
+               jhot = 1
+            else
+               call amihot (i,j,jhot,kinc)
+            end if
             if (jhot.ne.0) then 
                ihot = ihot + 1
                hotij(ihot,1) = i
