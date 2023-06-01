@@ -2150,26 +2150,32 @@ c                                 s: upper bound, save solid
               sgrd = igrd(i,j)
            else if (l .eq. 1) then
 c                                 s+l: save solid
-              sgrd = igrd(i,j)
               if (sol) then
 c                                 solidus: lower bound
                  tlo = v(iv1)
               else
 c                                 liquidus: upper bound
                  thi = v(iv1)
+                 sgrd = igrd(i,j)
               end if
            else
 c                                 l: lower bound
               tlo = v(iv1)
            end if
         else
-           if (l .eq. 2 .and. .not.sol) then
-c                                 if liquidus and all liquid, upper bound
+           if (l .eq. 2) then
+c                                 if all liquid, upper bound
               thi = v(iv1)
-           else if (l .ge. 1 .and. sol) then
-c                                 if solidus and some liquid, upper bound
-              thi = v(iv1)
-              sgrd = igrd(i,j)
+           else if (l .ge. 1) then
+c                                 s+l: save solid
+              if (sol) then
+c                                 solidus: upper bound
+                 thi = v(iv1)
+              else
+c                                 liquidus: lower bound
+                 tlo = v(iv1)
+                 sgrd = igrd(i,j)
+              end if
            else
 c                                 lower bound, keep solid assemblage
               tlo = v(iv1)
