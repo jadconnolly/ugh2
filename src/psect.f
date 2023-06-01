@@ -1244,7 +1244,7 @@ c                                 define contour levels
          cont = pcont
          text = '(i3,1x,a,/,(9(1x,f7.0)))'
       end if
-      vlo = int(lvmin/cont)*cont
+      vlo = int((lvmin+0.5d0*cont)/cont)*cont
       vhi = int((lvmax+0.5d0*cont)/cont)*cont
       ncon = 1 + nint((vhi-vlo)/cont)
       do j = 1, ncon
