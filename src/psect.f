@@ -1080,7 +1080,7 @@ c----------------------------------------------------------------------
      *         cvec(3), dinv(3,3), yssol(m14+2,k2), cssol(k2), wt(3),
      *         cont
 
-      double precision rline,thick,font,
+      double precision rline,thick,font,xdc,
      *                 clinex(npts),cliney(npts),
      *                 linex(npts),liney(npts),
      *                 cline(2,npts),segs(4,nseg)
@@ -1667,6 +1667,7 @@ c                                 new solid assemblage; make name for debug
          j = 1
          do k = 0, nabs(nass)-1
             call getnam(text(j:),lsol(labs(nass)+k))
+            if (text(j:) .eq. ' ') cycle
             j = nblen(text)
             text(j+1:j+1) = '+'
             j = j + 2
@@ -1740,6 +1741,9 @@ c           call psbspl (linex, liney, l, 1d0, 2d0, 0)
 
 c     Label each liquidus/solidus phase field.
 
+c                                 character widths
+      xdc = dcx*nscale/1.75d0
+
 c                                 now have all solid assemblages, start grouping
 c                                 algorithm
       do k = 1, nass
@@ -1755,6 +1759,7 @@ c                                 form name of solids assembly for any messages
          end do
          iend = nblen(text)-1
          text(iend+1:iend+1) = ' '
+ 
 c        print*,'Working on ',text(1:iend)
 c        off = text(1:iend) .eq. 'pswo'
 
@@ -1902,7 +1907,7 @@ c              cycle
 c           print*,'Put ',text(1:iend),' at ',x,y
 c           call pselip (x,y, 0.25d0*dcx, 0.25d0*dcy, 1d0,0d0,0,0,1)
             call pssctr (ifont,ascale,ascale, 0d0)
-            call pstext (x+dcx*ascale,y+.7d0*dcy*ascale,
+            call pstext (x+dcx*ascale-xdc/2d0*iend,y+.7d0*dcy*ascale,
      *                   text,iend)
          end do
 
