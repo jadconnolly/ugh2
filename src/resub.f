@@ -18,7 +18,7 @@ c-----------------------------------------------------------------------
 
       integer liw,lw,k,idead,inc,lphct,jter, lpprob
 
-      parameter (liw=2*k1+3,lw=2*(k5+1)**2+7*k1+5*k5)  
+      parameter (liw=2*k1+3,lw=2*(k5+1)**2+7*k1+5*k5)
 
       double precision ax(k5),x(k1),w(lw),oldt,oldp,gtot,
      *                 tol,oldx,clamda(k1+k5)

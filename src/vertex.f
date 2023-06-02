@@ -1355,7 +1355,11 @@ c-----------------------------------------------------------------------
       double precision units, r13, r23, r43, r59, zero, one, r1
       common/ cst59 /units, r13, r23, r43, r59, zero, one, r1
 c-----------------------------------------------------------------------
-c                                 check for positive bulk
+c                                 check for positive bulk, this
+c                                 is for icont = 2 with closed
+c                                 compositions space (lopt(1) = T), george's
+c                                 indexing should eliminate the 
+c                                 possibility.
       idead = 0 
 
       do k = 1, hcp
@@ -1366,7 +1370,7 @@ c                                 check for positive bulk
          else 
             idead = 2
             exit 
-         end if 
+         end if
       end do 
 
       if (idead.eq.0) call lpopt0 (idead)
@@ -1389,6 +1393,188 @@ c                                 the molar amounts of the phases are in amt.
          iap(k2) = k3
 
       end if  
+
+      end 
+
+      subroutine lpopt1 (i,j,idead)
+c-----------------------------------------------------------------------
+c lpopt1 - does optimization for george's liquidus search without saving
+c or finalizing the results. results must be finalized by calling rebulk
+c and sorter.
+c-----------------------------------------------------------------------
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      integer i,j,k,idead
+
+      integer is
+      double precision a,b,c
+      common/ cst313 /a(k5,k1),b(k5),c(k1),is(k1+k5)
+
+      integer hcp,idv
+      common/ cst52  /hcp,idv(k7)
+
+      double precision units, r13, r23, r43, r59, zero, one, r1
+      common/ cst59 /units, r13, r23, r43, r59, zero, one, r1
+c-----------------------------------------------------------------------
+c                                 check for positive bulk, this
+c                                 is for icont = 2 with closed
+c                                 compositions space (lopt(1) = T), george's
+c                                 indexing should eliminate the 
+c                                 possibility.
+      idead = 0 
+
+      do k = 1, hcp
+         if (b(k).gt.0d0) then 
+            cycle
+         else if (dabs(b(k)).lt.zero) then
+            b(k) = 0d0
+         else 
+            idead = 2
+            exit 
+         end if
+      end do 
+
+      if (idead.eq.0) then
+c--------------
+      idegen = 0
+      jdegen = 0
+c                                 degeneracy test
+      do k = 1, icp 
+         if (b(k).eq.0d0) then 
+            idegen = idegen + 1
+            idg(idegen) = k
+         else 
+            jdegen = jdegen + 1
+            jdg(jdegen) = k
+         end if
+      end do
+
+      inc = istct - 1
+
+      oldt = t
+      oldp = p
+      oldx = xco2
+c                                logarithmic_p option
+      if (lopt(14)) p = 1d1**p
+c                                logarithmic_X option
+      if (lopt(37)) xco2 = 1d1**xco2
+c                                t_stop option
+      if (t.lt.nopt(12)) t = nopt(12)
+
+      if (lopt(61)) call begtim (1)
+
+      call gall
+
+      if (lopt(61)) call endtim (1,.false.,'Static GALL ')
+
+      do k = 1, jphct
+         c(k) = g(k+inc)/ctot(k+inc)
+      end do
+c                                 load the adaptive refinement cpd g's
+      do k = 1, jpoint
+         g2(k) = c(k)
+      end do 
+c                                 load the bulk into the constraint array
+      bl(jphct+1:jphct+icp) = b(1:icp)
+      bu(jphct+1:jphct+icp) = b(1:icp)
+
+      lpprob = 2
+      tol = wmach(4)
+
+      if (lopt(61)) call begtim (13)
+
+      call lpsol (jphct,hcp,a,k5,bl,bu,c,is,x,jter,gtot,ax,
+     *            clamda,iw,liw,w,lw,idead,istart,tol,lpprob)
+c                                 set istart according to static_LP_start
+      if (istart.ne.0) istart = iopt(39)
+
+      if (lopt(61)) call endtim (13,.false.,'Static optimization ')
+
+      if (idead.gt.0) then
+c                                 look for severe errors                                            
+         call lpwarn (idead,'LPOPT ')
+c                                 on severe error do a cold start.
+c                                 necessary?
+         istart = 0
+
+      else if (isoct.eq.0) then 
+c                                 no refinement, find the answer
+         call yclos0 (x,is,jphct) 
+c                                 final processing, .true. indicates static
+         call rebulk (abort,.true.)
+
+      else
+c                                 save lphct to recover static solution if
+c                                 no refinement 
+         lphct = jphct 
+c                                 find discretization points for refinement
+         call yclos1 (x,clamda,jphct,quit)
+c                                 returns quit if nothing to refine
+         if (quit) then 
+c                                 final processing, .true. indicates static
+            call rebulk (abort,.true.)
+
+         else
+c                                 initialize refinement point pointers
+            hkp(1:ipoint) = 0 
+c                                 reoptimize with refinement
+            call reopt (idead,gtot)
+
+            if (idead.eq.0) then 
+c                                 final processing, .false. indicates dynamic
+               call rebulk (abort,.false.)
+
+               if (abort.or.abort1) then
+
+                  if (abort) then 
+c                                 abort is set for bad lagged speciation 
+c                                 solutions in avrger when pure and impure 
+c                                 phases with same solvent composition coexist
+                     idead = 102
+
+                  else
+c                                 gaqlagd couldn't speciate a previously 
+c                                 speciated composition
+                     idead = 104
+
+                  end if
+
+                  call lpwarn (idead,'LPOPT0')
+
+               end if
+
+            else if (idead.eq.-1) then
+c                                 hail mary
+               jphct = lphct
+               idead = 0
+
+               call yclos0 (x,is,jphct) 
+               call rebulk (abort,.true.)
+
+            end if 
+
+         end if 
+
+      end if 
+
+      t = oldt
+      p = oldp
+      xco2 = oldx
+
+c--------------
+      end if
+c                                 if idead = 0 optimization was ok
+      if (idead.eq.0) then 
+
+         rcount(4) = rcount(4) + 1
+
+      else
+
+         rcount(5) = rcount(5) + 1
+
+      end if
 
       end 
 
@@ -1727,7 +1913,7 @@ c                              set bulk composition this grid element
             cx(1) = (i-1)/dfloat(loopx-1)
             cx(2) = (j-1)/dfloat(loopy-1)
             call setblk
-
+c                              check the assemblage at the minimum
             v(iv1) = vmin(iv1)
             call lpopt (i,j,idead)
             if (idead .ne. 0) then
@@ -1738,6 +1924,7 @@ c                              set bulk composition this grid element
             endif
 
             call clsliq(iap(igrd(i,j)), nliq, liq, l)
+
             if (pt.eq.'T' .and. l.eq.2) then
                if (.not.init) then
 c                              only suggest problem if past exploratory phase
@@ -1751,6 +1938,7 @@ c                              only suggest problem if past exploratory phase
                nmiss = nmiss + 1
                cycle
             endif
+
             if (pt.eq.'P' .and. l.eq.0) then
                if (.not.init) then
 c                              only suggest problem if past exploratory phase
@@ -1765,7 +1953,7 @@ c                              only suggest problem if past exploratory phase
                cycle
             endif
             sgrd = igrd(i,j)
-
+c                              check the assemblage at the maximum
             ktic = ktic + 1
             v(iv1) = vmax(iv1)
             call lpopt (i,j,idead)
@@ -1776,6 +1964,7 @@ c                              only suggest problem if past exploratory phase
             end if
 
             call clsliq(iap(igrd(i,j)), nliq, liq, l)
+
             if (pt.eq.'T' .and.
      *          ((.not.sol .and. l.ne.2) .or.
      *                (sol .and. l.eq.0))) then
@@ -1806,7 +1995,7 @@ c                              only suggest problem if past exploratory phase
                nmiss = nmiss + 1
                cycle
             endif
-
+c                                 look for the liquidus:
             call fndliq(i,j,ttol,opts,ktic,nliq,liq,tliq)
 
 c                                 save liquidus assemblage
