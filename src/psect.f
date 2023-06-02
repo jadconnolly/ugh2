@@ -1742,7 +1742,7 @@ c           call psbspl (linex, liney, l, 1d0, 2d0, 0)
 c     Label each liquidus/solidus phase field.
 
 c                                 character widths
-      xdc = dcx*nscale/1.75d0
+      xdc = dcx*ascale/1.75d0
 
 c                                 now have all solid assemblages, start grouping
 c                                 algorithm
@@ -1907,7 +1907,7 @@ c              cycle
 c           print*,'Put ',text(1:iend),' at ',x,y
 c           call pselip (x,y, 0.25d0*dcx, 0.25d0*dcy, 1d0,0d0,0,0,1)
             call pssctr (ifont,ascale,ascale, 0d0)
-            call pstext (x+dcx*ascale-xdc/2d0*iend,y+.7d0*dcy*ascale,
+            call pstext (x+dcx*ascale-xdc*iend,y+.7d0*dcy*ascale,
      *                   text,iend)
          end do
 
