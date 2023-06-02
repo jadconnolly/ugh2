@@ -1814,8 +1814,8 @@ c                                 slow to do linear search for duplicates
 c                                 but we don't expect to have many
             sgrd = igrd(i,j)
             if (sgrd.eq.0) then
-               if (.not.init)
-     *            print '(/,2(1x,i5),2(1x,f6.4),1x,a)',i,j,cx,'miss'
+               if (.not.init) write(*,1000) i,j,cx,
+     *               'no',what(1:nblen(what)),pt,'found'
                nmiss = nmiss + 1
                cycle
             end if
@@ -2065,6 +2065,7 @@ c              if (tgrid(i,j).eq.0) print'(1x,a,2(1x,i2))','0:',i,j
 
       init = .false.
 
+1000  format (/,2(1x,i5),2(1x,f6.4),4(1x,a))
 1010  format ('**Assemblage',2(1x,i5),2(1x,f6.4),' has ',a,
      *        ' at',2(1x,a),': ',a)
 1020  format (/,'**Unable to define',2(1x,a),' assemblage: ind.',
