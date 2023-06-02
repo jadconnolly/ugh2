@@ -1738,7 +1738,9 @@ c                              set bulk composition this grid element
             endif
 
             call clsliq(iap(igrd(i,j)), nliq, liq, l)
-            if (pt.eq.'T' .and. l.eq.2) then
+            if (pt.eq.'T' .and.
+     *         ((sol .and. l.ne.0) .or. (.not.sol .and. l.eq.2))
+     *      ) then
                if (.not.init) then
 c                              only suggest problem if past exploratory phase
                   call psbtxt (iap(igrd(i,j)),assmb,l)
