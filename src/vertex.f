@@ -1396,34 +1396,72 @@ c                                 the molar amounts of the phases are in amt.
 
       end 
 
-      subroutine lpopt1 (i,j,idead)
+      subroutine lpopt1 (idead,statik)
 c-----------------------------------------------------------------------
 c lpopt1 - does optimization for george's liquidus search without saving
 c or finalizing the results. results must be finalized by calling rebulk
-c and sorter.
+c and sorter, the call to rebulk needs to know is static or not.
 c-----------------------------------------------------------------------
       implicit none
 
       include 'perplex_parameters.h'
 
-      integer i,j,k,idead
+      integer liw, lw, k, idead, inc, lphct, jter, lpprob
+
+      parameter (liw=2*k1+3,lw=2*(k5+1)**2+7*k1+5*k5)
+
+      double precision ax(k5),x(k1),w(lw),oldt,oldp,gtot,
+     *                 tol,oldx,clamda(k1+k5)
+
+      integer iw(liw)
+
+      logical quit, statik
 
       integer is
       double precision a,b,c
       common/ cst313 /a(k5,k1),b(k5),c(k1),is(k1+k5)
 
+      integer jphct,istart
+      common/ cst111 /jphct,istart
+
+      double precision g
+      common/ cst2 /g(k1)
+
       integer hcp,idv
       common/ cst52  /hcp,idv(k7)
 
+      integer icomp,istct,iphct,icp
+      common/ cst6  /icomp,istct,iphct,icp
+
+      integer ipoint,kphct,imyn
+      common/ cst60 /ipoint,kphct,imyn
+
+      integer tphct
+      double precision g2, cp2, c2tot
+      common/ cxt12 /g2(k21),cp2(k5,k21),c2tot(k21),tphct
+
+      double precision p,t,xco2,u1,u2,tr,pr,r,ps
+      common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
+
+      double precision wmach
+      common/ cstmch /wmach(10)
+
+      double precision bl,bu
+      common/ cstbup /bl(k1+k5),bu(k1+k5)
+
       double precision units, r13, r23, r43, r59, zero, one, r1
       common/ cst59 /units, r13, r23, r43, r59, zero, one, r1
+
+      save ax, x, clamda, w, iw
 c-----------------------------------------------------------------------
 c                                 check for positive bulk, this
 c                                 is for icont = 2 with closed
 c                                 compositions space (lopt(1) = T), george's
 c                                 indexing should eliminate the 
 c                                 possibility.
-      idead = 0 
+      idead = 0
+
+      statik = .true.
 
       do k = 1, hcp
          if (b(k).gt.0d0) then 
@@ -1501,9 +1539,7 @@ c                                 necessary?
 
       else if (isoct.eq.0) then 
 c                                 no refinement, find the answer
-         call yclos0 (x,is,jphct) 
-c                                 final processing, .true. indicates static
-         call rebulk (abort,.true.)
+         call yclos0 (x,is,jphct)
 
       else
 c                                 save lphct to recover static solution if
@@ -1514,7 +1550,7 @@ c                                 find discretization points for refinement
 c                                 returns quit if nothing to refine
          if (quit) then 
 c                                 final processing, .true. indicates static
-            call rebulk (abort,.true.)
+            statik = .true.
 
          else
 c                                 initialize refinement point pointers
@@ -1522,28 +1558,9 @@ c                                 initialize refinement point pointers
 c                                 reoptimize with refinement
             call reopt (idead,gtot)
 
-            if (idead.eq.0) then 
-c                                 final processing, .false. indicates dynamic
-               call rebulk (abort,.false.)
+            if (idead.eq.0) then
 
-               if (abort.or.abort1) then
-
-                  if (abort) then 
-c                                 abort is set for bad lagged speciation 
-c                                 solutions in avrger when pure and impure 
-c                                 phases with same solvent composition coexist
-                     idead = 102
-
-                  else
-c                                 gaqlagd couldn't speciate a previously 
-c                                 speciated composition
-                     idead = 104
-
-                  end if
-
-                  call lpwarn (idead,'LPOPT0')
-
-               end if
+               statik = .false.
 
             else if (idead.eq.-1) then
 c                                 hail mary
@@ -1551,7 +1568,6 @@ c                                 hail mary
                idead = 0
 
                call yclos0 (x,is,jphct) 
-               call rebulk (abort,.true.)
 
             end if 
 
@@ -1682,7 +1698,7 @@ c---------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical init, got, output, sol
+      logical init, got, output, sol, statik
 
       character assmb*128, text*240, cr*1, what*8, unit*8, pt*1
 
@@ -1908,14 +1924,16 @@ c                              highest t; liquid should be present
                write (*,1090) cr,ktic
             endif
             ktic = ktic + 1
-
 c                              set bulk composition this grid element
             cx(1) = (i-1)/dfloat(loopx-1)
             cx(2) = (j-1)/dfloat(loopy-1)
+
             call setblk
 c                              check the assemblage at the minimum
             v(iv1) = vmin(iv1)
-            call lpopt (i,j,idead)
+
+            call lpopt1 (idead,statik)
+
             if (idead .ne. 0) then
                write (*,1020) 'low',pt,i,j,cx
                tgrid(i,j) = vmin(iv1)
@@ -1923,7 +1941,9 @@ c                              check the assemblage at the minimum
                cycle
             endif
 
-            call clsliq(iap(igrd(i,j)), nliq, liq, l)
+            call clslq1 (nliq, liq, l)
+
+            call clsliq (iap(igrd(i,j)), nliq, liq, l)
 
             if (pt.eq.'T' .and. l.eq.2) then
                if (.not.init) then
@@ -2378,6 +2398,52 @@ c                                 lower bound, keep solid assemblage
       tliq = v(iv1)
 
 1090  format (a,7x,'...working (',i6,' minimizations done)',$)
+      end
+
+
+      subroutine clslq1 (nliq, liqsls, type)
+c----------------------------------------------------------------------
+c classify grid item one of three ways:
+c type = 0 if no liquid
+c type = 1 if liquid + solid
+c type = 2 if liquid only
+c--------------------------------------------------------------- 
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      integer i, j, nliq, liqsls(nliq), type
+
+      logical is, liq, sol
+
+      integer npt,jdv
+      double precision cptot,ctotal
+      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt
+c--------------------------------------------------------------- 
+      type = 0
+
+      do i = 1, npt
+
+         do j = 1, nliq
+            is = jkp(jdv(i)).eq.liqsls(j)
+            if (is) exit
+         end do
+
+         liq = liq .or. is
+         sol = sol .or. .not. is
+
+      end do
+
+      if (liq) then
+
+         if (sol) then
+           type = 1
+        else
+           type = 2
+        end if
+
+      end if
+
       end
 
       subroutine clsliq(id, nliq, liqsls, type)
