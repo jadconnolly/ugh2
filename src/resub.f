@@ -16,14 +16,15 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer liw,lw,k,idead,inc,lphct,jter, lpprob
+      integer k, idead, inc, lphct, jter, lpprob
 
-      parameter (liw=2*k1+3,lw=2*(k5+1)**2+7*k1+5*k5)
+c     parameter (liw=2*k1+3,lw=2*(k5+1)**2+7*k1+5*k5)
 
-      double precision ax(k5),x(k1),w(lw),oldt,oldp,gtot,
+      double precision ax(k5),x(k1),oldt,oldp,gtot,
      *                 tol,oldx,clamda(k1+k5)
 
-      integer iw(liw)
+c     integer iwbig(liwbig)
+c     double precision wbig(lwbig)
 
       logical quit, abort
 
@@ -66,7 +67,8 @@ c-----------------------------------------------------------------------
       double precision wmach
       common/ cstmch /wmach(10)
 
-      save ax, x, clamda, w, iw
+      save ax, x, clamda
+c     save ax, x, clamda, w, iw
 c-----------------------------------------------------------------------
       idegen = 0
       jdegen = 0
@@ -115,8 +117,8 @@ c                                 load the bulk into the constraint array
 
       if (lopt(61)) call begtim (13)
 
-      call lpsol (jphct,hcp,a,k5,bl,bu,c,is,x,jter,gtot,ax,
-     *            clamda,iw,liw,w,lw,idead,istart,tol,lpprob)
+      call lpsol (jphct,hcp,a,k5,bl,bu,c,is,x,jter,gtot,ax,clamda,
+     *            iwbig,liwbig,wbig,lwbig,idead,istart,tol,lpprob)
 c                                 set istart according to static_LP_start
       if (istart.ne.0) istart = iopt(39)
 
