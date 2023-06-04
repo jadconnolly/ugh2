@@ -1927,8 +1927,8 @@ c                                 make main plot label
 c----------------------------------------------------------------------
       integer function iassf(i,n,iparent)
 c----------------------------------------------------------------------
-c iassf - function to find root node of a group.  Algorithm is the
-c     (merge-find algorithm); for explanation, see
+c iassf - function to find root node of a group.  Algorithm used is the
+c     merge-find algorithm; for explanation, see
 c     https://en.wikipedia.org/wiki/Disjoint-set_data_structure.
 c----------------------------------------------------------------------
 
@@ -2726,6 +2726,51 @@ c                                 even numbers (0, 2, ... point up)
       stop '**GRDDEC: GULP! Must be wrong "ng" for face "i"'
       end
 
+      subroutine grdnnf(i, ng, nn, nnf)
+c--------------------------------------------------------------------
+c grdnnf - decode face (or triangle number) i and return faces (triangle
+c          numbers) with adjoining edges.  See grdecod for numbering scheme.
+c   i - face index
+c   ng - grid dimension
+c   nn - number of neighboring faces:  1 <= n <= 3
+c   nnf - list of neighboring face numbers:  1 .. n
+c--------------------------------------------------------------------
+      implicit none
+
+      integer i, ng, nn, nnf(3)
+
+      integer j, n, iseq, ihgt
+
+      iseq = 1
+      n = 0
+      do j = 1, ng
+         iseq = iseq + n
+         n = 1 + (j-1)*2
+         if (i-(iseq+n) .lt. 0) exit
+      end do
+      ihgt = i-iseq
+      nn = 0
+      if (ihgt.gt.0) then
+         nn = nn + 1
+         nnf(nn) = i-1
+      end if
+      if (ihgt.lt.n-1) then
+         nn = nn + 1
+         nnf(nn) = i+1
+      end if
+      if (1.eq.mod(ihgt,2)) then
+         if (i-n+1 .gt. 0) then
+            nn = nn + 1
+            nnf(nn) = i-n+1
+         end if
+      else
+         if (iseq.le.ng-1) then
+            nn = nn + 1
+            nnf(nn) = i+n+1
+         end if
+      end if
+      end
+
       subroutine segchk (j, x, y)
 c---------------------------------------------------------------------- 
 c segchk - Paths are described by segments across triangles.  Each segment has
@@ -2742,7 +2787,7 @@ c----------------------------------------------------------------------
 
       double precision x(*), y(*), tol, dist, xh, yh
 
-      dist(i,j) = dsqrt((x(i)-x(j))**2 + (y(i)-y(j))**2)
+      dist(i,j) = ((x(i)-x(j))**2 + (y(i)-y(j))**2)
 
       tol = 0.1d0*dist(1,2)
 
@@ -3325,49 +3370,4 @@ c--------------------------------------------------------------------
       r(1) = x(1) - y(1) 
       r(2) = x(2) - y(2)
       r(3) = x(3) - y(3)
-      end
-
-      subroutine grdnnf(i, ng, nn, nnf)
-c--------------------------------------------------------------------
-c grdnnf - decode face (or triangle number) i and return faces (triangle
-c          numbers) with adjoining edges.
-c   i - face index
-c   ng - grid dimension
-c   nn - number of neighboring faces:  1 <= n <= 3
-c   nnf - list of neighboring face numbers:  1 .. n
-c--------------------------------------------------------------------
-      implicit none
-
-      integer i, ng, nn, nnf(3)
-
-      integer j, n, iseq, ihgt
-
-      iseq = 1
-      n = 0
-      do j = 1, ng
-         iseq = iseq + n
-         n = 1 + (j-1)*2
-         if (i-(iseq+n) .lt. 0) exit
-      end do
-      ihgt = i-iseq
-      nn = 0
-      if (ihgt.gt.0) then
-         nn = nn + 1
-         nnf(nn) = i-1
-      end if
-      if (ihgt.lt.n-1) then
-         nn = nn + 1
-         nnf(nn) = i+1
-      end if
-      if (1.eq.mod(ihgt,2)) then
-         if (i-n+1 .gt. 0) then
-            nn = nn + 1
-            nnf(nn) = i-n+1
-         end if
-      else
-         if (iseq.le.ng-1) then
-            nn = nn + 1
-            nnf(nn) = i+n+1
-         end if
-      end if
       end
