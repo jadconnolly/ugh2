@@ -2291,7 +2291,8 @@ c                              check the assemblage at the minimum
 
       call clslq1 (nliq, liq, l)
 
-      if (pt.eq.'T' .and. l.eq.2) then
+      if (pt.eq.'T' .and.
+     *    ((sol .and. l.ne.0) .or. (.not.sol .and. l.eq.2))) then
 
          if (refine) then
 c                              only suggest problem if past exploratory phase

@@ -3199,9 +3199,9 @@ c                                 total mass
 c                                 HS limiting moduli
       do i = 1, 6
          hsb(i,1) = 1d99
-         hsb(i,2) = 0d0         
+         hsb(i,2) = 0d0
          hsb(i,3) = 1d99
-         hsb(i,4) = 0d0 
+         hsb(i,4) = 0d0
       end do     
 
       do i = 1, icomp
