@@ -1615,8 +1615,6 @@ c                                 hail mary
          end if 
 
       end if
-c                                 save the result for recovery
-      call savlst (.false.,statik)
 
       t = oldt
       p = oldp
@@ -2182,7 +2180,7 @@ c                                fill hot cells
 
          write (*,1070) k,jtic
          ktic = ktic + jtic
- 
+
          write (*,1080) ktic,(loopx/kinc)*(loopy/kinc+1)/2*16
 
          if (khot.eq.0.or.k.eq.jlev) exit 
@@ -2267,6 +2265,10 @@ c
 c clsliq returns: type = 0 if no liquid
 c                 type = 1 if liquid + solid
 c                 type = 2 if liquid only
+
+c the trick here is that for liquidus calculations the last subliquidus
+c result needs to be saved, whereas for solidus calculations the last
+c supersolidus result should be saved.
 c--------------------------------------------------------------- 
       implicit none
 
@@ -2478,6 +2480,12 @@ c                                 lower bound, keep solid assemblage
         if (0.eq.mod(ktic,500)) write (*,1090) char(13),ktic
 
         if (thi - tlo .lt. tol) exit
+c                                 save the last wrong-side result
+        if (sol.and.l.ne.0 .or. .not.sol.and.l.ne.2) then
+
+           call savlst (.false.,statik,l)
+
+        end if
 
       end do
 c                                 final processing:
@@ -2487,6 +2495,15 @@ c                                 fndliq failed
 c                                 here's an opportunity to set
 c                                 a bad value for the temperature.
       else 
+
+         if (sol.and.l.eq.0 .or. .not.sol.and.l.eq.2) then
+c                                 on the solid side of the solidus or
+c                                 the liquid side of the liquidus, back
+c                                 off to the last L+S result
+             call savlst (.true.,statik,l)
+c                                 this may not be resetting the endmember
+c                                 speciation (this needs to be checked!!)
+         end if
 c                                 finalize and save liquidus assemblage
          call rebulk (abort,statik)
 c                                 rebulk can set abort, but this would
@@ -2515,7 +2532,7 @@ c                                 george's failure policy?
 
       end
 
-      subroutine savlst (recov,statik)
+      subroutine savlst (recov,statik,l)
 c----------------------------------------------------------------------
 c save (~recov) or recover (recov) the information necessary to 
 c reconstruct the previous optimization result during iteration.
@@ -2526,10 +2543,19 @@ c----------------------------------------------------------------------
 
       logical recov, statik
 
+      integer l, i, ids
+
+      integer ipot,jv,iv1,iv2,iv3,iv4,iv5
+      common/ cst24 /ipot,jv(l2),iv1,iv2,iv3,iv4,iv5
+
+      double precision v,tr,pr,r,ps
+      common/ cst5  /v(l2),tr,pr,r,ps
+
       logical xstic
-      integer xnpt, xjdv
-      double precision xamt
-      common/ cstlst /xamt(k19),xjdv(k19),xnpt,xstic
+      integer xnpt, xjdv, xl, xlcoor, xlkp
+      double precision xamt, twrong, xycoor
+      common/ cstlst /xamt(k19), twrong, xycoor(k22), xlkp(k19),
+     *                xjdv(k19), xlcoor(k19), xnpt, xstic, xl
 
       integer npt,jdv
       double precision cptot,ctotal
@@ -2541,21 +2567,60 @@ c----------------------------------------------------------------------
 c----------------------------------------------------------------------
       if (.not.recov) then
 
+         xl = l
+         twrong = v(iv1)
          xstic = statik
          xnpt = npt
-         xjdv(1:npt) = jdv(1:npt)
-         xamt(1:npt) = amt(1:npt)
+
+         if (jdv(1)+jdv(2)+jdv(3).eq.37+209+229) then
+            write (*,*) 'oinko'
+         end if 
+
+         do i = 1, npt
+
+            xjdv(i) = jdv(i)
+            xamt(i) = amt(i)
+            xlkp(i) = lkp(i)
+
+            if (jdv(i).le.jpoint) cycle
+
+            ids = lkp(i)
+            xlkp(i) = ids
+            xlcoor(i) = lcoor(i)
+            xycoor(lcoor(i)+1:lcoor(i)+nstot(ids)) = 
+     *                       ycoor(lcoor(i)+1:lcoor(i)+nstot(ids))
+
+         end do
 
       else
 
          statik = xstic
          npt = xnpt
-         jdv(1:npt) = xjdv(1:npt)
-         amt(1:npt) = xamt(1:npt)
+
+         if (xjdv(1)+xjdv(2)+xjdv(3).eq.37+209+229) then
+            write (*,*) 'oinko'
+         end if 
+
+         do i = 1, npt
+c                                 need to reset ctot2 etc?
+            jdv(i) = xjdv(i)
+            amt(i) = xamt(i)
+
+            if (jdv(i).le.jpoint) cycle
+
+            ids = xlkp(i)
+            lkp(i) = ids
+            jkp(jdv(i)) = ids
+
+            lcoor(i) = xlcoor(i)
+            ycoor(lcoor(i)+1:lcoor(i)+nstot(ids)) = 
+     *                       xycoor(lcoor(i)+1:lcoor(i)+nstot(ids))
+
+         end do
 
       end if
 
-      end 
+      end
 
       subroutine smptxt (string,iend)
 c----------------------------------------------------------------------

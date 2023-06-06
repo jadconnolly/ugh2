@@ -1402,6 +1402,10 @@ c                                 add a label if came in across upper diag
                   jix = j
                   linex(j) = x
                   liney(j) = y
+                  if (isnan(x).or.isnan(y)) then 
+                     write (*,*) 'something agly, nans at point j'
+                  else 
+
                   call trneq (linex(j),liney(j))
                   if (noth.gt.5 .and. lmult .and.
      *                   abs(x+y-1d0).lt.0.75d-3) then
@@ -1412,6 +1416,7 @@ c                                 add a label if came in across upper diag
 c                    print*,'Labeling (in):',
 c    *                  text(1:nblen(text)),noth,x,y
                   end if
+                  end if 
                end do
 
                ipiece = ipiece + 1
