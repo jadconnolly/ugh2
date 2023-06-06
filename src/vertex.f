@@ -2572,10 +2572,6 @@ c----------------------------------------------------------------------
          xstic = statik
          xnpt = npt
 
-         if (jdv(1)+jdv(2)+jdv(3).eq.37+209+229) then
-            write (*,*) 'oinko'
-         end if 
-
          do i = 1, npt
 
             xjdv(i) = jdv(i)
@@ -2596,10 +2592,6 @@ c----------------------------------------------------------------------
 
          statik = xstic
          npt = xnpt
-
-         if (xjdv(1)+xjdv(2)+xjdv(3).eq.37+209+229) then
-            write (*,*) 'oinko'
-         end if 
 
          do i = 1, npt
 c                                 need to reset ctot2 etc?
