@@ -61,28 +61,12 @@ c     double precision wbig(lwbig)
       double precision g2, cp2, c2tot
       common/ cxt12 /g2(k21),cp2(k5,k21),c2tot(k21),tphct
 
-      double precision units, r13, r23, r43, r59, zero, one, r1
-      common/ cst59 /units, r13, r23, r43, r59, zero, one, r1
-
       double precision wmach
       common/ cstmch /wmach(10)
 
       save ax, x, clamda
 c     save ax, x, clamda, w, iw
 c-----------------------------------------------------------------------
-      idegen = 0
-      jdegen = 0
-c                                 degeneracy test
-      do k = 1, icp 
-         if (b(k).eq.0d0) then 
-            idegen = idegen + 1
-            idg(idegen) = k
-         else 
-            jdegen = jdegen + 1
-            jdg(jdegen) = k
-         end if
-      end do
-
       inc = istct - 1
 
       oldt = t

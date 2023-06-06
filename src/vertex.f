@@ -1342,7 +1342,7 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i,j,k,idead
+      integer i, j, idead
 
       integer is
       double precision a,b,c
@@ -1359,18 +1359,7 @@ c                                 is for icont = 2 with closed
 c                                 compositions space (lopt(1) = T), george's
 c                                 indexing should eliminate the 
 c                                 possibility.
-      idead = 0 
-
-      do k = 1, hcp
-         if (b(k).gt.0d0) then 
-            cycle
-         else if (dabs(b(k)).lt.zero) then
-            b(k) = 0d0
-         else 
-            idead = 2
-            exit 
-         end if
-      end do 
+      call chkblk (idead)
 
       if (idead.eq.0) call lpopt0 (idead)
 c                                 if idead = 0 optimization was ok
@@ -1411,6 +1400,73 @@ c                                 the molar amounts of the phases are in amt.
 
       end 
 
+      subroutine chkblk (idead)
+c-----------------------------------------------------------------------
+c chkblk - checks that the bulk composition generated for (pseudo-)ternary 
+c gridded minimization for degeneracy and bounds, if out of bounds the
+c optimization will be counted as a bad result.
+c------------------------------------------------------------------------
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      integer idead, k
+
+      integer hcp,idv
+      common/ cst52  /hcp,idv(k7)
+
+      integer icomp,istct,iphct,icp
+      common/ cst6  /icomp,istct,iphct,icp
+
+      integer is
+      double precision a,b,c
+      common/ cst313 /a(k5,k1),b(k5),c(k1),is(k1+k5)
+
+      double precision units, r13, r23, r43, r59, zero, one, r1
+      common/ cst59 /units, r13, r23, r43, r59, zero, one, r1
+c------------------------------------------------------------------------
+      idead = 0
+c                                 bounds test
+      do k = 1, hcp
+
+         if (b(k).gt.0d0) then 
+
+            cycle
+
+         else if (dabs(b(k)).lt.zero) then
+
+            b(k) = 0d0
+
+         else 
+
+            idead = 2
+            return
+
+         end if
+
+      end do
+
+      idegen = 0
+      jdegen = 0
+c                                 degeneracy test
+      do k = 1, icp
+
+         if (b(k).eq.0d0) then 
+
+            idegen = idegen + 1
+            idg(idegen) = k
+
+         else 
+
+            jdegen = jdegen + 1
+            jdg(jdegen) = k
+
+         end if
+
+      end do
+
+      end
+
       subroutine lpopt1 (idead,statik)
 c-----------------------------------------------------------------------
 c lpopt1 - does optimization for george's liquidus search without saving
@@ -1438,11 +1494,11 @@ c-----------------------------------------------------------------------
       double precision g
       common/ cst2 /g(k1)
 
-      integer hcp,idv
-      common/ cst52  /hcp,idv(k7)
-
       integer icomp,istct,iphct,icp
-      common/ cst6  /icomp,istct,iphct,icp
+      common/ cst6 /icomp,istct,iphct,icp
+
+      integer hcp,idv
+      common/ cst52 /hcp,idv(k7)
 
       integer ipoint,kphct,imyn
       common/ cst60 /ipoint,kphct,imyn
@@ -1473,32 +1529,6 @@ c                                 possibility.
       idead = 0
 
       statik = .true.
-
-      do k = 1, hcp
-         if (b(k).gt.0d0) then 
-            cycle
-         else if (dabs(b(k)).lt.zero) then
-            b(k) = 0d0
-         else 
-            idead = 2
-            exit 
-         end if
-      end do 
-
-      if (idead.eq.0) then
-c--------------
-      idegen = 0
-      jdegen = 0
-c                                 degeneracy test
-      do k = 1, icp 
-         if (b(k).eq.0d0) then 
-            idegen = idegen + 1
-            idg(idegen) = k
-         else 
-            jdegen = jdegen + 1
-            jdg(jdegen) = k
-         end if
-      end do
 
       inc = istct - 1
 
@@ -1584,14 +1614,14 @@ c                                 hail mary
 
          end if 
 
-      end if 
+      end if
+c                                 save the result for recovery
+      call savlst (.false.,statik)
 
       t = oldt
       p = oldp
       xco2 = oldx
 
-c--------------
-      end if
 c                                 if idead = 0 optimization was ok
       if (idead.eq.0) then 
 
@@ -1939,6 +1969,12 @@ c                              set bulk composition this grid element
             cx(2) = (j-1)/dfloat(loopy-1)
 
             call setblk
+c                                 checks for degeneracy and out-of-bounds
+c                                 compositions; this check obviates the 
+c                                 need for fancy loop indexing.
+            call chkblk (idead)
+
+            if (idead.ne.0) cycle
 c                                 look for the liquidus:
             call fndliq (i,j,ttol,opts,ktic,nliq,liq,idead)
 
@@ -2278,6 +2314,15 @@ c---------------------------------------------------------------
       thi = vmax(iv1)
 c                              check the assemblage at the minimum
       v(iv1) = vmin(iv1)
+c                              chkblk returns idead ~0 only if composition
+c                              is out of bounds, george's loops should never
+c                              generate this case.
+      call chkblk (idead)
+
+      if (idead.ne.0) then 
+         write (*,*) 'outta bounds?',i,j
+         return
+      end if
 
       call lpopt1 (idead,statik)
 
@@ -2289,7 +2334,7 @@ c                              check the assemblage at the minimum
 
       end if
 
-      call clslq1 (nliq, liq, l)
+      call clsliq (nliq, liq, l)
 
       if (pt.eq.'T' .and.
      *    ((sol .and. l.ne.0) .or. (.not.sol .and. l.eq.2))) then
@@ -2338,7 +2383,7 @@ c                              check the assemblage at the maximum
 
       end if
 
-      call clslq1 (nliq, liq, l)
+      call clsliq (nliq, liq, l)
 
       if (pt.eq.'T' .and. ((.not.sol .and. l.ne.2) .or.
      *                     (sol .and. l.eq.0))) then
@@ -2384,7 +2429,7 @@ c                                 or to uncertainty < nopt(2)
 
         if (idead .ne. 0) exit
 
-        call clslq1 (nliq, liq, l)
+        call clsliq (nliq, liq, l)
 
         if (pl) then
 
@@ -2470,11 +2515,53 @@ c                                 george's failure policy?
 
       end
 
+      subroutine savlst (recov,statik)
+c----------------------------------------------------------------------
+c save (~recov) or recover (recov) the information necessary to 
+c reconstruct the previous optimization result during iteration.
+c----------------------------------------------------------------------
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      logical recov, statik
+
+      logical xstic
+      integer xnpt, xjdv
+      double precision xamt
+      common/ cstlst /xamt(k19),xjdv(k19),xnpt,xstic
+
+      integer npt,jdv
+      double precision cptot,ctotal
+      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt
+
+      integer kkp,np,ncpd,ntot
+      double precision cp3,amt
+      common/ cxt15 /cp3(k0,k19),amt(k19),kkp(k19),np,ncpd,ntot
+c----------------------------------------------------------------------
+      if (.not.recov) then
+
+         xstic = statik
+         xnpt = npt
+         xjdv(1:npt) = jdv(1:npt)
+         xamt(1:npt) = amt(1:npt)
+
+      else
+
+         statik = xstic
+         npt = xnpt
+         jdv(1:npt) = xjdv(1:npt)
+         amt(1:npt) = xamt(1:npt)
+
+      end if
+
+      end 
+
       subroutine smptxt (string,iend)
 c----------------------------------------------------------------------
 c subprogram to write a text labels for bulk composition output 
 c id identifies the assemblage
-
+c----------------------------------------------------------------------
       implicit none
 
       include 'perplex_parameters.h'
@@ -2519,7 +2606,7 @@ c----------------------------------------------------------------------
 
       end 
 
-      subroutine clslq1 (nliq, liqsls, type)
+      subroutine clsliq (nliq, liqsls, type)
 c----------------------------------------------------------------------
 c classify grid item one of three ways:
 c type = 0 if no liquid
