@@ -74,7 +74,7 @@ c                                 indicates the number of thermodynamic variable
       if (icopt.eq.7.and.fileio) ivar = 3
 c                                 don't allow users to do anything
 c                                 other than gridded min
-      if (icopt.lt.5) call error (4,1d0,icopt,'PSVDRAW')
+      if (icopt.lt.5.and.icopt.ne.2) call error (4,1d0,icopt,'PSVDRAW')
 c                                 titration/0-d fractionation
       if (icopt.eq.12) oned = .true.
 c                                 read thermodynamic data on unit n2:
