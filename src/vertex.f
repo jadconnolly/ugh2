@@ -1400,6 +1400,65 @@ c                                 the molar amounts of the phases are in amt.
 
       end 
 
+      subroutine stblk1 (i,j,loopx,loopy,idead)
+c-----------------------------------------------------------------------
+c stblk1:
+
+c 1) generates 2d bulk composition at (i,j)
+c 2) if closed space (lopt(1)), tests that the composition is bounded 
+c 3) checks for degeneracy and negative compositions.
+
+c for out-of-bound and negative compositions the node is assigned 
+c------------------------------------------------------------------------
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      integer i, j, loopx, loopy, idead, k
+
+      integer hcp,idv
+      common/ cst52  /hcp,idv(k7)
+
+      integer icomp,istct,iphct,icp
+      common/ cst6  /icomp,istct,iphct,icp
+
+      integer is
+      double precision a,b,c
+      common/ cst313 /a(k5,k1),b(k5),c(k1),is(k1+k5)
+
+      integer icont
+      double precision dblk,cx
+      common/ cst314 /dblk(3,k5),cx(2),icont
+
+      double precision units, r13, r23, r43, r59, zero, one, r1
+      common/ cst59 /units, r13, r23, r43, r59, zero, one, r1
+c------------------------------------------------------------------------
+      idead = 0
+c                                 compute bulk coordinate at node i,j
+      cx(1) = (i-1)/dfloat(loopx-1)
+      cx(2) = (j-1)/dfloat(loopy-1)
+
+      if (lopt(1)) then 
+c                                 do a quick check for closed composition
+c                                 if bad, assign bad result and cycle
+         if (cx(1)+cx(2).gt.r1) then
+            igrd(i,j) = k2
+            idead = 2
+            return
+         end if
+
+      end if 
+c                                 compute the real compositions
+      call setblk
+c                                 checks for degeneracy and out-of-bounds
+c                                 compositions; this check obviates the 
+c                                 need for fancy loop indexing.
+      call chkblk (idead)
+
+      if (idead.ne.0) igrd(i,j) = k2
+
+      end
+
       subroutine chkblk (idead)
 c-----------------------------------------------------------------------
 c chkblk - checks that the bulk composition generated for (pseudo-)ternary 
@@ -1742,7 +1801,7 @@ c---------------------------------------------------------------------
       character text*240, what*8, unit*8, pt*1, cr*1
 
       integer kinc, kinc2, kinc21, icent, jcent, ie, je, ii, jj,
-     *        iic, iil, jjc, jjl,
+     *        iic, iil, jjc, jjl, klow,
      *        jtic, ktic, icell, ihot, jhot, hhot, khot,
      *        nla, la(k3), nliq, liq(h9), opts,
      *        i, j, k, h, hh, kk, ll, idead,
@@ -1812,6 +1871,7 @@ c---------------------------------------------------------------------
       data icind, jcind /0,1,2,1, 1,2,1,0/
       data ieind, jeind /0,0,2,2,0, 0,2,2,0,0/
 c-----------------------------------------------------------------------
+c-------------------------------beginning of george's initialization
       output = refine .or. iopt(6).ne.2
 
       got = .false. 
@@ -1893,6 +1953,11 @@ c                               force linear_model on
          pt = 'P'
          opts = opts + 2
       end if
+
+      ttol = nopt(2)
+
+      write (*,'(/)')
+c-------------------------------end of george's initialization
 c                               initialize assemblage counter
       iasct = 0 
       ibulk = 0 
@@ -1906,18 +1971,16 @@ c                               first level:
 
       loopx = (loopx-1) * 2**(jlev-1) + 1 
 
-      ttol = nopt(2)
-
-      write (*,'(/)')
-
       if (loopx.gt.l7) then
          call warn (92,v(iv1),loopx,'x_node')
-         loopx = l7
+         klow = (l7 - 1)/2**(jlev-1)
+         loopx = klow * 2**(jlev-1) + 1 
       end if  
 
       if (loopy.gt.l7) then
          call warn (92,v(iv1),loopy,'y_node')
-         loopy = l7
+         klow = (l7 - 1)/2**(jlev-1)
+         loopy = klow * 2**(jlev-1) + 1 
       end if
 c                               initialize igrd (this is critical 
 c                               for auto_refine).
@@ -1954,30 +2017,24 @@ c                              now traverse compositional grid:
 c                              lower triangle; upper is symmetric across diag.
       do i = 1, loopx, kinc
 
-         do j = 1, loopy-i + 1, kinc
-c                              determine compositions at lowest and
-c                              highest t; liquid should be present
+         do j = 1, loopy, kinc
+c                                 output counting stats
             if (0.eq.mod(ktic,500).and.ktic.gt.0) then
                write (*,1090) cr,ktic
             endif
-
-            ktic = ktic + 1
-c                              set bulk composition this grid element
-            cx(1) = (i-1)/dfloat(loopx-1)
-            cx(2) = (j-1)/dfloat(loopy-1)
-
-            call setblk
-c                                 checks for degeneracy and out-of-bounds
-c                                 compositions; this check obviates the 
-c                                 need for fancy loop indexing.
-            call chkblk (idead)
+c                                 set bulk, check limits and degeneracy
+            call stblk1 (i,j,loopx,loopy,idead) 
 
             if (idead.ne.0) cycle
+c                                 going to do some calcs, increment counter
+            ktic = ktic + 1
 c                                 look for the liquidus:
             call fndliq (i,j,ttol,opts,ktic,nliq,liq,idead)
 
             if (idead.ne.0) cycle 
-
+c                                  this is no longer necessary
+c                                  as only liq/sol assemblages 
+c                                  are saved.
             do k=1,nla
                got =  iap(igrd(i,j)) .eq. la(k)
                if (got) exit
@@ -1997,12 +2054,8 @@ c                                 get hot points
       kinc21 = kinc2 + 1
 
       do i = 1, loopx - kinc, kinc
-         do j = 1, loopy - (i - 1) - kinc, kinc
-c                                 need to check that amihot is not
-c                                 somehow flagging superdiagonal nodes!
-c           if (igrd(i+kinc,j+kinc).le.0 .or.
-c    *          igrd(i,j+kinc).le.0 .or. igrd(i+kinc,j).le.0) then
-            if (igrd(i+kinc,j+kinc).le.0) then
+         do j = 1, loopy - kinc, kinc
+            if (igrd(i,j+kinc).le.0 .or. igrd(i+kinc,j).le.0) then
                jhot = 1
             else
                call amihot (i,j,jhot,kinc)
@@ -2023,7 +2076,8 @@ c                                 fill in entire cell
          end do 
       end do
 
-      if (ihot.eq.0) goto 10 
+      if (ihot.eq.0) goto 10
+
       ktic = (loopx/kinc+1)*(loopy/kinc+1)
 c                              now refine on all higher levels:
       do k = 2, jlev
@@ -2052,12 +2106,10 @@ c                              forget cells already on grid diagonal
 
             if (igrd(icent,jcent).eq.0) then
 
-               cx(1) = (icent-1)/dfloat(loopx-1)
-               cx(2) = (jcent-1)/dfloat(loopy-1)
+               call stblk1 (icent,jcent,loopx,loopy,idead) 
 
-               call setblk
-
-               call fndliq (icent,jcent,ttol,opts,jtic,nliq,liq,idead)
+               if (idead.eq.0) call fndliq (icent,jcent,ttol,opts,
+     *                                      jtic,nliq,liq,idead)
 
             end if 
 c                              now determine which of the diagonals
@@ -2065,43 +2117,30 @@ c                              has a change
             hhot = 0 
 
             do hh = 1, 4
-            
+
                i = iic + iind(hh)*2*kinc
                j = jjc + jind(hh)*2*kinc
-               lhot(hh) = 0 
+               lhot(hh) = 0
 
-               if (jjc.ge.loopy-(iic-1)-kinc) cycle
-               if (igrd(i,j).eq.0) then
-                  jhot = 1
-               else if (igrd(icent,jcent).eq.0) then
-                  jhot = 1
-               else if (iap(igrd(i,j)).ne.iap(igrd(icent,jcent))) then
-c              if (iap(igrd(i,j)).ne.iap(igrd(icent,jcent))) then
-                  jhot = 1
-               else
-                  jhot = 0
-               end if
-               if (jhot .gt. 0) then
+               if (iap(igrd(i,j)).ne.iap(igrd(icent,jcent))) then
 c                              cell is hot
-                  khot = min(l7,khot + 1)
+                  khot = khot + 1
                   hhot = hhot + 1
                   kotij(khot,1) = iic + iind(hh)*kinc
                   kotij(khot,2) = jjc + jind(hh)*kinc
                   lhot(hh) = 1
 c                              compute assemblages at new nodes
                   do kk = 1, 2
+
                      ii = iic + iiind(hh,kk)*kinc
                      jj = jjc + jjind(hh,kk)*kinc
-                     if (igrd(ii,jj).eq.0 .and.
-     *                   jj.le.loopy-(ii-1)-kinc) then
 
-                        cx(1) = (ii-1)/dfloat(loopx-1)
-                        cx(2) = (jj-1)/dfloat(loopy-1)
+                     if (igrd(ii,jj).eq.0) then
 
-                        call setblk
+                        call stblk1 (ii,jj,loopx,loopy,idead) 
 
-                        call fndliq (ii,jj,ttol,opts,jtic,nliq,liq,
-     *                               idead)
+                        if (idead.eq.0) call fndliq (ii,jj,ttol,opts,
+     *                                            jtic,nliq,liq,idead)
 
                      end if 
                   end do 
@@ -2115,6 +2154,7 @@ c                              edges
 c                              index the edge node
                   ii = iic + icind(hh)*kinc
                   jj = jjc + jcind(hh)*kinc
+
                   if (igrd(ii,jj).ne.0) then 
 c                              could have a second hot cell, check
 c                              both corners
@@ -2125,8 +2165,7 @@ c                              both corners
                         je = jjc + jeind(hh+kk-1)*kinc
                         icell = icell + kk - 1
                         if (icell.gt.4) icell = 1
-                        
-                        if (igrd(je,je).eq.0) cycle
+
                         if (iap(igrd(ii,jj)).ne.iap(igrd(ie,je)).and.
      *                     lhot(icell).eq.0) then 
 c                               new cell
@@ -2140,18 +2179,16 @@ c                                cell index is
                            kotij(khot,2) = jj
 c                                compute assemblage at cell nodes
                            do ll = 1, 4
+
                               iil = ii + iind(ll)*kinc
                               jjl = jj + jind(ll)*kinc
-                              if (igrd(iil,jjl).eq.0
-     *                            .and. jjl.le.loopy-(iil-kinc)) then
 
-                                 cx(1) = (iil-1)/dfloat(loopx-1)
-                                 cx(2) = (jjl-1)/dfloat(loopy-1)
+                              if (igrd(iil,jjl).eq.0) then
 
-                                 call setblk
+                                 call stblk1 (iil,jjl,loopx,loopy,idead)
 
-                                 call fndliq (iil,jjl,ttol,opts,jtic,
-     *                                       nliq,liq,idead)
+                                 if (idead.eq.0) call fndliq (iil,jjl,
+     *                                   ttol,opts,jtic,nliq,liq,idead)
 
                               end if 
                            end do  
@@ -2165,7 +2202,7 @@ c                                compute assemblage at cell nodes
 
                i = iic + iind(hh)*kinc
                j = jjc + jind(hh)*kinc
-               if (i.lt.loopx.and.j.lt.loopy-i+1) then 
+               if (i.lt.loopx.and.j.lt.loopy) then 
                   if (lhot(hh).eq.0) then 
 c                                fill cold cells
                      call aminot1 (icent,jcent,i,j,kinc)
@@ -2200,7 +2237,7 @@ c                                 output grid data
 
       if (output) then
 
-         call outgrd (loopx, loopy, jinc(1), n4, 0)
+         call outgrd (loopx, loopy, 1, n4, 0)
 
 c                                 add liquidus assemblages to print file
          if (io3.eq.0) then 
@@ -2577,8 +2614,14 @@ c----------------------------------------------------------------------
             xjdv(i) = jdv(i)
             xamt(i) = amt(i)
             xlkp(i) = lkp(i)
+c                                 some how compounds can get into
+c                                 the dynamic list, i.e., jdv(i) may point to 
+c                                 a compound at i > jpoint. this should be prevented
+            if (jdv(i).gt.jpoint.and.lkp(i).lt.0) then 
+               write (*,*) 'oinkers ',jdv(i), jkp(jdv(i)), lkp(i)
+            end if
 
-            if (jdv(i).le.jpoint) cycle
+            if (lkp(i).lt.0) cycle
 
             ids = lkp(i)
             xlkp(i) = ids
@@ -2597,11 +2640,11 @@ c----------------------------------------------------------------------
 c                                 need to reset ctot2 etc?
             jdv(i) = xjdv(i)
             amt(i) = xamt(i)
-
-            if (jdv(i).le.jpoint) cycle
-
             ids = xlkp(i)
             lkp(i) = ids
+
+            if (ids.lt.0) cycle
+
             jkp(jdv(i)) = ids
 
             lcoor(i) = xlcoor(i)
@@ -2780,7 +2823,8 @@ c                               first level:
 
       if (loopx.gt.l7) then
          call warn (92,v(iv1),loopx,'x_node')
-         loopx = l7
+         klow = (l7 - 1)/2**(jlev-1)
+         loopx = klow * 2**(jlev-1) + 1 
       end if  
 c                               initialize igrd (this is critical 
 c                               for auto_refine).
@@ -2994,7 +3038,7 @@ c                                fill hot cells
 
          write (*,1070) k,jtic
          ktic = ktic + jtic
- 
+
          write (*,1080) ktic,(loopx/kinc+1)*(loopy/kinc+1)
 
          if (lopt(28)) call endtim (12,.true.,'nth level grid')
