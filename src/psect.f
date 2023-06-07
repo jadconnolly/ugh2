@@ -1136,6 +1136,9 @@ c     unused common area
       integer ids,isct,icp1,isat,io2
       common/ cst40 /ids(h5,h6),isct(h5),icp1,isat,io2
 
+      integer jvar
+      double precision var,dvr,vmn,vmx
+      common/ cxt18 /var(l3),dvr(l3),vmn(l3),vmx(l3),jvar
 c                                 working arrays
       double precision zz, pa, p0a, xx, ww, yy, wl, pp
       common/ cxt7 /yy(m4),zz(m4),pa(m4),p0a(m4),xx(h4,mst,msp),ww(m1),
@@ -1166,6 +1169,45 @@ c         1     2     3      4    5     6    7    8
 c        x  y  x  y  x  y   x y  x y   x y  x y  x y
      */
 c----------------------------------------------------------------------
+c                                 reconstruct the temperature grid
+      do i = 1, loopx
+
+         var(1) = (i-1)/dfloat(loopx-1)
+
+         do j = 1, loopy
+
+            itri(1) = i
+            jtri(1) = j
+
+            var(2) = (j-1)/dfloat(loopx-1)
+
+            call triang (itri,jtri,ijpt,wt)
+
+            if (ijpt.eq.0) then 
+c                                no data for node i,j: could turn on 
+c                                extrapolation if this occurs a lot.
+               tgrid(i,j) = nopt(7)
+
+            else
+
+               tgrid(i,j) = 0d0
+
+               do k = 1, ijpt
+                  tgrid(i,j) = tgrid(i,j) 
+     *                         + wt(k) * tliq(igrd(itri(k),jtri(k)))
+               end do
+
+            end if
+
+         end do
+
+      end do
+
+
+
+
+
+
 
       if (loopx .gt. l7g) then
          write (*,*)
@@ -1173,6 +1215,7 @@ c----------------------------------------------------------------------
      *      l7g,' <',loopx
          stop
       end if
+
       call mertxt (tfname,prject,'.liq',0)
       open (n8,file=tfname,status='old',iostat=ier)
       if (ier.ne.0) then
@@ -1188,18 +1231,7 @@ c----------------------------------------------------------------------
             read (text,*,iostat=ier) nliq,(liq(i),i=1,min(h9,nliq))
          end if
       end if
-      if (ier.eq.0) then
-         do i=1,loopx
-            read (n8,*,iostat=ier) (tgrid(i,j),j=1,loopy-i+1)
-            if (ier.ne.0) exit
-         end do
-      end if
-      if (ier.ne.0) then
-         write (*,*)
-     *      '**Bad/insufficient data in liquidus/solidus grid file: ',
-     *      tfname(1:nblen(tfname))
-         stop
-      end if
+
       close (n8)
 
 c     Smooth temperature grid

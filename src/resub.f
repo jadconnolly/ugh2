@@ -1664,6 +1664,12 @@ c                                 x-coordinates for the final solution
 
       integer nq,nn,ns,ns1,sn1,nqs,nqs1,sn,qn,nq1,nsa
       common/ cst337 /nq,nn,ns,ns1,sn1,nqs,nqs1,sn,qn,nq1,nsa
+
+      integer ipot,jv,iv
+      common/ cst24 /ipot,jv(l2),iv(l2)
+
+      double precision v,tr,pr,r,ps
+      common/ cst5  /v(l2),tr,pr,r,ps
 c----------------------------------------------------------------------
 c                                graphics output  
       write (n5,'(3(i8,1x))') ic,jc,iap(ibulk)
@@ -1682,6 +1688,9 @@ c                                lagged speciation
       end do
 c                                dependent potentials
       write (n5,1010) (mu(i),i=1,kbulk)
+c                                for liquidus/solidus calcs output the
+c                                the additional "dependent" potential
+      if (icopt.eq.2) write (n5,1010) v(iv(1))
 
 1010  format (10(g16.8,1x))
 

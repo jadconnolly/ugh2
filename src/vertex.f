@@ -1414,7 +1414,7 @@ c------------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i, j, loopx, loopy, idead, k
+      integer i, j, loopx, loopy, idead
 
       integer hcp,idv
       common/ cst52  /hcp,idv(k7)
@@ -1440,7 +1440,7 @@ c                                 compute bulk coordinate at node i,j
 
       if (lopt(1)) then 
 c                                 do a quick check for closed composition
-c                                 if bad, assign bad result and cycle
+c                                 if bad, assign bad result and return
          if (cx(1)+cx(2).gt.r1) then
             igrd(i,j) = k2
             idead = 2
@@ -1790,7 +1790,7 @@ c temperature at which the last solid disappears.
 c the phase assemblage at node(i,j) of the grid is identified by the 
 c pointer to a phase assemblage.
 
-c the temperature is output to the "plot" file.
+c George Helffrich, 5/23.
 c---------------------------------------------------------------------
       implicit none
 
@@ -1838,10 +1838,6 @@ c---------------------------------------------------------------------
       character fname*10, aname*6, lname*22
       common/ csta7 /fname(h9),aname(h9),lname(h9)
 
-      logical tcopy
-      double precision tgrid
-      common/ cst308 /tgrid(l7,l7),tcopy
-
       integer icont
       double precision dblk,cx
       common/ cst314 /dblk(3,k5),cx(2),icont
@@ -1887,16 +1883,20 @@ c-------------------------------beginning of george's initialization
 c                               see if named phase exists
             got = .false.
             k = k - 1
+
             do j = 1, isoct
                got = meltph(1:k).eq.fname(j)
                if (got) exit
             enddo
+
             if (.not.got) then
+
                do i = 1, iphct
                   j = -i
                   got = meltph(1:k).eq.names(i)
                   if (got) exit
                enddo
+
             endif
 c                               what's the verdict?
             if (.not.got) then
@@ -1927,7 +1927,6 @@ c                               force closed composition
 c                               force linear_model on
          iopt(18) = 1
          cr = char(13)
-         tcopy = .true.
 
       endif
 
@@ -2254,19 +2253,9 @@ c                                 write liquid ids and grid temps to aux file
          call mertxt (tfname,prject,'.liq',0)
          call inqopn (n8,tfname)
          write (n8,*) nliq,(liq(i),i=1,nliq),' ',what
-         do i = 1, loopx
-            do j = 1, loopx-i + 1
-c                                 fill in missing temperatures
-               if (tgrid(i,j).eq.0.and.i.ne.1)
-     *            tgrid(i,j) = tgrid(i-1,j)
-               write (n8,*) tgrid(i,j)
-               if (tgrid(i,j).eq.0) then
-                  print'(1x,a,2(1x,i2))','0:',i,j
-               end if
-            end do
-         end do
          close (n8)
-      endif
+
+      end if
 
       init = .false.
 
@@ -2274,10 +2263,11 @@ c                                 fill in missing temperatures
 1040  format (2(i4,1x),a,a)
 1050  format (/,3(a,1x),'refinement ',
      *        'to +/-',f6.2,1x,a,1x,'tolerance.',/)
-1060  format (/,i6,' grid cells of ',i6,' failed liquidus search.',/)
+1060  format (/,i6,' grid cells of ',i6,
+     *             ' failed liquidus/solidus search.',/)
 1065  format (/,i6,' grid cells to be refined at grid level ',i1)
 1070  format (/,7x,'refinement at level ',i1,' involved ',i6,
-     *        ' minimizations')
+     *             ' minimizations')
 1080  format (i6,' minimizations required of the ',
      *        'theoretical limit of ',i6)
 1090  format (a,7x,'...working (',i6,' minimizations done)',$)
@@ -2303,6 +2293,8 @@ c clsliq returns: type = 0 if no liquid
 c                 type = 1 if liquid + solid
 c                 type = 2 if liquid only
 
+c George Helffrich, 5/23
+
 c the trick here is that for liquidus calculations the last subliquidus
 c result needs to be saved, whereas for solidus calculations the last
 c supersolidus result should be saved.
@@ -2324,10 +2316,6 @@ c---------------------------------------------------------------
       character tname*10
       logical refine, lresub
       common/ cxt26 /refine,lresub,tname
-
-      logical tcopy
-      double precision tgrid
-      common/ cst308 /tgrid(l7,l7),tcopy
 
       integer ipot,jv,iv1,iv2,iv3,iv4,iv5
       common/ cst24 /ipot,jv(l2),iv1,iv2,iv3,iv4,iv5
@@ -2481,13 +2469,17 @@ c                                 s+l: save solid
               if (sol) then
 c                                 solidus: lower bound
                  tlo = v(iv1)
+
               else
 c                                 liquidus: upper bound
                  thi = v(iv1)
+
               end if
+
            else
 c                                 l: lower bound
               tlo = v(iv1)
+
            end if
 
         else
@@ -2550,16 +2542,6 @@ c                                 be for electrolytic fluids
       end if
 
       call isgood (i,j,idead)
-
-      if (idead.eq.0) then
-
-         tgrid(i,j) = v(iv1)
-
-      else 
-c                                 george's failure policy?
-         v(iv1) = vmax(iv1)
-
-      end if
 
 1010  format ('**Assemblage',2(1x,i5),' has ',a,
      *        ' at',2(1x,a),': ',a)

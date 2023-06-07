@@ -543,8 +543,8 @@ c                                 nlpsol blocks
 c                                 ----------------------------------------
 c                                 global assemblage data, k2 <= l7^2, replace k2 w/ l7?
 c                                 bulk assemblage counter dependent arrays
-      double precision amu
-      common/ cst48 /amu(k8,k2)
+      double precision amu, tliq
+      common/ cst48 /amu(k8,k2), tliq(k2)
 
       integer icog,jcog
       common/ cxt17 /icog(k2),jcog(k2)

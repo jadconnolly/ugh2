@@ -19493,6 +19493,11 @@ c                                 potentials
 
          end if
 
+         if (icopt.eq.2) then 
+            read (n5,*,iostat=ier) tliq(ibulk)
+            if (ier.ne.0) goto 99
+         end if
+
       end do
 
 99    ibulk = ibulk - 1
