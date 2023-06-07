@@ -224,11 +224,12 @@ c psopts - subroutine to output points.
       double precision xscale,yscale,xmn,ymn
       common/ scales /xscale,yscale,xmn,ymn,nps
  
-      write (nps,*) '%I ',npts
+      write (nps,1000) '%I',npts
       write (nps,1010) ( int((x(i) - xmn) * xscale),
      *                   int((y(i) - ymn) * yscale),
      *                   i = 1, npts)
  
+1000  format (a,1x,i5)
 1010  format (10(i7,1x))
  
       end
