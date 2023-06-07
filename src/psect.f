@@ -1047,6 +1047,9 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
+      logical ctr
+      parameter (ctr=.false.)
+
       integer nseg,npts,npcs,mcon
       parameter (nseg=100000,npts=250000,npcs=100000,mcon=50)
 
@@ -1707,6 +1710,10 @@ c                                 classify every triangle in grid
          do i = 1, ntri
             call liqphs(i, id, lass, tseg)
             if (tseg.ne.0) then
+c                                 ctr controls whether boundaries always include
+c                                 the triangle's center; if you want straight
+c                                 lines, set it to .false.
+               if (ctr) tseg = tseg + 3
                call seglnk(ng, tseg, npeece, ipieces, nsegs, segm)
 c              if (off) then
 c                 print*,'Path(s) so far:'
@@ -1723,18 +1730,41 @@ c                                 process resulting paths
             l = 0
             do j = ipieces(1,i), ipieces(2,i)
                call segadd(l, segm(j), linex, liney)
-               call segchk(l, linex, liney)
+               if (ctr) then
+                  call seg3hk(l, linex, liney)
+               else
+                  call segchk(l, linex, liney)
+               end if
             end do
-c                                 if closed path, skip drawing if short
+
+c           If closed path, skip drawing.  This is a heuristic tactic to avoid
+c           the small triangles formed when three different boundaries go
+c           through the same triangle (see sketch in subroutine segadd). It
+c           does not handle small, one-node fields along the edges, and it
+c           will remove an assemblage island completely surrounded by a single,
+c           different assemblage.  The heuristic assumes that if an island
+c           assemblage exists, it will be outlined by its neighbors.  Leaving
+c           it out eliminates the small triangles.
+
+c           To be reviewed at some later time when more experience is gained.
+
+c                                 closes on itself and is small?
+            tseg = ipieces(2,i) - ipieces(1,i) + 1
             cst = dsqrt(
      *         (linex(1)-linex(l))**2 + (liney(1)-liney(l))**2
      *      )
-c           if (cst .le. 0.75d-3 .and. l.le.20) cycle
+            if (cst .le. 0.75d-3 .and. l .lt. 20) cycle
+
+c                                 goes off edge (closed another way)?
+c           if (linex(1)+liney(1).ge.1d0 .and. linex(l)+liney(l).ge.1d0
+c    *          .and. l .gt. 4) cycle
+
+c                                 draw it: curvy path (spline) or jagged (line)
             do j = 1, l
                call trneq (linex(j), liney(j))
             end do
-c           call psbspl (linex, liney, l, 1d0, 2d0, 0)
-            call pspyln (linex, liney, l, 1d0, 2d0, 0)
+            call psbspl (linex, liney, l, 1d0, 2d0, 0)
+c           call pspyln (linex, liney, l, 1d0, 2d0, 0)
          end do
 
       end do
@@ -1886,14 +1916,11 @@ c    *            (ii-1)/dfloat(loopx-1),(jj-1)/dfloat(loopy-1),
 c    *            ' for ',text(1:iend),' missed.'
 c              cycle
                in = 1
-               cst = dsqrt(
-     *            dfloat(iassi(1)-ii)**2 + dfloat(iassj(1)-jj)**2
-     *         )
+               cst = dfloat(iassi(1)-ii)**2 + dfloat(iassj(1)-jj)**2
                do j = 1, ngrp
                   if (iassp(j).eq.isol) then
-                     vlo = dsqrt(
+                     vlo = 
      *                  dfloat(ii-iassi(j))**2 + dfloat(jj-iassj(j))**2
-     *               )
                      if (vlo.lt.cst) then
                         in = j
                         cst = vlo
@@ -2771,6 +2798,105 @@ c--------------------------------------------------------------------
       end if
       end
 
+      subroutine seg3hk (j, x, y)
+c---------------------------------------------------------------------- 
+c seg3hk - Paths are described by segments across triangles.  Each segment has
+c          a start and end point.  The next segment will join with one end or
+c          the other of the previous segment, so there is always a duplicate
+c          point.  Look at the previous segment and figure out how to join up
+c          the new segment.
+c          This routine handles segments of three points each (middle of which
+c          always is the center of a triangle).
+c  j - number of path points
+c  x, y - arrays containing path coordinates
+c---------------------------------------------------------------------- 
+      implicit none
+
+      integer i,j
+
+      double precision x(*), y(*), tol, dist
+
+      dist(i,j) = ((x(i)-x(j))**2 + (y(i)-y(j))**2)
+
+      tol = 0.1d0*dist(1,2)
+
+c     This part examines the first two three-point segments and joins them into
+c     a continuous line of five points, eliminating the duplicated point.
+
+      if (j.eq.6) then
+         if (dist(1,4).lt.tol) then
+c           1 and 4 are same: delete 1, flip 2,3, keep 4-6
+            x(1) = x(3)
+            y(1) = y(3)
+            x(3:5) = x(4:6)
+            y(3:5) = y(4:6)
+         else if (dist(1,6).lt.tol) then
+c           1 and 6 are same: flip 1-3, 4-6 & delete 4
+            call flippt(3,x(1),y(1))
+            call flippt(3,x(4),y(4))
+            x(4:5) = x(5:6)
+            y(4:5) = y(5:6)
+         else if (dist(3,4).lt.tol) then
+c           3 and 4 are same: delete 4, keep 1-3, add 5 & 6
+            x(4:5) = x(5:6)
+            y(4:5) = y(5:6)
+         else
+c           3 and 6 are same: flip 4-6, delete 4
+            call flippt(3,x(4),y(4))
+            x(4:5) = x(5:6)
+            y(4:5) = y(5:6)
+         end if
+         j = 5
+         return
+      end if
+
+c     This handles adding the third segment.  The first two were turned into
+c     five points, but we need to check whether the line comprised by those
+c     first five points need to be flipped to maintain contiguity with the
+c     new segment.  If one of the new segment's points coincides with point 1,
+c     then we do.
+
+      if (j.eq.8) then
+         if (dist(1,6).lt.tol) then
+            call flippt(5,x,y)
+         end if
+      end if
+
+c     Done with initial cases.  Now decide how the new segment joins the line.
+c     There is always a duplicate point that gets deleted.
+
+      if (j.ge.7) then
+         if (dist(j-3,j).lt.tol) then
+            call flippt(3,x(j-2),y(j-2))
+         end if
+         x(j-2:j-1) = x(j-1:j)
+         y(j-2:j-1) = y(j-1:j)
+         j = j - 1
+      end if
+      end
+
+      subroutine flippt(n, xpts, ypts)
+c--------------------------------------------------------------------
+c flippt - end-for-end point swap of a real array
+c--------------------------------------------------------------------
+      implicit none
+
+      integer i, jb, je, n
+
+      double precision xpts(n), ypts(n), xswap, yswap
+
+      do i = 0, n/2-1
+         jb = 1+i
+         je = n-i
+         xswap = xpts(je)
+         yswap = ypts(je)
+         xpts(je) = xpts(jb)
+         ypts(je) = ypts(jb)
+         xpts(jb) = xswap
+         ypts(jb) = yswap
+      end do
+      end
+
       subroutine segchk (j, x, y)
 c---------------------------------------------------------------------- 
 c segchk - Paths are described by segments across triangles.  Each segment has
@@ -2785,31 +2911,23 @@ c----------------------------------------------------------------------
 
       integer i,j
 
-      double precision x(*), y(*), tol, dist, xh, yh
+      double precision x(*), y(*), tol, dist
 
       dist(i,j) = ((x(i)-x(j))**2 + (y(i)-y(j))**2)
 
       tol = 0.1d0*dist(1,2)
 
-c     This part examines the first two segments and joins them into into
-c     a continuous line of three points, eliminating one of the duplicated
-c     points.
+c     This part examines the first two segments and joins them into a
+c     continuous line of three points, eliminating the duplicated point.
 
       if (j.eq.4) then
          if (dist(1,3).lt.tol) then
 c           1 and 3 are same: delete 1, keep 2,3,4
-            do i = 1,3
-               x(i) = x(i+1)
-               y(i) = y(i+1)
-            end do
+            x(1:3) = x(2:4)
+            y(1:3) = y(2:4)
          else if (dist(1,4).lt.tol) then
 c           1 and 4 are same: flip 1 & 2, keep 3
-            xh = x(1)
-            yh = y(1)
-            x(1) = x(2)
-            y(1) = y(2)
-            x(2) = xh
-            y(2) = yh
+            call flippt(2,x,y)
          else if (dist(2,3).lt.tol) then
 c           2 and 3 are same: delete 3, keep 1, 2 4
             x(3) = x(4)
@@ -2827,12 +2945,7 @@ c     then we do.
 
       if (j.eq.5) then
          if (dist(1,4).lt.tol) then
-            xh = x(1)
-            yh = y(1)
-            x(1) = x(3)
-            y(1) = y(3)
-            x(3) = xh
-            y(3) = yh
+            call flippt(3,x,y)
          endif
       end if
 
@@ -2880,7 +2993,7 @@ c     ...............                                 .
 c     1             2                                 1
 c
 c   Segment numbers 4, 5 & 6 are same as 1, 2 & 3 but ALSO go through
-c   center of each triangle.  They get drawn by two line segments rather
+c   center of each triangle.  They get drawn as two line segments rather
 c   than one line segment for 1, 2 & 3.
 c
 c---------------------------------------------------------------------- 
