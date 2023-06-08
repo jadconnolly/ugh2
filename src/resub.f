@@ -1617,7 +1617,7 @@ c                                 reload final arrays from temporary
       if (.not.match) then 
 c                                 the assemblage is new:
          iasct = iasct + 1
-         if (iasct.gt.k3) call error (184,0d0,k3,'SORTER')
+         if (iasct.gt.k3-1) call error (184,0d0,k3,'SORTER')
 
          do i = 1, ntot
             idasls(i,iasct) = kkp(i)

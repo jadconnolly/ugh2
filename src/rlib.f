@@ -1617,7 +1617,7 @@ c                                 ref stuff
 
       subroutine incdep (ind)
 c-----------------------------------------------------------------------
-c either indep or incdp0 are called whenever any primary potential
+c either incdep or incdp0 are called whenever any primary potential
 c variables are changed to reevaluate secondary variables. this
 c cumbersome structure is necessitated by the fact that computational
 c variables were mapped directly to the thermodynamic variables in

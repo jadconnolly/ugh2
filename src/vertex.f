@@ -416,7 +416,6 @@ c                                 file, else analytical path function
 
          j = 0
 
-
          do 
 
             read (n8,*,iostat=ier) (v(jv(i)), i = 1, ipot)
@@ -1798,12 +1797,12 @@ c---------------------------------------------------------------------
 
       logical init, got, output, sol
 
-      character text*240, what*8, unit*8, pt*1, cr*1
+      character what*8, unit*8, pt*1, cr*1
 
       integer kinc, kinc2, kinc21, icent, jcent, ie, je, ii, jj,
      *        iic, iil, jjc, jjl, klow,
      *        jtic, ktic, icell, ihot, jhot, hhot, khot,
-     *        nla, la(k3), nliq, liq(h9), opts,
+     *        nliq, liq(h9), opts,
      *        i, j, k, h, hh, kk, ll, idead,
      *        nblen
 
@@ -2010,8 +2009,6 @@ c                               increments at each level
 
       write (*,1050) 'Beginning',what(1:nblen(what)),pt,
      *                ttol,unit(1:nblen(unit))
-
-      nla = 0
 c                              now traverse compositional grid:
 c                              lower triangle; upper is symmetric across diag.
       do i = 1, loopx, kinc
@@ -2029,20 +2026,6 @@ c                                 going to do some calcs, increment counter
             ktic = ktic + 1
 c                                 look for the liquidus:
             call fndliq (i,j,ttol,opts,ktic,nliq,liq,idead)
-
-            if (idead.ne.0) cycle 
-c                                  this is no longer necessary
-c                                  as only liq/sol assemblages 
-c                                  are saved.
-            do k=1,nla
-               got =  iap(igrd(i,j)) .eq. la(k)
-               if (got) exit
-            enddo
-
-            if (.not.got .and.nla.lt.k3) then
-               nla = nla + 1
-               la(nla) =  iap(igrd(i,j))
-            endif
 
          end do
 
@@ -2237,19 +2220,7 @@ c                                 output grid data
       if (output) then
 
          call outgrd (loopx, loopy, 1, n4, 0)
-
-c                                 add liquidus assemblages to print file
-         if (io3.eq.0) then 
-
-            write (n3,'(/,a,/)') 'Liquidus assemblages:'
-            do i = 1, nla
-               call psbtxt (la(i),text,k)
-               write (n3,1040) i,la(i),'- ',text(1:nblen(text))
-            end do
-
-         end if 
-
-c                                 write liquid ids and grid temps to aux file
+c                                 write liquid ids to aux file
          call mertxt (tfname,prject,'.liq',0)
          call inqopn (n8,tfname)
          write (n8,*) nliq,(liq(i),i=1,nliq),' ',what
@@ -2341,6 +2312,8 @@ c---------------------------------------------------------------
       thi = vmax(iv1)
 c                              check the assemblage at the minimum
       v(iv1) = vmin(iv1)
+c                              update dependent variables, if any
+      call incdp0
 c                              chkblk returns idead ~0 only if composition
 c                              is out of bounds, george's loops should never
 c                              generate this case.
@@ -2399,7 +2372,9 @@ c                              only suggest problem if past exploratory phase
       end if
 c                              check the assemblage at the maximum
       v(iv1) = vmax(iv1)
-
+c                              update dependent variables, if any
+      call incdp0
+c                              do the optimization
       call lpopt1 (idead,statik)
 
       if (idead.ne.0) then
@@ -2437,6 +2412,7 @@ c                              only suggest problem if past exploratory phase
             write (text,1010) i,j,'liquid','highest',pt,assmb(1:l)
             call deblnk (text)
             write (*,'(/,a)') text(1:nblen(text))
+
          end if
 
          call isgood (i,j,99)
@@ -2451,7 +2427,9 @@ c                                 or to uncertainty < nopt(2)
         ktic = ktic + 1
 
         v(iv1) = (tlo+thi)/2
-
+c                                 update dependent variables, if any
+        call incdp0
+c                                 do the optimization
         call lpopt1 (idead,statik)
 
         if (idead .ne. 0) exit
@@ -2493,9 +2471,11 @@ c                                 s+l: save solid
               if (sol) then
 c                                 solidus: upper bound
                  thi = v(iv1)
+
               else
 c                                 liquidus: lower bound
                  tlo = v(iv1)
+
               end if
 
            else
@@ -2530,8 +2510,7 @@ c                                 on the solid side of the solidus or
 c                                 the liquid side of the liquidus, back
 c                                 off to the last L+S result
              call savlst (.true.,statik,l)
-c                                 this may not be resetting the endmember
-c                                 speciation (this needs to be checked!!)
+
          end if
 c                                 finalize and save liquidus assemblage
          call rebulk (abort,statik)
@@ -2718,8 +2697,7 @@ c---------------------------------------------------------------
       do i = 1, npt
 
          do j = 1, nliq
-            is = jkp(jdv(i)).eq.liqsls(j) .and. amt(i).gt.nopt(9)
-c           is = jkp(jdv(i)).eq.liqsls(j)
+            is = jkp(jdv(i)).eq.liqsls(j)
             if (is) exit
          end do
 
