@@ -1617,7 +1617,7 @@ c                                 ref stuff
 
       subroutine incdep (ind)
 c-----------------------------------------------------------------------
-c either indep or incdp0 are called whenever any primary potential
+c either incdep or incdp0 are called whenever any primary potential
 c variables are changed to reevaluate secondary variables. this
 c cumbersome structure is necessitated by the fact that computational
 c variables were mapped directly to the thermodynamic variables in
@@ -4791,7 +4791,13 @@ c                                 create arrays of convenience, where j = 1, jst
 c                                 set kill flag:
 c                                 don't reset ikp if it has been set for
 c                                 another model.
-                  if (iend(i).ne.0.and.ikp(h).eq.0) ikp(h) = -1
+                  if (iend(i).ne.0.and.ikp(h).eq.0) then 
+                     if (icopt.ne.2) then
+                        ikp(h) = -1
+                     else
+                        write (*,1010) names(h),tname,names(h), tname
+                     end if
+                  end if
 
                   if (eos(h).eq.15.or.eos(h).eq.16) then
 
@@ -4870,6 +4876,10 @@ c                                missing endmember warnings:
 
 1000  format (/,'**warning ver114** the following endmembers',
      *          ' are missing for ',a,//,4(8(2x,a)))
+1010  format (/,'**warning ver115** endmember ',a,' is flagged in sol',
+     *       'ution model ',a,/,'flagging is disabled for solidus/liq',
+     *       'uidus calculations.',/,a,'will be treated as a normal e',
+     *       'ndmember of ',a)
 
       end
 
@@ -19481,6 +19491,11 @@ c                                 potentials
 
             ier = 0
 
+         end if
+
+         if (icopt.eq.2) then 
+            read (n5,*,iostat=ier) tliq(ibulk)
+            if (ier.ne.0) goto 99
          end if
 
       end do

@@ -16,14 +16,15 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer liw,lw,k,idead,inc,lphct,jter, lpprob
+      integer k, idead, inc, lphct, jter, lpprob
 
-      parameter (liw=2*k1+3,lw=2*(k5+1)**2+7*k1+5*k5)  
+c     parameter (liw=2*k1+3,lw=2*(k5+1)**2+7*k1+5*k5)
 
-      double precision ax(k5),x(k1),w(lw),oldt,oldp,gtot,
+      double precision ax(k5),x(k1),oldt,oldp,gtot,
      *                 tol,oldx,clamda(k1+k5)
 
-      integer iw(liw)
+c     integer iwbig(liwbig)
+c     double precision wbig(lwbig)
 
       logical quit, abort
 
@@ -60,27 +61,12 @@ c-----------------------------------------------------------------------
       double precision g2, cp2, c2tot
       common/ cxt12 /g2(k21),cp2(k5,k21),c2tot(k21),tphct
 
-      double precision units, r13, r23, r43, r59, zero, one, r1
-      common/ cst59 /units, r13, r23, r43, r59, zero, one, r1
-
       double precision wmach
       common/ cstmch /wmach(10)
 
-      save ax, x, clamda, w, iw
+      save ax, x, clamda
+c     save ax, x, clamda, w, iw
 c-----------------------------------------------------------------------
-      idegen = 0
-      jdegen = 0
-c                                 degeneracy test
-      do k = 1, icp 
-         if (b(k).eq.0d0) then 
-            idegen = idegen + 1
-            idg(idegen) = k
-         else 
-            jdegen = jdegen + 1
-            jdg(jdegen) = k
-         end if
-      end do
-
       inc = istct - 1
 
       oldt = t
@@ -115,8 +101,8 @@ c                                 load the bulk into the constraint array
 
       if (lopt(61)) call begtim (13)
 
-      call lpsol (jphct,hcp,a,k5,bl,bu,c,is,x,jter,gtot,ax,
-     *            clamda,iw,liw,w,lw,idead,istart,tol,lpprob)
+      call lpsol (jphct,hcp,a,k5,bl,bu,c,is,x,jter,gtot,ax,clamda,
+     *            iwbig,liwbig,wbig,lwbig,idead,istart,tol,lpprob)
 c                                 set istart according to static_LP_start
       if (istart.ne.0) istart = iopt(39)
 
@@ -1631,7 +1617,7 @@ c                                 reload final arrays from temporary
       if (.not.match) then 
 c                                 the assemblage is new:
          iasct = iasct + 1
-         if (iasct.gt.k3) call error (184,0d0,k3,'SORTER')
+         if (iasct.gt.k3-1) call error (184,0d0,k3,'SORTER')
 
          do i = 1, ntot
             idasls(i,iasct) = kkp(i)
@@ -1678,6 +1664,12 @@ c                                 x-coordinates for the final solution
 
       integer nq,nn,ns,ns1,sn1,nqs,nqs1,sn,qn,nq1,nsa
       common/ cst337 /nq,nn,ns,ns1,sn1,nqs,nqs1,sn,qn,nq1,nsa
+
+      integer ipot,jv,iv
+      common/ cst24 /ipot,jv(l2),iv(l2)
+
+      double precision v,tr,pr,r,ps
+      common/ cst5  /v(l2),tr,pr,r,ps
 c----------------------------------------------------------------------
 c                                graphics output  
       write (n5,'(3(i8,1x))') ic,jc,iap(ibulk)
@@ -1696,6 +1688,9 @@ c                                lagged speciation
       end do
 c                                dependent potentials
       write (n5,1010) (mu(i),i=1,kbulk)
+c                                for liquidus/solidus calcs output the
+c                                the additional "dependent" potential
+      if (icopt.eq.2) write (n5,1010) v(iv(1))
 
 1010  format (10(g16.8,1x))
 
