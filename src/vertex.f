@@ -1811,13 +1811,14 @@ c---------------------------------------------------------------------
      *        jinc(l8), lhot(4),
      *        hotij(l7,2), kotij(l7,2)
 
-      double precision ttol
-
       external nblen
 
       character tname*10
       logical refine, lresub
       common/ cxt26 /refine,lresub,tname
+
+      character*8 xname, vname
+      common/ csta2 /xname(k5),vname(l2)
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
