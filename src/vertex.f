@@ -1952,8 +1952,6 @@ c                               force linear_model on
          opts = opts + 2
       end if
 
-      ttol = nopt(2)
-
       write (*,'(/)')
 c-------------------------------end of george's initialization
 c                               initialize assemblage counter
@@ -2007,8 +2005,8 @@ c                               increments at each level
 
       ktic = 0
 
-      write (*,1050) 'Beginning',what(1:nblen(what)),pt,
-     *                ttol,unit(1:nblen(unit))
+      write (*,1050) 'Beginning',what(1:nblen(what)),vname(iv1),
+     *                nopt(2),unit(1:nblen(unit))
 c                              now traverse compositional grid:
 c                              lower triangle; upper is symmetric across diag.
       do i = 1, loopx, kinc
@@ -2025,7 +2023,7 @@ c                                 set bulk, check limits and degeneracy
 c                                 going to do some calcs, increment counter
             ktic = ktic + 1
 c                                 look for the liquidus:
-            call fndliq (i,j,ttol,opts,ktic,nliq,liq,idead)
+            call fndliq (i,j,opts,ktic,nliq,liq,idead)
 
          end do
 
@@ -2090,7 +2088,7 @@ c                              forget cells already on grid diagonal
 
                call stblk1 (icent,jcent,loopx,loopy,idead) 
 
-               if (idead.eq.0) call fndliq (icent,jcent,ttol,opts,
+               if (idead.eq.0) call fndliq (icent,jcent,opts,
      *                                      jtic,nliq,liq,idead)
 
             end if 
@@ -2121,7 +2119,7 @@ c                              compute assemblages at new nodes
 
                         call stblk1 (ii,jj,loopx,loopy,idead) 
 
-                        if (idead.eq.0) call fndliq (ii,jj,ttol,opts,
+                        if (idead.eq.0) call fndliq (ii,jj,opts,
      *                                            jtic,nliq,liq,idead)
 
                      end if 
@@ -2170,7 +2168,7 @@ c                                compute assemblage at cell nodes
                                  call stblk1 (iil,jjl,loopx,loopy,idead)
 
                                  if (idead.eq.0) call fndliq (iil,jjl,
-     *                                   ttol,opts,jtic,nliq,liq,idead)
+     *                                   opts,jtic,nliq,liq,idead)
 
                               end if 
                            end do  
@@ -2245,7 +2243,7 @@ c                                 write liquid ids to aux file
 
       end 
 
-      subroutine fndliq (i,j,tol,opts,ktic,nliq,liq,idead)
+      subroutine fndliq (i,j,opts,ktic,nliq,liq,idead)
 c--------------------------------------------------------------- 
 c fndliq iterates on element (i,j) in the grid to locate the liquidus or
 c solidus assemblage to within tolerance tol.
@@ -2276,13 +2274,9 @@ c---------------------------------------------------------------
 
       logical sol, pl, statik, abort
 
-      character assmb*128, text*240, pt*1 
+      integer opts, i,j,k,l, ktic, nliq, liq(nliq), idead
 
-      integer opts, i,j,k,l, ktic, nliq, liq(nliq), idead, nblen
-
-      double precision tol,tlo,thi
-
-      external nblen
+      double precision tlo,thi
 
       character tname*10
       logical refine, lresub
@@ -2293,6 +2287,9 @@ c---------------------------------------------------------------
 
       double precision v,tr,pr,r,ps
       common/ cst5  /v(l2),tr,pr,r,ps
+
+      character*8 xname, vname
+      common/ csta2 /xname(k5),vname(l2)
 
       double precision vmax,vmin,dv
       common/ cst9  /vmax(l2),vmin(l2),dv(l2)
@@ -2328,7 +2325,7 @@ c                              generate this case.
 
       if (idead .ne. 0) then
 
-         write (*,1020) 'low',pt,i,j
+         write (*,1020) 'low',vname(iv1),i,j
          call isgood (i,j,idead)
          return
 
@@ -2336,34 +2333,18 @@ c                              generate this case.
 
       call clsliq (nliq, liq, l)
 
-      if (pt.eq.'T' .and.
+      if (iv1.eq.2 .and.
      *    ((sol .and. l.ne.0) .or. (.not.sol .and. l.eq.2))) then
-
-         if (refine) then
-c                              only suggest problem if past exploratory phase
-            call smptxt (assmb,l)
-            write (text,1010) i,j,
-     *           'no solid(s)','lowest',pt,assmb(1:l)
-            call deblnk (text)
-            write (*,'(/,a)') text(1:nblen(text))
-         end if
+c                              only warn if past exploratory phase
+         if (refine) call liqwrn (i,j,'no solids','lowest')
 
          call isgood (i,j,99)
 
          return
 
-      endif
-
-      if (pt.eq.'P' .and. l.eq.0) then
-
-         if (.not.refine) then
-c                              only suggest problem if past exploratory phase
-            call smptxt (assmb,l)
-            write (text,1010) i,j,
-     *            'no liquid','lowest',pt,assmb(1:l)
-            call deblnk (text)
-            write (*,'(/,a)') text(1:nblen(text))
-         end if
+      else if (iv1.eq.1 .and. l.eq.0) then
+c                              only warn if past exploratory phase
+         if (refine) call liqwrn (i,j,'liquid','lowest')
 
          call isgood (i,j,99)
 
@@ -2379,7 +2360,7 @@ c                              do the optimization
 
       if (idead.ne.0) then
 
-         write (*,1020) 'high',pt,i,j
+         write (*,1020) 'high',vname(iv1),i,j
          call isgood (i,j,idead)
          return
 
@@ -2387,33 +2368,18 @@ c                              do the optimization
 
       call clsliq (nliq, liq, l)
 
-      if (pt.eq.'T' .and. ((.not.sol .and. l.ne.2) .or.
+      if (iv1.eq.2 .and. ((.not.sol .and. l.ne.2) .or.
      *                     (sol .and. l.eq.0))) then
-
-         if (refine) then
-c                              only suggest problem if past exploratory phase
-            call smptxt (assmb,l)
-            write (text,1010) i,j,'solid(s)','highest',pt,assmb(1:l)
-            call deblnk (text)
-            write (*,'(/,a)') text(1:nblen(text))
-         end if
+c                              only warn if past exploratory phase
+         if (refine) call liqwrn (i,j,'solids','highest')
 
          call isgood (i,j,99)
 
          return
 
-      end if
-
-      if (pt.eq.'P' .and. l.ne.0) then
-
-         if (refine) then
-c                              only suggest problem if past exploratory phase
-            call smptxt (assmb,l)
-            write (text,1010) i,j,'liquid','highest',pt,assmb(1:l)
-            call deblnk (text)
-            write (*,'(/,a)') text(1:nblen(text))
-
-         end if
+      else if (iv1.eq.1 .and. l.ne.0) then
+c                              only warn if past exploratory phase
+         if (refine) call liqwrn (i,j,'liquid','highest')
 
          call isgood (i,j,99)
 
@@ -2488,7 +2454,7 @@ c                                 lower bound, keep solid assemblage
 
         if (0.eq.mod(ktic,500)) write (*,1090) char(13),ktic
 
-        if (thi - tlo .lt. tol) exit
+        if (thi - tlo .lt. nopt(2)) exit
 c                                 save the last wrong-side result
         if (sol.and.l.ne.0 .or. .not.sol.and.l.ne.2) then
 
@@ -2522,13 +2488,47 @@ c                                 be for electrolytic fluids
 
       call isgood (i,j,idead)
 
-1010  format ('**Assemblage',2(1x,i5),' has ',a,
-     *        ' at',2(1x,a),': ',a)
 1020  format (/,'**Unable to define',2(1x,a),' assemblage: ind.',
      *        2(1x,i5))
 1090  format (a,7x,'...working (',i6,' minimizations done)',$)
 
       end
+
+      subroutine liqwrn (i,j,a,b)
+c----------------------------------------------------------------------
+c warn of failed initial condition tests in fndliq
+c----------------------------------------------------------------------
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      character a*(*),b*(*), assmb*128, text*240
+
+      integer i, j, l, nblen
+
+      external nblen
+
+      integer ipot,jv,iv1,iv2,iv3,iv4,iv5
+      common/ cst24 /ipot,jv(l2),iv1,iv2,iv3,iv4,iv5
+
+      double precision v,tr,pr,r,ps
+      common/ cst5  /v(l2),tr,pr,r,ps
+
+      character*8 xname, vname
+      common/ csta2 /xname(k5),vname(l2)
+c----------------------------------------------------------------------
+      call smptxt (assmb,l)
+
+      write (text,1010) i, j, a, b, vname(iv1), assmb(1:l)
+
+      call deblnk (text)
+
+      write (*,'(/,a)') text(1:nblen(text))
+
+1010  format ('**warning ver327**',2(1x,i5),' has ',a,
+     *        ' at',2(1x,a),': ',a)
+
+      end 
 
       subroutine savlst (recov,statik,l)
 c----------------------------------------------------------------------

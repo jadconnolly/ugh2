@@ -1,6 +1,6 @@
 solution_names mod
-x_nodes 10 40            | grid nodes at init and autorefine stages
-y_nodes 10 40            | grid nodes at init and autorefine stages
+x_nodes 10 10            | grid nodes at init and autorefine stages
+y_nodes 10 10            | grid nodes at init and autorefine stages
 grid_levels 1 2          | grid levels at init and autorefine stages
 output_iteration_G     F | debug
 output_iteration_detai F | debug
