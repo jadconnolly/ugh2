@@ -12618,9 +12618,6 @@ c-----------------------------------------------------------------------
       integer iasmbl
       common/ cst27  /iasmbl(j9)
 
-      character*8 vname,xname
-      common/ csta2  /xname(k5),vname(l2)
-
       character cname*5
       common/ csta4  /cname(k5)
 

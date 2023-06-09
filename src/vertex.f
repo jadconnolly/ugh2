@@ -330,9 +330,6 @@ c-----------------------------------------------------------------------
       character cname*5
       common/ csta4 /cname(k5)
 
-      character*8 xname, vname
-      common/ csta2 /xname(k5),vname(l2)
-
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
 
@@ -580,9 +577,6 @@ c-----------------------------------------------------------------------
 
       character cname*5
       common/ csta4 /cname(k5)
-
-      character*8 xname, vname
-      common/ csta2 /xname(k5),vname(l2)
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
@@ -1817,9 +1811,6 @@ c---------------------------------------------------------------------
       logical refine, lresub
       common/ cxt26 /refine,lresub,tname
 
-      character*8 xname, vname
-      common/ csta2 /xname(k5),vname(l2)
-
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
 
@@ -2289,9 +2280,6 @@ c---------------------------------------------------------------
       double precision v,tr,pr,r,ps
       common/ cst5  /v(l2),tr,pr,r,ps
 
-      character*8 xname, vname
-      common/ csta2 /xname(k5),vname(l2)
-
       double precision vmax,vmin,dv
       common/ cst9  /vmax(l2),vmin(l2),dv(l2)
 
@@ -2514,9 +2502,6 @@ c----------------------------------------------------------------------
 
       double precision v,tr,pr,r,ps
       common/ cst5  /v(l2),tr,pr,r,ps
-
-      character*8 xname, vname
-      common/ csta2 /xname(k5),vname(l2)
 c----------------------------------------------------------------------
       call smptxt (assmb,l)
 
@@ -3470,9 +3455,6 @@ c-----------------------------------------------------------------------
 
       double precision atwt
       common/ cst45 /atwt(k0)
- 
-      character*8 vname,xname
-      common/ csta2  /xname(k5),vname(l2)
 
       double precision dcomp
       common/ frct2 /dcomp(k5)

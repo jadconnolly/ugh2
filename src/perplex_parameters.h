@@ -587,3 +587,6 @@ c                                 LP workspace into common
       parameter (liwbig = 2*k1 + 3, lwbig = 2*(k5+1)**2 + 7*k1 + 5*k5)
       double precision wbig
       common/ cstbng /wbig(lwbig), iwbig(liwbig)
+
+      character*8 xname, vname
+      common/ csta2 /xname(k5),vname(l2)
