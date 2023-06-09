@@ -9265,8 +9265,6 @@ c-----------------------------------------------------------------------
       integer iam
       common/ cst4 /iam
 
-      character meltph*240
-      common/ cst88 /meltph
 
       save blank
       data blank/' '/
@@ -9956,7 +9954,7 @@ c----------------------------------------------------------------------
 
       integer i, itis
  
-      character*10 unnown
+      character unnown*(*)
  
       include 'perplex_parameters.h'
 
@@ -9966,7 +9964,7 @@ c----------------------------------------------------------------------
       character fname*10, aname*6, lname*22
       common/ csta7 /fname(h9),aname(h9),lname(h9)
 c---------------------------------------------------------------------- 
- 
+
       itis = 0
 
       do i = 1, isoct

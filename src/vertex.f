@@ -1789,14 +1789,11 @@ c---------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical init, got, output, sol
-
-      character what*8, unit*8, pt*1, cr*1
+      logical init
 
       integer kinc, kinc2, kinc21, icent, jcent, ie, je, ii, jj,
      *        iic, iil, jjc, jjl, klow,
      *        jtic, ktic, icell, ihot, jhot, hhot, khot,
-     *        nliq, liq(h9), opts,
      *        i, j, k, h, hh, kk, ll, idead,
      *        nblen
 
@@ -1846,11 +1843,8 @@ c---------------------------------------------------------------------
       character prject*100,tfname*100
       common/ cst228 /prject,tfname
 
-      character meltph*240
-      common/ cst88 /meltph
-
-      save init,nliq,liq,cr, sol
-      data init/.true./, sol/.false./
+      save init
+      data init/.true./
 
       save iind, jind, iiind, jjind, icind, jcind
       data iind, jind   /0,0,1,1, 0,1,1,0/
@@ -1858,94 +1852,7 @@ c---------------------------------------------------------------------
       data icind, jcind /0,1,2,1, 1,2,1,0/
       data ieind, jeind /0,0,2,2,0, 0,2,2,0,0/
 c-----------------------------------------------------------------------
-c-------------------------------beginning of george's initialization
-      output = refine .or. iopt(6).ne.2
-
-      got = .false. 
-
-      if (init) then
-
-         call getvar
-
-         nliq = 0
-         k = index(meltph,' ')
-
-         do while (k.gt.1)
-c                               see if named phase exists
-            got = .false.
-            k = k - 1
-
-            do j = 1, isoct
-               got = meltph(1:k).eq.fname(j)
-               if (got) exit
-            enddo
-
-            if (.not.got) then
-
-               do i = 1, iphct
-                  j = -i
-                  got = meltph(1:k).eq.names(i)
-                  if (got) exit
-               enddo
-
-            endif
-c                               what's the verdict?
-            if (.not.got) then
-               if (meltph(1:k) .eq. 'solidus') then
-                  sol = .true.
-               else if (meltph(1:k) .eq. 'liquidus') then
-                  sol = .false.
-               else
-                  write (*,*) '**',meltph(1:k),' not recognized.'
-               end if
-            else
-               nliq = nliq + 1
-               liq(nliq) = j
-            endif
-c                               done with this one, on to next
-            meltph(1:k) = ' '
-            call getstg(meltph)
-            k = index(meltph,' ')
-         enddo
-
-         if (nliq.eq.0) then
-            write (*,*) '**No liquids, no liquidus/solidus, ',
-     *         'no plot: simple!'
-            stop
-         endif
-c                               force closed composition
-         lopt(1) = .true.
-c                               force linear_model on
-         iopt(18) = 1
-         cr = char(13)
-
-      endif
-
-      if (sol) then
-         what = 'solidus'
-         opts = 1
-      else
-         what = 'liquidus'
-         opts = 0
-      end if
-
-      ii = index(vnm(3),'(')
-      jj = index(vnm(3),')')
-      if (ii.gt.0 .and. jj.gt.0) then
-         unit = vnm(3)(ii+1:jj-1)
-      else
-         unit = '(?)'
-      end if
-
-      if (0.ne.index('KC',unit(1:1))) then
-         pt = 'T'
-      else
-         pt = 'P'
-         opts = opts + 2
-      end if
-
-      write (*,'(/)')
-c-------------------------------end of george's initialization
+      if (init) call initlq
 c                               initialize assemblage counter
       iasct = 0 
       ibulk = 0 
@@ -1997,8 +1904,8 @@ c                               increments at each level
 
       ktic = 0
 
-      write (*,1050) 'Beginning',what(1:nblen(what)),vname(iv1),
-     *                nopt(2),unit(1:nblen(unit))
+      write (*,1050) 'Beginning',whatlq(1:nblen(whatlq)),vname(iv1),
+     *                nopt(2),unitlq(1:nblen(unitlq))
 c                              now traverse compositional grid:
 c                              lower triangle; upper is symmetric across diag.
       do i = 1, loopx, kinc
@@ -2015,7 +1922,7 @@ c                                 set bulk, check limits and degeneracy
 c                                 going to do some calcs, increment counter
             ktic = ktic + 1
 c                                 look for the liquidus:
-            call fndliq (i,j,opts,ktic,nliq,liq,idead)
+            call fndliq (i,j,ktic,idead)
 
          end do
 
@@ -2080,8 +1987,8 @@ c                              forget cells already on grid diagonal
 
                call stblk1 (icent,jcent,loopx,loopy,idead) 
 
-               if (idead.eq.0) call fndliq (icent,jcent,opts,
-     *                                      jtic,nliq,liq,idead)
+               if (idead.eq.0) call fndliq (icent,jcent,
+     *                                      jtic,idead)
 
             end if 
 c                              now determine which of the diagonals
@@ -2111,8 +2018,7 @@ c                              compute assemblages at new nodes
 
                         call stblk1 (ii,jj,loopx,loopy,idead) 
 
-                        if (idead.eq.0) call fndliq (ii,jj,opts,
-     *                                            jtic,nliq,liq,idead)
+                        if (idead.eq.0) call fndliq (ii,jj,jtic,idead)
 
                      end if 
                   end do 
@@ -2160,7 +2066,7 @@ c                                compute assemblage at cell nodes
                                  call stblk1 (iil,jjl,loopx,loopy,idead)
 
                                  if (idead.eq.0) call fndliq (iil,jjl,
-     *                                   opts,jtic,nliq,liq,idead)
+     *                                   jtic,idead)
 
                               end if 
                            end do  
@@ -2204,19 +2110,8 @@ c                             now switch new and old hot list
 
       write (*,1060) rcount(5),loopx*(loopy+1)/2
       write (*,1080) rcount(4),loopx*(loopx+1)/2*16
-c                                 output grid data
-10    continue
 
-      if (output) then
-
-         call outgrd (loopx, loopy, 1, n4, 0)
-c                                 write liquid ids to aux file
-         call mertxt (tfname,prject,'.liq',0)
-         call inqopn (n8,tfname)
-         write (n8,*) nliq,(liq(i),i=1,nliq),' ',what
-         close (n8)
-
-      end if
+10    if (outprt) call outgrd (loopx,loopy,1,n4,0)
 
       init = .false.
 
@@ -2235,7 +2130,7 @@ c                                 write liquid ids to aux file
 
       end 
 
-      subroutine fndliq (i,j,opts,ktic,nliq,liq,idead)
+      subroutine fndliq (i,j,ktic,idead)
 c--------------------------------------------------------------- 
 c fndliq iterates on element (i,j) in the grid to locate the liquidus or
 c solidus assemblage to within tolerance tol.
@@ -2266,7 +2161,7 @@ c---------------------------------------------------------------
 
       logical sol, pl, statik, abort
 
-      integer opts, i,j,k,l, ktic, nliq, liq(nliq), idead
+      integer i, j, k, l, ktic, idead
 
       double precision tlo,thi
 
@@ -2320,7 +2215,7 @@ c                              generate this case.
 
       end if
 
-      call clsliq (nliq, liq, l)
+      call clsliq (l)
 
       if (iv1.eq.2 .and.
      *    ((sol .and. l.ne.0) .or. (.not.sol .and. l.eq.2))) then
@@ -2355,7 +2250,7 @@ c                              do the optimization
 
       end if
 
-      call clsliq (nliq, liq, l)
+      call clsliq (l)
 
       if (iv1.eq.2 .and. ((.not.sol .and. l.ne.2) .or.
      *                     (sol .and. l.eq.0))) then
@@ -2389,7 +2284,7 @@ c                                 do the optimization
 
         if (idead .ne. 0) exit
 
-        call clsliq (nliq, liq, l)
+        call clsliq (l)
 
         if (pl) then
 
@@ -2653,7 +2548,7 @@ c----------------------------------------------------------------------
 
       end 
 
-      subroutine clsliq (nliq, liqsls, type)
+      subroutine clsliq (type)
 c----------------------------------------------------------------------
 c classify grid item one of three ways:
 c type = 0 if no liquid
@@ -2664,7 +2559,7 @@ c---------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i, j, nliq, liqsls(nliq), type
+      integer i, j, type
 
       logical is, liq, sol
 
@@ -2683,7 +2578,7 @@ c---------------------------------------------------------------
       do i = 1, npt
 
          do j = 1, nliq
-            is = jkp(jdv(i)).eq.liqsls(j)
+            is = jkp(jdv(i)).eq.liqlst(j)
             if (is) exit
          end do
 

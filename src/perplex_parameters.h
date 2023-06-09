@@ -590,3 +590,7 @@ c                                 LP workspace into common
 
       character*8 xname, vname
       common/ csta2 /xname(k5),vname(l2)
+
+      integer liqlst, nliq, opts
+      character meltph*240, whatlq*8, unitlq*8, cr*1
+      common/ cst88 / liqlst(h9), nliq, opts, whatlq, unitlq, cr, meltph
