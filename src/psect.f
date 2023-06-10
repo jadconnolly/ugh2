@@ -1206,12 +1206,6 @@ c                                extrapolation if this occurs a lot.
 
       end do
 
-
-
-
-
-
-
       if (loopx .gt. l7g) then
          write (*,*)
      *      '**Size of liquidus/solidus grid too small, recompile: ',
