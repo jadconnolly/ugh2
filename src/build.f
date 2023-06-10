@@ -862,7 +862,7 @@ c                                 diagrams:
      *        'Select models from the solution model list, enter',
      *        ' 1 per line, press <enter> to finish',/)
 2530  format (/,'**warning** No liquids defined; the calculation can''t'
-     *        ' be done.  You need to define one or more liquids.')
+     *       ,' be done.  You need to define one or more liquids.')
 3000  format (a,1x,i1,1x,3(g12.6,1x),a,' amount')
 3010  format ('Enter the solution model file name [default = ',
      *        'solution_model.dat]: ')
