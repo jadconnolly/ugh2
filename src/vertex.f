@@ -2206,7 +2206,9 @@ c                              generate this case.
       end if
 
       ktic = ktic + 1
+
       if (0.eq.mod(ktic,500)) write (*,1090) char(13),ktic
+
       call lpopt1 (idead,statik)
 
       if (idead .ne. 0) then
@@ -2243,7 +2245,9 @@ c                              update dependent variables, if any
       call incdp0
 c                              do the optimization
       ktic = ktic + 1
+
       if (0.eq.mod(ktic,500)) write (*,1090) char(13),ktic
+
       call lpopt1 (idead,statik)
 
       if (idead.ne.0) then
@@ -2563,9 +2567,12 @@ c---------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i, j, type
+      integer i, j, id, ids, type
 
       logical is, liq, sol
+
+      integer ikp
+      common/ cst61 /ikp(k1)
 
       integer npt,jdv
       double precision cptot,ctotal
@@ -2580,10 +2587,36 @@ c---------------------------------------------------------------
       sol = .false.
 
       do i = 1, npt
+c                                 the problem with this test is liqlst may
+c                                 contain negative index of a compound or the
+c                                 positive index of a solution. test for both
+c                                 cases.
+         if (lkp(i).lt.0) then
+
+            ids = ikp(-lkp(i))
+            id = lkp(i)
+
+         else
+
+            ids = lkp(i)
+            id = 0
+
+         end if
 
          do j = 1, nliq
-            is = jkp(jdv(i)).eq.liqlst(j)
+
+            if (liqlst(j).gt.0) then
+c                                 compare solution model indices
+               is = ids.eq.liqlst(j)
+
+            else
+c                                 compare compound indices
+               is = id.eq.liqlst(j)
+
+            end if
+
             if (is) exit
+
          end do
 
          liq = liq .or. is

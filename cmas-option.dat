@@ -6,11 +6,8 @@ output_iteration_G     F | debug
 output_iteration_detai F | debug
 auto_refine on
 
-<<<<<<< HEAD
+
 liquidus_resolution    1 | 100 bars / 5 K
-=======
 bad_number 0d0
-liquidus_resolution    1
->>>>>>> lpopt1
 initial_resolution default 1/20
 GFSM T
