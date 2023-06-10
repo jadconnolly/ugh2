@@ -2324,6 +2324,8 @@ c                              generate this case.
          return
       end if
 
+      ktic = ktic + 1
+      if (0.eq.mod(ktic,500)) write (*,1090) char(13),ktic
       call lpopt1 (idead,statik)
 
       if (idead .ne. 0) then
@@ -2375,6 +2377,8 @@ c                              check the assemblage at the maximum
 c                              update dependent variables, if any
       call incdp0
 c                              do the optimization
+      ktic = ktic + 1
+      if (0.eq.mod(ktic,500)) write (*,1090) char(13),ktic
       call lpopt1 (idead,statik)
 
       if (idead.ne.0) then
@@ -2500,7 +2504,7 @@ c                                 save the last wrong-side result
 c                                 final processing:
       if (idead.ne.0) then
 c                                 fndliq failed
-         if (refine) print '(/,2(1x,i5),1x,a)',i,j,'miss'
+         if (refine) write (*,1020) 'liquidus grid',i,j
 c                                 here's an opportunity to set
 c                                 a bad value for the temperature.
       else 
