@@ -151,6 +151,13 @@ c                               restrict by phase absence
                call rname (3,prompt)
             end if 
          end if
+
+c                               omit single phase field compositions?
+         write (*,1160)
+
+         if (readyn()) then
+            iop5 = iop5 + 2
+         end if
       end if
 c                                 gridded pseudosection construction
       if (oned) then 
@@ -175,6 +182,7 @@ c                                 gridded pseudosection construction
      *        '   - show fields that do not contain specified phases',/,
      *        '   - show fields that contain any of a set of specified',
      *            ' phases ')
+1160  format (/,'Omit single phase field compositions (y/n)?')
 1400  format (/,'WARNING: You can not specify saturated phases or',
      *          ' phases determined by',/,'component saturation',
      *          ' constraints in these restrictions.',/)       
@@ -1060,7 +1068,7 @@ c----------------------------------------------------------------------
 
       character text*240, plu*4, typ*8
 
-      logical off, lmult, lyet, lblphs(k3)
+      logical off, lmult, lyet, lnophs, lblphs(k3)
 
       integer i, j, k, l, m, id, jcoor, iix, jix,
      *        v1, v2, v3, nsegs, iseg, tseg,
@@ -1567,10 +1575,13 @@ c    *               'Found crystallizing phase:',text(1:k)
       end do
 
 c                                 label composition of each solid
+      lnophs = mod(iop5/2,2) .eq. 1
+
       do i = 1, nssol
          id = issol(i)
          call getnam (text, id)
          k = nblen (text(1:14))
+         lmult = 0.ne.index(text(1:k),'+')
 c        print*,'For crystallizing phase ',i,id,text(1:k)
 c                                 find endmember proportions y()
 c                                 premultiply LHS by transpose,
@@ -1605,14 +1616,15 @@ c                                 project and clip to triangular area, label
      *         yy(3).lt.0d0 .or. yy(3).gt.1d0
          call trneq (yy(2),yy(3))
          if (.not.off) then
-            call pselip (yy(2), yy(3), 0.50d0*dcx, 0.50d0*dcy,
-     *                   1d0, 0d0, 7, 0, 1)
-            call pssctr (ifont,ascale,ascale, 0d0)
+            if (lmult .or. .not.lnophs)
+     *         call pselip (yy(2), yy(3), 0.50d0*dcx, 0.50d0*dcy,
+     *                      1d0, 0d0, 7, 0, 1)
             k = nblen (text(1:14))
             if (id.lt.0) then
+               call pssctr (ifont,ascale,ascale, 0d0)
                call pstext (yy(2)+dcx*ascale,yy(3)+.7d0*dcy*ascale,
      *                      text,k)
-            else if (lblphs(id)) then
+            else if (lblphs(id) .and. .not.lnophs) then
 c                                 solutions will be a point cluster, so label
 c                                 first one centered above location (a hack)
                call pstext (yy(2)-k*0.5d0*dcx*ascale,
