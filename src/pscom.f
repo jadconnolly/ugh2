@@ -873,11 +873,13 @@ c                                       sectioning constraints
 
          write (record,1000) vnm(3),vmn(3)
          write (record(nblen(record)+2:),'(a,g11.5)') '-',vmx(3)
+         call deblnk (record)
          call pstext (xmin,yc,record,nblen(record))
 
          do i = 4, jvar
             yc = yc - 2.4*dcy*nscale
             write (record,1000) vnm(i),vmn(i)
+            call deblnk (record)
             call pstext (xmin,yc,record,nblen(record))
          end do 
 c                                       grid details
