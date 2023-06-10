@@ -1074,7 +1074,7 @@ c----------------------------------------------------------------------
      *        v1, v2, v3, nsegs, iseg, tseg,
      *        noth, grp, iass, ictr, kass, msol,
      *        ii, jj, imn, imx, jmn, jmx, in, iend, cflag,
-     *        nliq, liq(h9), iliq, jliq, isol, nsol, ngrp,
+     *        iliq, jliq, isol, nsol, ngrp,
      *        nssol, issol(k2),
      *        lass(k2), lsol(k2), labs(k2), nabs(k2),
      *        gixi(8), gixj(8)
@@ -1180,6 +1180,8 @@ c         1     2     3      4    5     6    7    8
 c        x  y  x  y  x  y   x y  x y   x y  x y  x y
      */
 c----------------------------------------------------------------------
+c                                 initialization, phase lists etc
+      call initlq
 c                                 reconstruct the temperature grid
       do i = 1, loopx
 
@@ -1220,18 +1222,6 @@ c                                extrapolation if this occurs a lot.
      *      l7g,' <',loopx
          stop
       end if
-
-      call mertxt (tfname,prject,'.liq',0)
-      open (n8,file=tfname,status='old',iostat=ier)
-      if (ier.eq.0) 
-     *   read (n8,*,iostat=ier) nliq,(liq(i),i=1,min(h9,nliq)),typ
-      if (ier.ne.0) then
-         write (*,*) '**Bad/missing liquidus/solidus file: ',
-     *         tfname(1:nblen(tfname))
-         stop
-      end if
-
-      close (n8)
 
 c     Smooth temperature grid
 
@@ -1503,7 +1493,7 @@ c                                 get all liquid phases
       write(text,'(i2,1x,2a)') nliq,'liquid',plu(1:nblen(plu))
       do i = 1, nliq
          k = nblen(text)
-         call getnam (text(k+2:), liq(i))
+         call getnam (text(k+2:), liqlst(i))
       end do
       write(*,'(a)') text(1:nblen(text))
       text = ' '
@@ -1547,7 +1537,7 @@ c                                 kkp(j) will be the phase index [idasls(j,isol)
                i = idasls(j,isol)
  
                do k = 1, nliq
-                  off = i .eq. liq(k)
+                  off = i .eq. liqlst(k)
                   if (off) exit
                end do
 c                                 if off true, then is a liquid phase
@@ -1651,7 +1641,7 @@ c                                 add solid(s), skip liquids
             isol = idasls(j,id)
             off = .false.
             do k = 1, nliq
-               off = liq(k) .eq. isol
+               off = liqlst(k) .eq. isol
                if (off) exit
             end do
             if (off) then

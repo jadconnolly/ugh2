@@ -330,9 +330,6 @@ c-----------------------------------------------------------------------
       character cname*5
       common/ csta4 /cname(k5)
 
-      character*8 xname, vname
-      common/ csta2 /xname(k5),vname(l2)
-
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
 
@@ -580,9 +577,6 @@ c-----------------------------------------------------------------------
 
       character cname*5
       common/ csta4 /cname(k5)
-
-      character*8 xname, vname
-      common/ csta2 /xname(k5),vname(l2)
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
@@ -1795,14 +1789,11 @@ c---------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical init, got, output, sol
-
-      character what*8, unit*8, pt*1, cr*1
+      logical init
 
       integer kinc, kinc2, kinc21, icent, jcent, ie, je, ii, jj,
      *        iic, iil, jjc, jjl, klow,
      *        jtic, ktic, icell, ihot, jhot, hhot, khot,
-     *        nliq, liq(h9), opts,
      *        i, j, k, h, hh, kk, ll, idead,
      *        nblen
 
@@ -1810,8 +1801,6 @@ c---------------------------------------------------------------------
      *        icind(4), jcind(4), ieind(5), jeind(5),
      *        jinc(l8), lhot(4),
      *        hotij(l7,2), kotij(l7,2)
-
-      double precision ttol
 
       external nblen
 
@@ -1854,11 +1843,8 @@ c---------------------------------------------------------------------
       character prject*100,tfname*100
       common/ cst228 /prject,tfname
 
-      character meltph*240
-      common/ cst88 /meltph
-
-      save init,nliq,liq,cr, sol
-      data init/.true./, sol/.false./
+      save init
+      data init/.true./
 
       save iind, jind, iiind, jjind, icind, jcind
       data iind, jind   /0,0,1,1, 0,1,1,0/
@@ -1866,96 +1852,7 @@ c---------------------------------------------------------------------
       data icind, jcind /0,1,2,1, 1,2,1,0/
       data ieind, jeind /0,0,2,2,0, 0,2,2,0,0/
 c-----------------------------------------------------------------------
-c-------------------------------beginning of george's initialization
-      output = refine .or. iopt(6).ne.2
-
-      got = .false. 
-
-      if (init) then
-
-         call getvar
-
-         nliq = 0
-         k = index(meltph,' ')
-
-         do while (k.gt.1)
-c                               see if named phase exists
-            got = .false.
-            k = k - 1
-
-            do j = 1, isoct
-               got = meltph(1:k).eq.fname(j)
-               if (got) exit
-            enddo
-
-            if (.not.got) then
-
-               do i = 1, iphct
-                  j = -i
-                  got = meltph(1:k).eq.names(i)
-                  if (got) exit
-               enddo
-
-            endif
-c                               what's the verdict?
-            if (.not.got) then
-               if (meltph(1:k) .eq. 'solidus') then
-                  sol = .true.
-               else if (meltph(1:k) .eq. 'liquidus') then
-                  sol = .false.
-               else
-                  write (*,*) '**',meltph(1:k),' not recognized.'
-               end if
-            else
-               nliq = nliq + 1
-               liq(nliq) = j
-            endif
-c                               done with this one, on to next
-            meltph(1:k) = ' '
-            call getstg(meltph)
-            k = index(meltph,' ')
-         enddo
-
-         if (nliq.eq.0) then
-            write (*,*) '**No liquids, no liquidus/solidus, ',
-     *         'no plot: simple!'
-            stop
-         endif
-c                               force closed composition
-         lopt(1) = .true.
-c                               force linear_model on
-         iopt(18) = 1
-         cr = char(13)
-
-      endif
-
-      if (sol) then
-         what = 'solidus'
-         opts = 1
-      else
-         what = 'liquidus'
-         opts = 0
-      end if
-
-      ii = index(vnm(3),'(')
-      jj = index(vnm(3),')')
-      if (ii.gt.0 .and. jj.gt.0) then
-         unit = vnm(3)(ii+1:jj-1)
-      else
-         unit = '(?)'
-      end if
-
-      if (0.ne.index('KC',unit(1:1))) then
-         pt = 'T'
-      else
-         pt = 'P'
-         opts = opts + 2
-      end if
-
-      ttol = nopt(2)
-
-      write (*,'(/)')
-c-------------------------------end of george's initialization
+      if (init) call initlq
 c                               initialize assemblage counter
       iasct = 0 
       ibulk = 0 
@@ -2007,8 +1904,8 @@ c                               increments at each level
 
       ktic = 0
 
-      write (*,1050) 'Beginning',what(1:nblen(what)),pt,
-     *                ttol,unit(1:nblen(unit))
+      write (*,1050) 'Beginning',whatlq(1:nblen(whatlq)),vname(iv1),
+     *                nopt(2),unitlq(1:nblen(unitlq))
 c                              now traverse compositional grid:
 c                              lower triangle; upper is symmetric across diag.
       do i = 1, loopx, kinc
@@ -2025,7 +1922,7 @@ c                                 set bulk, check limits and degeneracy
 c                                 going to do some calcs, increment counter
             ktic = ktic + 1
 c                                 look for the liquidus:
-            call fndliq (i,j,ttol,opts,ktic,nliq,liq,idead)
+            call fndliq (i,j,ktic,idead)
 
          end do
 
@@ -2090,8 +1987,8 @@ c                              forget cells already on grid diagonal
 
                call stblk1 (icent,jcent,loopx,loopy,idead) 
 
-               if (idead.eq.0) call fndliq (icent,jcent,ttol,opts,
-     *                                      jtic,nliq,liq,idead)
+               if (idead.eq.0) call fndliq (icent,jcent,
+     *                                      jtic,idead)
 
             end if 
 c                              now determine which of the diagonals
@@ -2121,8 +2018,7 @@ c                              compute assemblages at new nodes
 
                         call stblk1 (ii,jj,loopx,loopy,idead) 
 
-                        if (idead.eq.0) call fndliq (ii,jj,ttol,opts,
-     *                                            jtic,nliq,liq,idead)
+                        if (idead.eq.0) call fndliq (ii,jj,jtic,idead)
 
                      end if 
                   end do 
@@ -2170,7 +2066,7 @@ c                                compute assemblage at cell nodes
                                  call stblk1 (iil,jjl,loopx,loopy,idead)
 
                                  if (idead.eq.0) call fndliq (iil,jjl,
-     *                                   ttol,opts,jtic,nliq,liq,idead)
+     *                                   jtic,idead)
 
                               end if 
                            end do  
@@ -2214,19 +2110,8 @@ c                             now switch new and old hot list
 
       write (*,1060) rcount(5),loopx*(loopy+1)/2
       write (*,1080) rcount(4),loopx*(loopx+1)/2*16
-c                                 output grid data
-10    continue
 
-      if (output) then
-
-         call outgrd (loopx, loopy, 1, n4, 0)
-c                                 write liquid ids to aux file
-         call mertxt (tfname,prject,'.liq',0)
-         call inqopn (n8,tfname)
-         write (n8,*) nliq,(liq(i),i=1,nliq),' ',what
-         close (n8)
-
-      end if
+10    if (outprt) call outgrd (loopx,loopy,1,n4,0)
 
       init = .false.
 
@@ -2245,7 +2130,7 @@ c                                 write liquid ids to aux file
 
       end 
 
-      subroutine fndliq (i,j,tol,opts,ktic,nliq,liq,idead)
+      subroutine fndliq (i,j,ktic,idead)
 c--------------------------------------------------------------- 
 c fndliq iterates on element (i,j) in the grid to locate the liquidus or
 c solidus assemblage to within tolerance tol.
@@ -2276,13 +2161,9 @@ c---------------------------------------------------------------
 
       logical sol, pl, statik, abort
 
-      character assmb*128, text*240, pt*1 
+      integer i, j, k, l, ktic, idead
 
-      integer opts, i,j,k,l, ktic, nliq, liq(nliq), idead, nblen
-
-      double precision tol,tlo,thi
-
-      external nblen
+      double precision tlo,thi
 
       character tname*10
       logical refine, lresub
@@ -2330,42 +2211,26 @@ c                              generate this case.
 
       if (idead .ne. 0) then
 
-         write (*,1020) 'low',pt,i,j
+         write (*,1020) 'low',vname(iv1),i,j
          call isgood (i,j,idead)
          return
 
       end if
 
-      call clsliq (nliq, liq, l)
+      call clsliq (l)
 
-      if (pt.eq.'T' .and.
+      if (iv1.eq.2 .and.
      *    ((sol .and. l.ne.0) .or. (.not.sol .and. l.eq.2))) then
-
-         if (refine) then
-c                              only suggest problem if past exploratory phase
-            call smptxt (assmb,l)
-            write (text,1010) i,j,
-     *           'no solid(s)','lowest',pt,assmb(1:l)
-            call deblnk (text)
-            write (*,'(/,a)') text(1:nblen(text))
-         end if
+c                              only warn if past exploratory phase
+         if (refine) call liqwrn (i,j,'no solids','lowest')
 
          call isgood (i,j,99)
 
          return
 
-      endif
-
-      if (pt.eq.'P' .and. l.eq.0) then
-
-         if (.not.refine) then
-c                              only suggest problem if past exploratory phase
-            call smptxt (assmb,l)
-            write (text,1010) i,j,
-     *            'no liquid','lowest',pt,assmb(1:l)
-            call deblnk (text)
-            write (*,'(/,a)') text(1:nblen(text))
-         end if
+      else if (iv1.eq.1 .and. l.eq.0) then
+c                              only warn if past exploratory phase
+         if (refine) call liqwrn (i,j,'liquid','lowest')
 
          call isgood (i,j,99)
 
@@ -2383,41 +2248,26 @@ c                              do the optimization
 
       if (idead.ne.0) then
 
-         write (*,1020) 'high',pt,i,j
+         write (*,1020) 'high',vname(iv1),i,j
          call isgood (i,j,idead)
          return
 
       end if
 
-      call clsliq (nliq, liq, l)
+      call clsliq (l)
 
-      if (pt.eq.'T' .and. ((.not.sol .and. l.ne.2) .or.
+      if (iv1.eq.2 .and. ((.not.sol .and. l.ne.2) .or.
      *                     (sol .and. l.eq.0))) then
-
-         if (refine) then
-c                              only suggest problem if past exploratory phase
-            call smptxt (assmb,l)
-            write (text,1010) i,j,'solid(s)','highest',pt,assmb(1:l)
-            call deblnk (text)
-            write (*,'(/,a)') text(1:nblen(text))
-         end if
+c                              only warn if past exploratory phase
+         if (refine) call liqwrn (i,j,'solids','highest')
 
          call isgood (i,j,99)
 
          return
 
-      end if
-
-      if (pt.eq.'P' .and. l.ne.0) then
-
-         if (refine) then
-c                              only suggest problem if past exploratory phase
-            call smptxt (assmb,l)
-            write (text,1010) i,j,'liquid','highest',pt,assmb(1:l)
-            call deblnk (text)
-            write (*,'(/,a)') text(1:nblen(text))
-
-         end if
+      else if (iv1.eq.1 .and. l.ne.0) then
+c                              only warn if past exploratory phase
+         if (refine) call liqwrn (i,j,'liquid','highest')
 
          call isgood (i,j,99)
 
@@ -2438,7 +2288,7 @@ c                                 do the optimization
 
         if (idead .ne. 0) exit
 
-        call clsliq (nliq, liq, l)
+        call clsliq (l)
 
         if (pl) then
 
@@ -2492,7 +2342,7 @@ c                                 lower bound, keep solid assemblage
 
         if (0.eq.mod(ktic,500)) write (*,1090) char(13),ktic
 
-        if (thi - tlo .lt. tol) exit
+        if (thi - tlo .lt. nopt(2)) exit
 c                                 save the last wrong-side result
         if (sol.and.l.ne.0 .or. .not.sol.and.l.ne.2) then
 
@@ -2526,13 +2376,44 @@ c                                 be for electrolytic fluids
 
       call isgood (i,j,idead)
 
-1010  format ('**Assemblage',2(1x,i5),' has ',a,
-     *        ' at',2(1x,a),': ',a)
 1020  format (/,'**Unable to define',2(1x,a),' assemblage: ind.',
      *        2(1x,i5))
 1090  format (a,7x,'...working (',i6,' minimizations done)',$)
 
       end
+
+      subroutine liqwrn (i,j,a,b)
+c----------------------------------------------------------------------
+c warn of failed initial condition tests in fndliq
+c----------------------------------------------------------------------
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      character a*(*),b*(*), assmb*128, text*240
+
+      integer i, j, l, nblen
+
+      external nblen
+
+      integer ipot,jv,iv1,iv2,iv3,iv4,iv5
+      common/ cst24 /ipot,jv(l2),iv1,iv2,iv3,iv4,iv5
+
+      double precision v,tr,pr,r,ps
+      common/ cst5  /v(l2),tr,pr,r,ps
+c----------------------------------------------------------------------
+      call smptxt (assmb,l)
+
+      write (text,1010) i, j, a, b, vname(iv1), assmb(1:l)
+
+      call deblnk (text)
+
+      write (*,'(/,a)') text(1:nblen(text))
+
+1010  format ('**warning ver327**',2(1x,i5),' has ',a,
+     *        ' at',2(1x,a),': ',a)
+
+      end 
 
       subroutine savlst (recov,statik,l)
 c----------------------------------------------------------------------
@@ -2671,7 +2552,7 @@ c----------------------------------------------------------------------
 
       end 
 
-      subroutine clsliq (nliq, liqsls, type)
+      subroutine clsliq (type)
 c----------------------------------------------------------------------
 c classify grid item one of three ways:
 c type = 0 if no liquid
@@ -2682,7 +2563,7 @@ c---------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i, j, nliq, liqsls(nliq), type
+      integer i, j, type
 
       logical is, liq, sol
 
@@ -2701,7 +2582,7 @@ c---------------------------------------------------------------
       do i = 1, npt
 
          do j = 1, nliq
-            is = jkp(jdv(i)).eq.liqsls(j)
+            is = jkp(jdv(i)).eq.liqlst(j)
             if (is) exit
          end do
 
@@ -3473,9 +3354,6 @@ c-----------------------------------------------------------------------
 
       double precision atwt
       common/ cst45 /atwt(k0)
- 
-      character*8 vname,xname
-      common/ csta2  /xname(k5),vname(l2)
 
       double precision dcomp
       common/ frct2 /dcomp(k5)

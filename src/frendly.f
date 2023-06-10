@@ -278,9 +278,6 @@ c----------------------------------------------------------------------
  
       integer ier, i, j
 
-      character*8 vname,xname
-      common/ csta2 /xname(k5),vname(l2)
-
       double precision delv
       common/ cst63 /delv(l2)
 
@@ -390,9 +387,6 @@ c----------------------------------------------------------------------
 
       double precision delv
       common/ cst63 /delv(l2)
-
-      character*8 vname,xname
-      common/ csta2  /xname(k5),vname(l2)
 
       double precision vmax,vmin,dv
       common/ cst9  /vmax(l2),vmin(l2),dv(l2)
@@ -793,9 +787,6 @@ c-----------------------------------------------------------------------
 
       double precision vmax,vmin,dv
       common/ cst9  /vmax(l2),vmin(l2),dv(l2)
-
-      character*8 vname,xname
-      common/ csta2 /xname(k5),vname(l2)
 
       integer ipot,jv,iv1,iv2,iv3,iv4,iv5
       common/ cst24 /ipot,jv(l2),iv1,iv2,iv3,iv4,iv5
@@ -1843,9 +1834,6 @@ c----------------------------------------------------------------------
       integer jcv,jvct,jpv,jtv,jf
       common / mu2f1 /jcv(2),jvct,jpv,jtv,jf(2)
 
-      character*8 vname,xname
-      common/ csta2  /xname(k5),vname(l2)
-
       character tname
       common/ csta10 /tname(2)
 
@@ -2351,9 +2339,6 @@ c----------------------------------------------------------------------
 
       integer inc,jpot
       common/ cst101 /inc(l2),jpot
-
-      character*8 vname,xname
-      common/ csta2 /xname(k5),vname(l2)
 
       integer ipot,jv,iv
       common/ cst24 /ipot,jv(l2),iv(l2)

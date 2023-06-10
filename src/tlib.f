@@ -5933,9 +5933,6 @@ c----------------------------------------------------------------------
       integer ikind,icmpn,icout,ieos
       double precision comp,tot
       common/ cst43 /comp(k0),tot,icout(k0),ikind,icmpn,ieos
-  
-      character vname*8, xname*8
-      common/ csta2 /xname(k5),vname(l2)
 
       integer cl
       character cmpnt*5, dname*80
@@ -7603,10 +7600,7 @@ c---------------------------------------------------------------------
       common/ cxt18 /var(l3),dvr(l3),vmn(l3),vmx(l3),jvar
 
       character vnm*8
-      common/ cxt18a /vnm(l3)   
-
-      character vname*8, xname*8
-      common / csta2 /xname(k5),vname(l2)  
+      common/ cxt18a /vnm(l3)
 
       logical oned
       common/ cst82 /oned
@@ -8509,9 +8503,6 @@ c----------------------------------------------------------------------
 
       character tag*8
 
-      character*8 vname,xname
-      common/ csta2  /xname(k5),vname(l2)
-
       double precision v,tr,pr,r,ps
       common/ cst5  /v(l2),tr,pr,r,ps
 
@@ -9198,9 +9189,6 @@ c-----------------------------------------------------------------------
       character fname*10, aname*6, lname*22
       common/ csta7 /fname(h9),aname(h9),lname(h9)
 
-      character*8 xname,vname
-      common/ csta2 /xname(k5),vname(l2)
-
       character*5 cname
       common/ csta4 /cname(k5) 
 
@@ -9277,8 +9265,6 @@ c-----------------------------------------------------------------------
       integer iam
       common/ cst4 /iam
 
-      character meltph*240
-      common/ cst88 /meltph
 
       save blank
       data blank/' '/
@@ -9968,7 +9954,7 @@ c----------------------------------------------------------------------
 
       integer i, itis
  
-      character*10 unnown
+      character unnown*(*)
  
       include 'perplex_parameters.h'
 
@@ -9978,7 +9964,7 @@ c----------------------------------------------------------------------
       character fname*10, aname*6, lname*22
       common/ csta7 /fname(h9),aname(h9),lname(h9)
 c---------------------------------------------------------------------- 
- 
+
       itis = 0
 
       do i = 1, isoct
@@ -10015,9 +10001,6 @@ c-----------------------------------------------------------------------
 
       character*162 title
       common/ csta8 /title(4)
-
-      character*8 vname,xname     
-      common/ csta2  /xname(k5),vname(l2)
 
       integer ivfl
       common/ cst102 /ivfl
@@ -10466,7 +10449,7 @@ c----------------------------------------------------------------------
 
       double precision vmn(2), dv(2)
 
-      character*100 n6name, n5name, vname(l3)*14
+      character*100 n6name, n5name, colnam(l3)*14
 
       integer inv
       character dname*14, title*162
@@ -10533,15 +10516,15 @@ c                                 number of pseudo-dependent variables,
       end if
 c                                 convert a8 names to a14
       do i = 1, ivar
-         vname(i) = vnm(i)
-         call unblnk (vname(i))
+         colnam(i) = vnm(i)
+         call unblnk (colnam(i))
       end do
 c                                 output the dependent variable counter and list
       if (kcx(1).eq.999) then
 c                                  phemgp file
          write (n,*) ivar + iprop + 2
          write (n,'(200(a20,1x))') 'Name','Counter',
-     *                             (vname(i), i = 1, ivar),
+     *                             (colnam(i), i = 1, ivar),
      *                             (dname(i),i = 1, iprop)
 
       else
@@ -10549,7 +10532,7 @@ c                                  tab file
          if (lopt(15).or.nvar.eq.1) then
 c                                  with pseudo-dependent variables
             write (n,*) ivar + iprop
-            write (n,'(200(a14,1x))') (vname(i), i = 1,ivar),
+            write (n,'(200(a14,1x))') (colnam(i), i = 1,ivar),
      *                                (dname(i), i = 1,iprop)
 
 

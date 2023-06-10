@@ -10469,6 +10469,85 @@ c---------------------------------------------------------------------
 
       end
 
+      subroutine initlq
+c--------------------------------------------------------------------
+c decode george's phase list which are stored by input1 in the space
+c delimited text string meltph
+c---------------------------------------------------------------------
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      logical sol
+
+      integer i, k, itis
+
+      integer ipot,jv,iv1,iv2,iv3,iv4,iv5
+      common/ cst24 /ipot,jv(l2),iv1,iv2,iv3,iv4,iv5
+c---------------------------------------------------------------------
+      nliq = 0
+      sol = .false.
+c                                 decode meltph
+      do 
+
+         k = index(meltph,' ') - 1
+         if (k.eq.0) exit
+c                                 check against known entities
+         call matchj (meltph(1:k),itis)
+
+         if (itis.ne.0) then 
+c                                 itis ~0 count the phase
+            nliq = nliq + 1
+            liqlst(nliq) = itis
+
+         else
+c                                 itis = 0 may indicate solidus/liquidus flag
+            if (meltph(1:k) .eq. 'solidus') then
+               sol = .true.
+            else if (meltph(1:k) .eq. 'liquidus') then
+               sol = .false.
+            else
+               write (*,*) '**',meltph(1:k),' not recognized.'
+            end if
+
+         end if
+c                                 blank the string and get the next
+         meltph(1:k) = ' '
+
+         call getstg(meltph)
+
+      end do
+
+      if (nliq.eq.0) call errdbg ('**No liquids, no liquidus/solidus'//
+     *                            'no plot: simple!')
+c                               force closed composition
+      lopt(1) = .true.
+c                               force linear_model on
+      iopt(18) = 1
+c                               save <cr> character
+      cr = char(13)
+c                               set george's opts variable
+      if (sol) then
+         whatlq = 'solidus'
+         opts = 1
+      else
+         whatlq = 'liquidus'
+         opts = 0
+      end if
+c                               extract units for search from 
+c                               independent variable name
+      i = index (vname(iv1),'(')
+      k = index (vname(iv1),')')
+      if (i.gt.0.and.k.gt.i) then
+         unitlq = vname(iv1)(i+1:k-1)
+      else
+         unitlq = '(?)'
+      end if
+c                               increment opts if pressure search
+      if (iv1.eq.1) opts = opts + 2
+
+      end 
+
       subroutine initlp 
 c--------------------------------------------------------------------
 c initialize arrays and constants for lp minimization of static
@@ -12617,9 +12696,6 @@ c-----------------------------------------------------------------------
 
       integer iasmbl
       common/ cst27  /iasmbl(j9)
-
-      character*8 vname,xname
-      common/ csta2  /xname(k5),vname(l2)
 
       character cname*5
       common/ csta4  /cname(k5)

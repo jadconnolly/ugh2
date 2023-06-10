@@ -58,10 +58,7 @@ c----------------------------------------------------------------------
       common/ cst330 /mu(k8),mus
 
       integer hcp,idv
-      common/ cst52  /hcp,idv(k7) 
-
-      character*8 vname,xname
-      common/ csta2  /xname(k5),vname(l2)
+      common/ cst52  /hcp,idv(k7)
 
       character pname*14
       common/ cxt21a /pname(k5)
