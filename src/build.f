@@ -91,9 +91,6 @@ c-----------------------------------------------------------------------
       integer eos
       common/ cst303 /eos(k10)
 
-      character*8 vname, xname
-      common/ csta2 /xname(k5),vname(l2)
-
       double precision buf
       common/ cst112 /buf(5)
 
@@ -864,7 +861,7 @@ c                                 diagrams:
 2520  format (/,'Melt phase(s) for liquidus finding.',/,
      *        'Select models from the solution model list, enter',
      *        ' 1 per line, press <enter> to finish',/)
-2530  format (/,'**warning** No liquids defined; the calculation can''t',
+2530  format (/,'**warning** No liquids defined; the calculation can''t'
      *        ' be done.  You need to define one or more liquids.')
 3000  format (a,1x,i1,1x,3(g12.6,1x),a,' amount')
 3010  format ('Enter the solution model file name [default = ',
@@ -911,13 +908,11 @@ c---------------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      character xname*8, dtext*200, vname*8
+      character dtext*200
 
       integer i, j1, j2, ivct, iind, idep, iord, ier
 
       double precision c(0:4)
- 
-      common/ csta2 /xname(k5),vname(l2)
 
       integer ipot,jv,iv
       common/ cst24 /ipot,jv(l2),iv(l2)
@@ -1002,9 +997,6 @@ c----------------------------------------------------------------------
       double precision vmax,vmin,dv
       common/ cst9  /vmax(l2),vmin(l2),dv(l2)
 
-      character*8 vname, xname
-      common/ csta2 /xname(k5),vname(l2)
-
       integer ipot,jv,iv
       common/ cst24 /ipot,jv(l2),iv(l2)
 c----------------------------------------------------------------------
@@ -1075,9 +1067,6 @@ c----------------------------------------------------------------------
 
       double precision vmax,vmin,dv
       common/ cst9  /vmax(l2),vmin(l2),dv(l2)
-
-      character*8 vname, xname
-      common/ csta2 /xname(k5),vname(l2)
 
       integer ipot,jv,iv
       common/ cst24 /ipot,jv(l2),iv(l2)
@@ -1245,9 +1234,6 @@ c---------------------------------------------------------------------------
 
       character*8 name
       common/ csta6 /name
-
-      character*8 vname, xname
-      common/ csta2 /xname(k5),vname(l2)
 
       integer ids,isct,icp1,isat,io2
       common/ cst40 /ids(h5,h6),isct(h5),icp1,isat,io2
@@ -1795,9 +1781,6 @@ c---------------------------------------------------------------------------
 
       double precision vmax,vmin,dv
       common/ cst9  /vmax(l2),vmin(l2),dv(l2)
-
-      character*8 vname, xname
-      common/ csta2 /xname(k5),vname(l2)
 
       integer grid
       double precision rid 
@@ -2446,9 +2429,6 @@ c----------------------------------------------------------------------
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
-
-      character*8 vname, xname
-      common/ csta2 /xname(k5),vname(l2)
 
       integer ipot,jv,iv
       common/ cst24 /ipot,jv(l2),iv(l2)

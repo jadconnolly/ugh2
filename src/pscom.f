@@ -660,9 +660,6 @@ c psaxes - subroutine to output (sloppy) axes.
       double precision vmax,vmin,dv
       common/ cst9 /vmax(l2),vmin(l2),dv(l2)
 
-      character vname*8, xname*8
-      common/ csta2 /xname(k5),vname(l2)
-
       double precision xmin,xmax,ymin,ymax,dcx,dcy,xlen,ylen
       common/ wsize /xmin,xmax,ymin,ymax,dcx,dcy,xlen,ylen
 c----------------------------------------------------------------------

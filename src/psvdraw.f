@@ -359,7 +359,7 @@ c pschem - subroutine to output ternary chemographies.
 
       include 'perplex_parameters.h'
  
-      character title*162, record*72, xname(k5)*8
+      character title*162, record*72
  
       double precision x3(3),y3(3),xx(j9),yy(j9),style,x1,y1,y,dyt,yt,xt
  
@@ -1163,7 +1163,7 @@ c psmixd - subroutine to draw binary mixed variable diagrams
 
       integer icp,ipoint,ifct,isat,ipot,i,ird,ivar
 
-      character*8 title*162, string*(lchar), tname(5),xname(k5)
+      character*8 title*162, string*(lchar), tname(5)
 
       integer idf(3),jphi(k1),igo,jop0,iop1,iop2,iop3,jb,
      *        jplus,jminus,isum,idif,j,i1,id1,it,i2,id2,jt,itot,
