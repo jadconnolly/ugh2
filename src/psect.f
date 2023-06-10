@@ -1215,18 +1215,12 @@ c                                extrapolation if this occurs a lot.
 
       call mertxt (tfname,prject,'.liq',0)
       open (n8,file=tfname,status='old',iostat=ier)
+      if (ier.eq.0) 
+     *   read (n8,*,iostat=ier) nliq,(liq(i),i=1,min(h9,nliq)),typ
       if (ier.ne.0) then
-         write (*,*) '**Bad/missing liquidus/solidus grid file: ',
+         write (*,*) '**Bad/missing liquidus/solidus file: ',
      *         tfname(1:nblen(tfname))
          stop
-      end if
-      read (n8,'(a)',iostat=ier) text
-      if (ier.eq.0) then
-         read (text,*,iostat=ier) nliq,(liq(i),i=1,min(h9,nliq)),typ
-         if (ier.ne.0) then
-            typ = 'liquidus'
-            read (text,*,iostat=ier) nliq,(liq(i),i=1,min(h9,nliq))
-         end if
       end if
 
       close (n8)
