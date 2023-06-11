@@ -1402,7 +1402,7 @@ c                       print*,'right label:',text(1:l),noth,x,y
 c                                 label if it goes off right edge
                   if (noth.ge.5 .and. off .and. lmult) then
                      lyet = .true.
-                     x = linex(jix+noth-1) + 0.02d0
+                     x = linex(jix+noth-1) + 0.01d0
                      y = liney(jix+noth-1)
                      call pssctr (ifont,font,font,30d0)
                      call pstext (x,y,text,nblen(text))
@@ -1422,21 +1422,17 @@ c                                 add a label if came in across upper diag
                   jix = j
                   linex(j) = x
                   liney(j) = y
-                  if (isnan(x).or.isnan(y)) then 
-                     write (*,*) 'something agly, nans at point j'
-                  else 
-
                   call trneq (linex(j),liney(j))
                   if (noth.gt.5 .and. lmult .and.
      *                   abs(x+y-1d0).lt.0.75d-3) then
                      lyet = .true.
+                     x = linex(j) + 0.01d0
+                     y = liney(j)
                      call pssctr (ifont,font,font,30d0)
-                     call pstext (linex(j),liney(j),
-     *                            text,nblen(text))
+                     call pstext (x,y,text,nblen(text))
 c                    print*,'Labeling (in):',
 c    *                  text(1:nblen(text)),noth,x,y
                   end if
-                  end if 
                end do
 
                ipiece = ipiece + 1
