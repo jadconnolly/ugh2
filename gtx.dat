@@ -1,0 +1,107 @@
+hp633ver_fsp.dat     thermodynamic data file                                                                                                 
+no_print | print generates print output
+plot     | obsolete 6.8.4+
+solution_model.dat     | solution model file, blank = none                                                                                                                                                                                                      
+dfd                                                                                                                                                                                                                                                             
+cmas-option.dat     | Perple_X option file                                                                                                                                                                                                                   
+    2 calculation type: 0- composition, 1- Schreinemakers, 3- Mixed, 4- swash, 5- gridded min, 7- 1d fract, 8- gwash, 9- 2d fract, 10- 7 w/file input, 11- 9 w/file input, 12- 0d infiltration
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 number component transformations
+   20 number of components in the data base
+    0 component amounts, 0 - mole, 1 mass
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 05
+    0 ifug EoS for saturated phase
+    2 gridded minimization dimension (1 or 2)
+    0 special dependencies: 0 - P and T independent, 1 - P(T), 2 - T(P)
+ 0.00000      0.00000      0.00000      0.00000      0.00000     Geothermal gradient polynomial coeffs.
+
+begin thermodynamic component list
+an    3  1             0             0     molar amount
+ab    3  0             1             0 
+kf    3  0             0             1
+end thermodynamic component list
+
+
+begin saturated component list
+end saturated component list
+
+begin saturated phase component list
+end saturated phase component list
+
+
+begin independent potential/fugacity/activity list
+end independent potential list
+
+
+begin excluded phase list
+wa
+perL    
+limL    
+corL    
+qL      
+foL     
+enL     
+diL
+
+     
+neL
+lc
+kls
+kjL
+ne
+cg
+cgh
+neTHL
+geh
+jdL
+jdWL
+jdjL
+cats
+lrn
+rnk
+pswo
+wo
+
+
+ anL     
+ kspL    
+lcL     
+sil8L   
+fo8L    
+ q8L     
+qjL     
+dijL    
+ctjL    
+fojL    
+foTL    
+foWL    
+qWL     
+kWL     
+qTHL    
+foTHL   
+kjTHL   
+end excluded phase list
+
+
+begin solution phase list
+melt(W)
+feldspar
+end solution phase list
+
+   5000.00        2000.00        0.00000        0.00000        0.00000     max p, t, xco2, mu_1, mu_2
+   5000.00        800.000        0.00000        0.00000        0.00000     min p, t, xco2, mu_1, mu_2
+   0.00000        0.00000        0.00000        0.00000        0.00000     unused place holder post 06
+
+ 2  1  4  5  3   indices of 1st & 2nd independent & sectioning variables
+
+melt(W) | liquid phase(s)

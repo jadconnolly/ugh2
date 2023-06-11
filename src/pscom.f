@@ -585,7 +585,7 @@ c psxlbl - subroutine to put on x-axis labels.
 
       integer ic(40),i,ix1
 
-      double precision x0, dx, x, xdc, y, t, xc, ymn, ymx, ylv, xl, yl
+      double precision x0, dx, x, xdc, y, t, xc, ylv, xl, yl
  
       character*12 numbs(40)
 
