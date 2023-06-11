@@ -1066,7 +1066,7 @@ c----------------------------------------------------------------------
 
       integer jop0, iop5, iop6, iop7
 
-      character text*240, plu*4, typ*8
+      character text*240, plu*4
 
       logical off, lmult, lyet, lnophs, lblphs(k3)
 
@@ -1970,7 +1970,7 @@ c           call pselip (x,y, 0.25d0*dcx, 0.25d0*dcy, 1d0,0d0,0,0,1)
       end do
 
 c                                 make main plot label
-      call psaxet (jop0,typ,cont)
+      call psaxet (jop0,whatlq(1:nblen(whatlq)),cont)
 
 1000  format(1x,i5,' x ',i5,' contour grid cells between ',
      *       f12.1,' <=',a,'<=',f12.1)
