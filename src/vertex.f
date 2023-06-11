@@ -1904,23 +1904,24 @@ c                               increments at each level
 
       ktic = 0
 
-      write (*,1050) 'Beginning',whatlq(1:nblen(whatlq)),vname(iv1),
+      if (init) then
+         write (*,1050) 'Beginning',
+     *                whatlq(1:nblen(whatlq)),vname(iv1)(1:1),
      *                nopt(2),unitlq(1:nblen(unitlq))
+      else
+         write (*,1050) 'Continuing',
+     *                whatlq(1:nblen(whatlq)),vname(iv1)(1:1),
+     *                nopt(2),unitlq(1:nblen(unitlq))
+      end if
 c                              now traverse compositional grid:
 c                              lower triangle; upper is symmetric across diag.
       do i = 1, loopx, kinc
 
          do j = 1, loopy, kinc
-c                                 output counting stats
-            if (0.eq.mod(ktic,500).and.ktic.gt.0) then
-               write (*,1090) cr,ktic
-            endif
 c                                 set bulk, check limits and degeneracy
             call stblk1 (i,j,loopx,loopy,idead) 
 
             if (idead.ne.0) cycle
-c                                 going to do some calcs, increment counter
-            ktic = ktic + 1
 c                                 look for the liquidus:
             call fndliq (i,j,ktic,idead)
 
@@ -2141,13 +2142,15 @@ c    0 x = T search (high -> liquid, low -> solid)
 c    1 x = P search (low -> liquid, high -> solid)
 c ktic is an iteration counter.
 c liq(1:nliq) is a list of liquid phases.
-c returns tliq with the temperature found.
 c on return, idead ne 0 if there is a failure to find a liquidus/solidus
 c assemblage.
 c 
 c clsliq returns: type = 0 if no liquid
 c                 type = 1 if liquid + solid
 c                 type = 2 if liquid only
+c
+c type of search: iv1 = 1 -> P
+c                 iv1 = 2 -> T
 
 c George Helffrich, 5/23
 
@@ -2206,7 +2209,7 @@ c                              generate this case.
       end if
 
       ktic = ktic + 1
-      if (0.eq.mod(ktic,500)) write (*,1090) char(13),ktic
+      if (0.eq.mod(ktic,500)) write (*,1090) cr,ktic
       call lpopt1 (idead,statik)
 
       if (idead .ne. 0) then
@@ -2227,10 +2230,11 @@ c                              only warn if past exploratory phase
          call isgood (i,j,99)
 
          return
+      end if
 
-      else if (iv1.eq.1 .and. l.eq.0) then
+      if (iv1.eq.1 .and. l.eq.0) then
 c                              only warn if past exploratory phase
-         if (refine) call liqwrn (i,j,'liquid','lowest')
+         if (refine) call liqwrn (i,j,'no liquid','lowest')
 
          call isgood (i,j,99)
 
@@ -2243,7 +2247,7 @@ c                              update dependent variables, if any
       call incdp0
 c                              do the optimization
       ktic = ktic + 1
-      if (0.eq.mod(ktic,500)) write (*,1090) char(13),ktic
+      if (0.eq.mod(ktic,500)) write (*,1090) cr,ktic
       call lpopt1 (idead,statik)
 
       if (idead.ne.0) then
@@ -2340,11 +2344,11 @@ c                                 lower bound, keep solid assemblage
 
         end if
 
-        if (0.eq.mod(ktic,500)) write (*,1090) char(13),ktic
+        if (0.eq.mod(ktic,500)) write (*,1090) cr,ktic
 
         if (thi - tlo .lt. nopt(2)) exit
 c                                 save the last wrong-side result
-        if (sol.and.l.ne.0 .or. .not.sol.and.l.ne.2) then
+        if (sol.and.l.eq.0 .or. .not.sol.and.l.ne.2) then
 
            call savlst (.false.,statik,l)
 
@@ -2359,7 +2363,7 @@ c                                 here's an opportunity to set
 c                                 a bad value for the temperature.
       else 
 
-         if (sol.and.l.eq.0 .or. .not.sol.and.l.eq.2) then
+         if (sol.and.l.ne.0 .or. .not.sol.and.l.eq.2) then
 c                                 on the solid side of the solidus or
 c                                 the liquid side of the liquidus, back
 c                                 off to the last L+S result
@@ -2404,7 +2408,7 @@ c----------------------------------------------------------------------
 c----------------------------------------------------------------------
       call smptxt (assmb,l)
 
-      write (text,1010) i, j, a, b, vname(iv1), assmb(1:l)
+      write (text,1010) i, j, a, b, vname(iv1)(1:1), assmb(1:l)
 
       call deblnk (text)
 
