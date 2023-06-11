@@ -1110,9 +1110,8 @@ c     unused common area
       integer iassf
       external iassf
 
-      logical tcopy
       double precision tgrid
-      common/ cst308 /tgrid(l7,l7),tcopy
+      common/ cst308 /tgrid(l7,l7)
 
       integer jlow,jlev,loopx,loopy,jinc
       common/ cst312 /jlow,jlev,loopx,loopy,jinc
@@ -1561,6 +1560,8 @@ c    *               'Found crystallizing phase:',text(1:k)
       end do
 
 c                                 label composition of each solid
+c                                 make sure orientation is horizontal
+      call pssctr (ifont,ascale,ascale, 0d0)
       lnophs = mod(iop5/2,2) .eq. 1
 
       do i = 1, nssol
@@ -1607,7 +1608,6 @@ c                                 project and clip to triangular area, label
      *                      1d0, 0d0, 7, 0, 1)
             k = nblen (text(1:14))
             if (id.lt.0) then
-               call pssctr (ifont,ascale,ascale, 0d0)
                call pstext (yy(2)+dcx*ascale,yy(3)+.7d0*dcy*ascale,
      *                      text,k)
             else if (lblphs(id) .and. .not.lnophs) then
@@ -2489,9 +2489,8 @@ c--------------------------------------------------------------------
       integer jlow,jlev,loopx,loopy,jinc
       common/ cst312 /jlow,jlev,loopx,loopy,jinc
 
-      logical tcopy
       double precision tgrid
-      common/ cst308 /tgrid(l7,l7),tcopy
+      common/ cst308 /tgrid(l7,l7)
 
       integer ncall
       data ncall/0/
@@ -2502,8 +2501,6 @@ c ------------------------------------------------------------------------------
 
       ncall = ncall + 1
 c                                 # vertices and faces
-c     nvrt = loopx*(loopy+1)/2
-c     nfac = (loopx-1)**2
       gdim = 1 + (loopx-1)/jinc
       nvrt = gdim * (1+gdim) / 2
       nfac = (gdim-1)**2
