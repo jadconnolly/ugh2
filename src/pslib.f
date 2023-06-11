@@ -928,6 +928,40 @@ c psrecb - subroutine to output a red rectangle for bad results in PSSECT
 1030  format (/,'Begin %I Poly')
 
       end
+c----------------------------------------------------------------
+      subroutine pstrib (x1,y1,s,rline,width)
+ 
+c pstrib - subroutine to output a red triangle for bad results in PSSECT
+
+      implicit none
+
+      double precision x1,y1,s,rline,width,x(3),y(3)
+
+      integer nps
+      double precision xscale,yscale,xmn,ymn
+      common/ scales /xscale,yscale,xmn,ymn,nps
+ 
+      x(1) = x1
+      x(2) = x1+s
+      x(3) = x1+0.5d0*s
+      y(1) = y1
+      y(2) = y1
+      y(3) = y1+s*0.8660254d0
+
+      write (nps,1030)
+ 
+      call psolin (rline,width)
+      call psored
+      call psofil (1)
+      call psotrn
+      call psopts (x,y,3)
+ 
+      write (nps,1020) 3
+ 
+1020  format (i5,' Poly',/,'End',/)
+1030  format (/,'Begin %I Poly')
+
+      end
 c------------------------------------------------------------------
       subroutine psline (x1,y1,x2,y2,rline,width)
  

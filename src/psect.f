@@ -1516,18 +1516,14 @@ c                                 solution phase - find/save species proportions
 c                                 note itri <-> iix, jtri <-> jix by equivalence
             call getloc (itri,jtri,1,wt,lmult)
 
+c                                 flag bad assemblages on grid
             if (lmult) then 
-               write (*,*) 'uh-oh nodata'
+               x = cx(1)
+               y = cx(2)
+               call trneq (x,y)
+               call pstrib (x, y, dcx, 1d0, 0d0)
                cycle
             end if
-
-c                                 debug code to help find location in grid
-c           x = cx(1)
-c           y = cx(2)
-c           call trneq (x,y)
-c           write(text,'(i3)') isol
-c           call deblnk(text)
-c           call pstext (x,y,text,nblen(text))
 
 c                                 the ones that aren't a named liquid
 c                                 are the solids
