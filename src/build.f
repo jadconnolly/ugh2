@@ -568,31 +568,6 @@ c                                 check if name in list
 
             end do  
 
-c                                 ask for melt phases
-            if (liqdus) then
-               write (*,2520)
-               liqs = '$'
-               do
-                  tname = ' '
-                  read (*,'(a)') tname
-                  if (tname.eq.' ') exit
-                  good = .false.
-                  do i = 1, ict
-                     good = tname.eq.fname(i)
-                     if (good) exit
-                  end do
-                  if (.not.good) then
-                     write (*,2310) tname
-                     cycle
-                  end if
-                  k = index(liqs,'$')
-                  liqs(k:) = fname(i) // ' $'
-                  call deblnk(liqs)
-               end do
-               k = index(liqs,'$')
-               liqs(k:) = ' '
-               if (k.eq.1 .or. liqs(1:k-1) .eq. ' ') write (*,2530)
-            end if
          end if
 
       else 
@@ -754,6 +729,8 @@ c                                 output variable choices and values:
       end if 
 
       if (liqdus) then
+
+         liqs = ' '
 c                                 liquidus or solidus
          write (*,1000)
          call rdnumb (c(0),0d0,i,1,.false.)
@@ -761,14 +738,17 @@ c                                 liquidus or solidus
          if (i.lt.1.or.i.gt.2) i = 1
 
          if (i.eq.1) then 
-            liqs = 'liquidus $'
+            liqs = 'liquidus |'
          else 
-            liqs = 'solidus $'
+            liqs = 'solidus |'
          end if 
 c                                 get the "liquid" assemblage
          write (*,'(2(/,a))') 'Specify the solution models or compoun'//
      *                       'ds that comprise the "liquid" phase',
      *                       'enter 1 per line, press <enter> to finish'
+
+         i = 0 
+
          do
 
             read (*,'(a)') tname
@@ -796,8 +776,9 @@ c                                 check in the compound list
 
             if (good) then
 
-               k = index(liqs,'$')
-               liqs(k:) = tname // ' $'
+               i = i + 1
+               k = index(liqs,'|')
+               liqs(k:) = tname // ' |'
                call deblnk(liqs)
 
             else
@@ -808,8 +789,10 @@ c                                 check in the compound list
 
          end do
 
+         if (i.eq.0) write (*,2530)
+
          write (n1,1350) liqs(1:nblen(liqs)),
-     *                '| liquidus/solidus and "liquid" phase(s)'
+     *                'liquidus/solidus keyword and "liquid" phase(s)'
 
       else if (icopt.eq.0) then
 c                                 get conditions for composition
@@ -921,8 +904,9 @@ c                                 diagrams:
 2520  format (/,'Melt phase(s) for liquidus finding.',/,
      *        'Select models from the solution model list, enter',
      *        ' 1 per line, press <enter> to finish',/)
-2530  format (/,'**warning** No liquids defined; the calculation can''t'
-     *       ,' be done.  You need to define one or more liquids.')
+2530  format (/,'**warning ver419** No liquid phase; the calculation ',
+     *          'can''t be done.',/,'Edit the problem definition file ',
+     *          'to specify liquid phase(s).')
 3000  format (a,1x,i1,1x,3(g12.6,1x),a,' amount')
 3010  format ('Enter the solution model file name [default = ',
      *        'solution_model.dat]: ')
