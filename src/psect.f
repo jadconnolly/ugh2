@@ -1110,9 +1110,8 @@ c     unused common area
       integer iassf
       external iassf
 
-      logical tcopy
       double precision tgrid
-      common/ cst308 /tgrid(l7,l7),tcopy
+      common/ cst308 /tgrid(l7,l7)
 
       integer jlow,jlev,loopx,loopy,jinc
       common/ cst312 /jlow,jlev,loopx,loopy,jinc
@@ -1403,7 +1402,7 @@ c                       print*,'right label:',text(1:l),noth,x,y
 c                                 label if it goes off right edge
                   if (noth.ge.5 .and. off .and. lmult) then
                      lyet = .true.
-                     x = linex(jix+noth-1) + 0.02d0
+                     x = linex(jix+noth-1) + 0.01d0
                      y = liney(jix+noth-1)
                      call pssctr (ifont,font,font,30d0)
                      call pstext (x,y,text,nblen(text))
@@ -1423,21 +1422,17 @@ c                                 add a label if came in across upper diag
                   jix = j
                   linex(j) = x
                   liney(j) = y
-                  if (isnan(x).or.isnan(y)) then 
-                     write (*,*) 'something agly, nans at point j'
-                  else 
-
                   call trneq (linex(j),liney(j))
                   if (noth.gt.5 .and. lmult .and.
      *                   abs(x+y-1d0).lt.0.75d-3) then
                      lyet = .true.
+                     x = linex(j) + 0.01d0
+                     y = liney(j)
                      call pssctr (ifont,font,font,30d0)
-                     call pstext (linex(j),liney(j),
-     *                            text,nblen(text))
+                     call pstext (x,y,text,nblen(text))
 c                    print*,'Labeling (in):',
 c    *                  text(1:nblen(text)),noth,x,y
                   end if
-                  end if 
                end do
 
                ipiece = ipiece + 1
@@ -1561,6 +1556,8 @@ c    *               'Found crystallizing phase:',text(1:k)
       end do
 
 c                                 label composition of each solid
+c                                 make sure orientation is horizontal
+      call pssctr (ifont,ascale,ascale, 0d0)
       lnophs = mod(iop5/2,2) .eq. 1
 
       do i = 1, nssol
@@ -1607,7 +1604,6 @@ c                                 project and clip to triangular area, label
      *                      1d0, 0d0, 7, 0, 1)
             k = nblen (text(1:14))
             if (id.lt.0) then
-               call pssctr (ifont,ascale,ascale, 0d0)
                call pstext (yy(2)+dcx*ascale,yy(3)+.7d0*dcy*ascale,
      *                      text,k)
             else if (lblphs(id) .and. .not.lnophs) then
@@ -2489,9 +2485,8 @@ c--------------------------------------------------------------------
       integer jlow,jlev,loopx,loopy,jinc
       common/ cst312 /jlow,jlev,loopx,loopy,jinc
 
-      logical tcopy
       double precision tgrid
-      common/ cst308 /tgrid(l7,l7),tcopy
+      common/ cst308 /tgrid(l7,l7)
 
       integer ncall
       data ncall/0/
@@ -2502,8 +2497,6 @@ c ------------------------------------------------------------------------------
 
       ncall = ncall + 1
 c                                 # vertices and faces
-c     nvrt = loopx*(loopy+1)/2
-c     nfac = (loopx-1)**2
       gdim = 1 + (loopx-1)/jinc
       nvrt = gdim * (1+gdim) / 2
       nfac = (gdim-1)**2
