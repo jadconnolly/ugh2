@@ -36,7 +36,7 @@ c----------------------------------------------------------------------
       integer n
 
       write (n,'(/,a,//,a)') 
-     *     'Perple_X release 7.1.0, Jun 12, 2023.',
+     *     'Perple_X release 7.1.0, Jun 13, 2023.',
 
      *     'Copyright (C) 1986-2023 James A D Connolly '//
      *     '<www.perplex.ethz.ch/copyright.html>.'
@@ -270,7 +270,7 @@ c                                 reserved for temporary use:
       end do 
 c                                 -------------------------------------
 c                                 liquidus_resolution
-      nopt(2) = 5d0
+      nopt(2) = 1d0
 c                                 minimum replicate label distance
       nopt(4) = 0.025
 c                                 speciation_factor
@@ -1883,6 +1883,8 @@ c                                 2d multilevel grid
      *                  (grid(2,2)-1) * 2**(grid(3,2)-1) + 1,
      *                  grid(3,1),grid(3,2),l8,valu(18)
 
+               if (icopt.eq.2) write (n,1205) nopt(2)
+
             else if (iam.eq.1.and.icopt.eq.7) then 
 c                                 1d fractionation grid
                 write (n,1210) grid(4,1),grid(4,2),l7
@@ -1901,7 +1903,7 @@ c                                 generic subdivision parameters:
      *                     lopt(38),valu(13),lopt(39)
          end if 
 c                                 generic thermo parameters:
-         write (n,1012) nval1,nopt(2),
+         write (n,1012) nval1,
      *                  nopt(12),nopt(20),lopt(8),lopt(4),nopt(5),
      *                  iopt(21),nopt(10),lopt(63),
      *                  iopt(25),iopt(26),iopt(27),
@@ -2042,7 +2044,6 @@ c                                 generic thermo options
      *        4x,'solvus_tolerance        ',a7,3x,          
      *           '[aut] or 0->1; aut = automatic, 0 => ',
      *           'p=c pseudocompounds, 1 => homogenize',/,
-     *        4x,'liquidus res. (K,bar)',f6.1,7x,'[5]',/,
      *        4x,'T_stop (K)           ',f6.1,7x,'[0]',/,
      *        4x,'T_melt (K)             ',f6.1,5x,'[873]',/,
      *        4x,'approx_alpha            ',l1,9x,'[T] F',/,
@@ -2143,6 +2144,7 @@ c                                 thermo options for frendly
      *        4x,'grid_levels             ',i1,' /',i2,5x,'[1/4] >0, '
      *          ,'<',i2,/,
      *        4x,'linear_model            ',a3,7x,'[on] off')
+1205  format (4x,'liquidus_resolution    ',f4.2,7x,'[1] K or bar')
 1210  format (/,2x,'Fractionation path options:',//,
      *        4x,'1d_path               ',i3,' /',i3,4x,
      *           '[20/150] >0, <',i4)
