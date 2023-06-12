@@ -104,4 +104,4 @@ end solution phase list
 
  2  1  4  5  3   indices of 1st & 2nd independent & sectioning variables
 
-melt(W) | liquid phase(s)
+melt(W) solidus | liquid phase(s)

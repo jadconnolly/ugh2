@@ -2210,6 +2210,7 @@ c                              generate this case.
 
       ktic = ktic + 1
       if (0.eq.mod(ktic,500)) write (*,1090) cr,ktic
+
       call lpopt1 (idead,statik)
 
       if (idead .ne. 0) then
@@ -2230,6 +2231,7 @@ c                              only warn if past exploratory phase
          call isgood (i,j,99)
 
          return
+
       end if
 
       if (iv1.eq.1 .and. l.eq.0) then
@@ -2248,6 +2250,7 @@ c                              update dependent variables, if any
 c                              do the optimization
       ktic = ktic + 1
       if (0.eq.mod(ktic,500)) write (*,1090) cr,ktic
+
       call lpopt1 (idead,statik)
 
       if (idead.ne.0) then
@@ -2413,9 +2416,14 @@ c----------------------------------------------------------------------
       call deblnk (text)
 
       write (*,'(/,a)') text(1:nblen(text))
+      write (*,1020) vname(iv1)
 
 1010  format ('**warning ver327**',2(1x,i5),' has ',a,
-     *        ' at',2(1x,a),': ',a)
+     *          ' at',2(1x,a),': ',a)
+1020  format (/,2x,'Possible causes for this problem include:',/,
+     *          4x,'1 - an unduly restricted search range for ',a,/,
+     *          4x,'2 - stability of melt endmembers not ',
+     *             'included in the melt model.',/)
 
       end 
 
