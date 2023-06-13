@@ -2230,7 +2230,7 @@ c                              generate this case.
       if (iv1.eq.2 .and.
      *    ((sol .and. l.ne.0) .or. (.not.sol .and. l.eq.2))) then
 c                              only warn if past exploratory phase
-         if (refine) call liqwrn (i,j,'no solids','lowest')
+         call liqwrn (i,j,'no solids','lowest')
 
          call isgood (i,j,99)
 
@@ -2240,7 +2240,7 @@ c                              only warn if past exploratory phase
 
       if (iv1.eq.1 .and. l.eq.0) then
 c                              only warn if past exploratory phase
-         if (refine) call liqwrn (i,j,'no liquid','lowest')
+         call liqwrn (i,j,'no liquid','lowest')
 
          call isgood (i,j,99)
 
@@ -2270,7 +2270,7 @@ c                              do the optimization
       if (iv1.eq.2 .and. ((.not.sol .and. l.ne.2) .or.
      *                     (sol .and. l.eq.0))) then
 c                              only warn if past exploratory phase
-         if (refine) call liqwrn (i,j,'solids','highest')
+         call liqwrn (i,j,'solids','highest')
 
          call isgood (i,j,99)
 
@@ -2278,7 +2278,7 @@ c                              only warn if past exploratory phase
 
       else if (iv1.eq.1 .and. l.ne.0) then
 c                              only warn if past exploratory phase
-         if (refine) call liqwrn (i,j,'liquid','highest')
+         call liqwrn (i,j,'liquid','highest')
 
          call isgood (i,j,99)
 
