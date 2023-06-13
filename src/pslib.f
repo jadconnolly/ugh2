@@ -929,6 +929,152 @@ c psrecb - subroutine to output a red rectangle for bad results in PSSECT
 
       end
 c----------------------------------------------------------------
+      subroutine pshexb (x1,y1,s,blr,rline,width)
+ 
+c pstrib - subroutine to output parts/all of a red hexagon for bad results
+c          in PSSECT
+c     blr is 3 bit code:
+c     x x 1 - point on right side of grid
+c     x 1 x - point on left side of grid
+c     1 x x - point on bottom of grid
+c     combinations zero, one or two out of three are possible,
+c     except for 1 1 1 (= 7).
+c
+c               g            g = (1/2,sqrt(3)/2)
+c              ...      
+c             .....     
+c            .......
+c           .........
+c          e.........f       e = (1/4,sqrt(3)/4)  f = (3/4,sqrt(3)/4)
+c         ............. 
+c        .......d.......     d = (1/2,1/4)
+c       .................
+c      ...................
+c     a.........b.........c  a = (0,0)  b = (1/2,0)  c = (1,0)
+
+
+      implicit none
+
+      double precision x1,y1,s,so2,so4,ss34,s3o4,rline,width,x(6),y(6)
+
+      integer blr, n
+
+      integer nps
+      double precision xscale,yscale,xmn,ymn
+      common/ scales /xscale,yscale,xmn,ymn,nps
+
+      so2 = 0.5d0 * s
+      so4 = 0.25d0 * s
+      s3o4 = 0.75d0 * s
+      ss34 = 0.4330127d0 * s
+
+      if (blr.eq.0) then
+c                                   somewhere in the middle
+         x(1) = x1 + so2
+         y(1) = y1 - so4
+         x(2) = x1 + so2
+         y(2) = y1 + so4
+         x(3) = x1
+         y(3) = y1 + s3o4
+         x(4) = x1 - so2
+         y(4) = y1 + so4
+         x(5) = x1 - so2
+         y(5) = y1 - so4
+         x(6) = x1
+         y(6) = y1 - s3o4
+         n = 6
+      else if (blr.eq.1) then
+c                                   right edge
+         x(1) = x1 - so4
+         y(1) = y1 + ss34
+         x(2) = x1 - so2
+         y(2) = y1 + so4
+         x(3) = x1 - so2
+         y(3) = y1 - so4
+         x(4) = x1
+         y(4) = y1 - s3o4
+         x(5) = x1 + so4
+         y(5) = y1 - ss34
+         n = 5
+      else if (blr.eq.2) then
+c                                   left edge
+         x(1) = x1 + so4
+         y(1) = y1 + ss34
+         x(2) = x1 + so2
+         y(2) = y1 + so4
+         x(3) = x1 + so2
+         y(3) = y1 - so4
+         x(4) = x1
+         y(4) = y1 - s3o4
+         x(5) = x1 - so4
+         y(5) = y1 - ss34
+         n = 5
+      else if (blr.eq.4) then
+c                                   bottom edge
+         x(1) = x1 - so2
+         y(1) = y1
+         x(2) = x1 - so2
+         y(2) = y1 + so4
+         x(3) = x1
+         y(3) = y1 + s3o4
+         x(4) = x1 + so2
+         y(4) = y1 + so4
+         x(5) = x1 + so2
+         y(5) = y1
+         n = 5
+      else if (blr.eq.3) then
+c                                   top apex 
+         x(1) = x1
+         y(1) = y1
+         x(2) = x1 - so4
+         y(2) = y1 - ss34
+         x(3) = x1
+         y(3) = y1 - s3o4
+         x(4) = x1 + so4
+         y(4) = y1 - ss34
+         n = 4
+      else if (blr.eq.5) then
+c                                   right apex 
+         x(1) = x1
+         y(1) = y1
+         x(2) = x1 - so4
+         y(2) = y1 + ss34
+         x(3) = x1 - so2
+         y(3) = y1 + so4
+         x(4) = x1 - so2
+         y(4) = y1
+         n = 4
+      else if (blr.eq.6) then
+c                                   left apex 
+         x(1) = x1
+         y(1) = y1
+         x(2) = x1 + so2
+         y(2) = y1
+         x(3) = x1 + so2
+         y(3) = y1 + so4
+         x(4) = x1 + so4
+         y(4) = y1 + ss34
+         n = 4
+      else
+         print*,'**PSHEXB: Bad code',blr
+         return
+      end if
+ 
+      write (nps,1030)
+ 
+      call psolin (rline,width)
+      call psored
+      call psofil (1)
+      call psotrn
+      call psopts (x,y,n)
+ 
+      write (nps,1020) n
+ 
+1020  format (i5,' Poly',/,'End',/)
+1030  format (/,'Begin %I Poly')
+
+      end
+c----------------------------------------------------------------
       subroutine pstrib (x1,y1,s,rline,width)
  
 c pstrib - subroutine to output a red triangle for bad results in PSSECT

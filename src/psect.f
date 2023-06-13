@@ -1513,10 +1513,14 @@ c                                 note itri <-> iix, jtri <-> jix by equivalence
 
 c                                 flag bad assemblages on grid
             if (lmult) then 
+               j = 0
+               if (abs(cx(1)+cx(2)-1d0).lt.1d-3) j = j + 1
+               if (iix.eq.1) j = j + 2
+               if (jix.eq.1) j = j + 4
                x = cx(1)
                y = cx(2)
-               call trneq (x,y)
-               call pstrib (x, y, dcx, 1d0, 0d0)
+               call trneq (x, y)
+               call pshexb (x, y, jinc/dfloat(loopx-1), j, 1d0, 0d0)
                cycle
             end if
 
