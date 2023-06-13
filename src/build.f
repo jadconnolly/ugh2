@@ -568,31 +568,6 @@ c                                 check if name in list
 
             end do  
 
-c                                 ask for melt phases
-            if (liqdus) then
-               write (*,2520)
-               liqs = '$'
-               do
-                  tname = ' '
-                  read (*,'(a)') tname
-                  if (tname.eq.' ') exit
-                  good = .false.
-                  do i = 1, ict
-                     good = tname.eq.fname(i)
-                     if (good) exit
-                  end do
-                  if (.not.good) then
-                     write (*,2310) tname
-                     cycle
-                  end if
-                  k = index(liqs,'$')
-                  liqs(k:) = fname(i) // ' $'
-                  call deblnk(liqs)
-               end do
-               k = index(liqs,'$')
-               liqs(k:) = ' '
-               if (k.eq.1 .or. liqs(1:k-1) .eq. ' ') write (*,2530)
-            end if
          end if
 
       else 
@@ -635,7 +610,7 @@ c                                 option file name
       write (n1,'(a)') text 
 c                                 computational mode:
       write (n1,1010) icopt,'calculation type: 0- composition,'//
-     *                ' 1- Schreinemakers, 3- Mixed, 4- swash,'//
+     *    ' 1- Schreinemakers, 2 - liquidus/solidus, 3- Mixed,'//
      *                ' 5- gridded min, 7- 1d fract, 8- gwash,'//
      *                ' 9- 2d fract, 10- 7 w/file input,'//
      *                ' 11- 9 w/file input, 12- 0d infiltration'
@@ -754,12 +729,74 @@ c                                 output variable choices and values:
       end if 
 
       if (liqdus) then
-         write (n1,1350) liqs(1:nblen(liqs)),'| liquid phase(s)'
-      end if
+
+         liqs = ' '
+c                                 liquidus or solidus
+         write (*,1000)
+         call rdnumb (c(0),0d0,i,1,.false.)
+
+         if (i.lt.1.or.i.gt.2) i = 1
+
+         if (i.eq.1) then 
+            liqs = 'liquidus |'
+         else 
+            liqs = 'solidus |'
+         end if 
+c                                 get the "liquid" assemblage
+         write (*,'(2(/,a))') 'Specify the solution models or compoun'//
+     *                       'ds that comprise the "liquid" phase',
+     *                       'enter 1 per line, press <enter> to finish'
+
+         i = 0 
+
+         do
+
+            read (*,'(a)') tname
+            if (tname.eq.' ') exit
+
+            good = .false.
+c                                 check if in the solution list
+            do i = 1, isoct
+               if (tname.eq.sname(i)) then 
+                  good = .true.
+                  exit
+               end if
+            end do
+
+            if (.not.good) then 
+c                                 check in the compound list
+               do i = 1, ipoint
+                  if (tname.eq.names(i)) then 
+                     good = .true.
+                     exit
+                  end if
+               end do
+
+            end if
+
+            if (good) then
+
+               i = i + 1
+               k = index(liqs,'|')
+               liqs(k:) = tname // ' |'
+               call deblnk(liqs)
+
+            else
+
+               write (*,2310) tname
+
+            end if
+
+         end do
+
+         if (i.eq.0) write (*,2530)
+
+         write (n1,1350) liqs(1:nblen(liqs)),
+     *                'liquidus/solidus keyword and "liquid" phase(s)'
+
+      else if (icopt.eq.0) then
 c                                 get conditions for composition
 c                                 diagrams:
-      if (icopt.eq.0) then
-
          if (ifct.eq.1) write (*,7150) 'fluid', vname(3) 
 
          i = 0
@@ -803,6 +840,8 @@ c                                 diagrams:
  
 999   stop
 
+1000  format ('Specify computational mode:',//,
+     *    5x,'1 - liquidus [default]',/,5x,'2 - solidus',/)
 1010  format (i5,1x,a,a,a,a,a)
 1020  format (a,' does not exist in the selected data base')
 1120  format (a,1x,i2,' component transformation')
@@ -814,14 +853,19 @@ c                                 diagrams:
 1180  format (/,'For details on these models see: ',
      *        'www.perplex.ethz.ch/perplex_solution_model_glossary.html'
      *      /,'or read the commentary in the solution model file.',/)
-1200  format (/,'In this mode VERTEX maps the saturation surface of a ',
-     *        'phase over a two-dimensional',/,'composition space as a',
-     *        'function a thermodynamic potential (e.g., T or P).',
-     *     //,'The composition space is defined as a mixture of three ',
-     *        'multi-component compositions.',/,'The following prompts',
-     *        'are for the components, indpendent potential, and the',/,
-     *        'three compositions. VERTEX prompts for the identity of ',
-     *        'the saturated phase',//)
+1200  format (/,'In this mode the liquidus or solidus surface of a pha',
+     *        'se is mapped by VERTEX over a 2-d',/,'composition space',
+     *       ' as a function a thermodynamic potential (e.g., T or P).',
+     *        //,'The composition space is defined as a mixture of 3 ',
+     *        'multi-component compositions.',//,'The following prompt',
+     *        's are for the components, indpendent potential, and the',
+     *       ' 3 compositions.',//'Ordinarily solidus/liquidus refers ',
+     *        'to melt stability, in Perple_X this usage is broad',
+     *        'ened:',//,2x,'- liquidus is the condition at which a ',
+     *        'phase or phase assemblage first makes up the',/,4x,'ent',
+     *        'irety of a system.',
+     *         /,2x,'- solidus is the saturation point for a phase or ',
+     *        'phase assemblage.',/)
 1310  format (/,5(i2,1x),2x,a,/)
 1330  format (i2,1x,i2,1x,g13.6,1x,g13.6,1x,a)
 1340  format (5(g13.6,1x))
@@ -835,8 +879,7 @@ c                                 diagrams:
      *    5x,'6 - 0-d Infiltration-reaction-fractionation',/,
      *    5x,'7 - 2-d Phase fractionation (FRAC2D and TITRATE ',
      *               'reactive transport models)',/
-     *    5x,'8 - (pseudo-)Ternary saturation surfaces, e.g., liquidus',
-     *                ' diagrams',//,
+     *    5x,'8 - (pseudo-)Ternary liquidus/solidus surfaces',//,
      *        'Use Convex-Hull minimization for Schreinemakers ',
      *        'projections or phase diagrams',/,
      *        'with > 2 independent variables. ',
@@ -861,8 +904,9 @@ c                                 diagrams:
 2520  format (/,'Melt phase(s) for liquidus finding.',/,
      *        'Select models from the solution model list, enter',
      *        ' 1 per line, press <enter> to finish',/)
-2530  format (/,'**warning** No liquids defined; the calculation can''t'
-     *       ,' be done.  You need to define one or more liquids.')
+2530  format (/,'**warning ver419** No liquid phase; the calculation ',
+     *          'can''t be done.',/,'Edit the problem definition file ',
+     *          'to specify liquid phase(s).')
 3000  format (a,1x,i1,1x,3(g12.6,1x),a,' amount')
 3010  format ('Enter the solution model file name [default = ',
      *        'solution_model.dat]: ')

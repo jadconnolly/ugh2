@@ -1,7 +1,7 @@
 solution_names mod
-x_nodes 10 40            | grid nodes at init and autorefine stages
-y_nodes 10 40            | grid nodes at init and autorefine stages
-grid_levels 1 2          | grid levels at init and autorefine stages
+x_nodes default 10 10            | grid nodes at init and autorefine stages
+y_nodes default 10 10            | grid nodes at init and autorefine stages
+grid_levels default 1 2          | grid levels at init and autorefine stages
 output_iteration_G     F | debug
 output_iteration_detai F | debug
 auto_refine on
@@ -9,3 +9,5 @@ liquidus_resolution    1 | 100 bars / 5 K
 bad_number 0d0
 initial_resolution default 1/20
 GFSM T
+
+warning_ver637 F
