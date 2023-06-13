@@ -1065,7 +1065,7 @@ c----------------------------------------------------------------------
       parameter (lg=l7*(l7+1)/2)
 
       double precision lxtol, lytol
-      parameter (lxtol = 0.02d0, lytol = 0.03d0)
+      parameter (lxtol = 0.02d0, lytol = 0.05d0)
 
       integer jop0, iop5, iop6, iop7
 
@@ -1080,7 +1080,8 @@ c----------------------------------------------------------------------
      *        iliq, jliq, isol, nsol, ngrp,
      *        nssol, issol(k2),
      *        lass(k2), lsol(k2), labs(k2), nabs(k2),
-     *        gixi(8), gixj(8)
+     *        gixi(8), gixj(8), lblix(k3)
+      equivalence (lblix,lblphs)
 
       integer itri(4),jtri(4),ijpt
 
@@ -1092,7 +1093,7 @@ c----------------------------------------------------------------------
       double precision lvmin, lvmax, vlo, vhi, vrt, x, y, cst, sum,
      *         xc, yc, xp(3), yp(3), xx1, yy1, xx2, yy2, xx3, yy3,
      *         cvec(3), dinv(3,3), yssol(m14+2,k2), cssol(k2), wt(3),
-     *         cont, lloc(2,k2)
+     *         cont, lloc(2,k3)
 
       double precision rline,thick,font,xdc,
      *                 clinex(npts),cliney(npts),
@@ -1967,14 +1968,69 @@ c           call pselip (x,y, 0.25d0*dcx, 0.25d0*dcy, 1d0,0d0,0,0,1)
             lloc(1,i) = x
             lloc(2,i) = y
 
-c                                   don't let any other labels get too close
-            cst = lxtol + 2*xdc*iend
-            lyet = .true.
-            do j = 1,i-1
-               if (dabs(lloc(1,j) - x).lt.cst .and.
-     *             dabs(lloc(2,j) - y).lt.lytol) lyet = .false.
+c                                   don't let any other labels get too close;
+c                                   simple but sloppy way to avoid overlap
+c           cst = lxtol + 2*xdc*iend
+c           lyet = .true.
+c           do j = 1,i-1
+c              if (dabs(lloc(1,j) - x).lt.cst .and.
+c    *             dabs(lloc(2,j) - y).lt.lytol) lyet = .false.
+c           end do
+c           if (lyet) call pstext (x,y,text,iend)
+         end do
+
+c                                 done positioning them; if there are overlaps,
+c                                 put one label closest to the centroid of their
+c                                 positions
+         cst = lxtol + 4*xdc*iend
+         lblix(1:l) = 0
+         do i = 1, l
+            x = lloc(1,i)
+            y = lloc(2,i)
+c                                 count number of overlaps
+            in = 0
+            do ii = 1, l
+               if (dabs(lloc(1,ii) - x).lt.cst .and.
+     *             dabs(lloc(2,ii) - y).lt.lytol) then
+                  lblix(ii) = i
+                  in = in + 1
+               end if
             end do
-            if (lyet) call pstext (x,y,text,iend)
+c                                 ugh, find closest to centroid
+            if (in .gt. 1) then
+               x = lloc(1,i)
+               y = lloc(2,i)
+               do ii = 1, l
+                  if (lblix(ii).eq.i) then
+                     x = x + lloc(1,ii)
+                     y = y + lloc(2,ii)
+                  end if
+               end do
+               x = x/in
+               y = y/in
+               lblix(i) = i
+c                                 now have centroid, find closest
+               vlo = 2d0
+               do ii = 1, l
+                  if (lblix(ii).eq.i) then
+                     vhi = (lloc(1,ii)-x)**2 + (lloc(2,ii)-y)**2
+                     if (vhi .lt. vlo) then
+                        vlo = vhi
+                        in = ii
+                     end if
+                  end if
+               end do
+c                                 bingo; now make those points have same label
+               x = lloc(1,in)
+               y = lloc(2,in)
+               do ii = 1, l
+                  if (lblix(ii).eq.i) then
+                     lloc(1,ii) = x
+                     lloc(2,ii) = y
+                  end if
+               end do
+            end if
+            call pstext (x,y,text,iend)
          end do
 
          if (grp.gt.1) write(*,1010)
