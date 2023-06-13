@@ -1064,6 +1064,9 @@ c----------------------------------------------------------------------
       integer lg
       parameter (lg=l7*(l7+1)/2)
 
+      double precision lxtol, lytol
+      parameter (lxtol = 0.02d0, lytol = 0.03d0)
+
       integer jop0, iop5, iop6, iop7
 
       character text*240, plu*4
@@ -1089,7 +1092,7 @@ c----------------------------------------------------------------------
       double precision lvmin, lvmax, vlo, vhi, vrt, x, y, cst, sum,
      *         xc, yc, xp(3), yp(3), xx1, yy1, xx2, yy2, xx3, yy3,
      *         cvec(3), dinv(3,3), yssol(m14+2,k2), cssol(k2), wt(3),
-     *         cont
+     *         cont, lloc(2,k2)
 
       double precision rline,thick,font,xdc,
      *                 clinex(npts),cliney(npts),
@@ -1797,6 +1800,9 @@ c     Label each liquidus/solidus phase field.
 c                                 character widths
       xdc = dcx*ascale/1.75d0
 
+c                                 ensure horizontal labels
+      call pssctr (ifont,ascale,ascale, 0d0)
+
 c                                 now have all solid assemblages, start grouping
 c                                 algorithm
       do k = 1, nass
@@ -1956,9 +1962,19 @@ c              cycle
             end if
 c           print*,'Put ',text(1:iend),' at ',x,y
 c           call pselip (x,y, 0.25d0*dcx, 0.25d0*dcy, 1d0,0d0,0,0,1)
-            call pssctr (ifont,ascale,ascale, 0d0)
-            call pstext (x+dcx*ascale-xdc*iend,y+.7d0*dcy*ascale,
-     *                   text,iend)
+            x = x+dcx*ascale-xdc*iend
+            y = y+.7d0*dcy*ascale
+            lloc(1,i) = x
+            lloc(2,i) = y
+
+c                                   don't let any other labels get too close
+            cst = lxtol + 2*xdc*iend
+            lyet = .true.
+            do j = 1,i-1
+               if (dabs(lloc(1,j) - x).lt.cst .and.
+     *             dabs(lloc(2,j) - y).lt.lytol) lyet = .false.
+            end do
+            if (lyet) call pstext (x,y,text,iend)
          end do
 
          if (grp.gt.1) write(*,1010)
