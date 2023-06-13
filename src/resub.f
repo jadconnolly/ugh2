@@ -129,6 +129,7 @@ c                                 find discretization points for refinement
          call yclos1 (x,clamda,jphct,quit)
 c                                 returns quit if nothing to refine
          if (quit) then 
+
 c                                 final processing, .true. indicates static
             call rebulk (abort,.true.)
 
@@ -407,7 +408,7 @@ c                                 save the id and compositions
 c                                 of the refinement points, this
 c                                 is necessary because resub rewrites
 c                                 the zco array.
-         call savpa
+         call savpa (.false.)
 
          if (quit) exit
 c                                 save old counter 
@@ -685,7 +686,7 @@ c----------------------------------------------------------------------
 
       end 
 
-      subroutine savpa
+      subroutine savpa (statik)
 c----------------------------------------------------------------------
 c subroutine to save a copy of adaptive pseudocompound endmember fractions
 c in the temporary array ycoor (also lcoor) used by resub to generate
@@ -694,8 +695,9 @@ c----------------------------------------------------------------------
       implicit none
 
       include 'perplex_parameters.h'
-c                                 -------------------------------------
-c                                 local variables
+
+      logical statik, bad
+
       integer i, kcoct, id, ids
 
       double precision z, pa, p0a, x, w, y, wl, pp
@@ -727,24 +729,38 @@ c----------------------------------------------------------------------
          ids = jkp(id)
          lkp(i) = ids
 c                                 cycle on a compound
-         if (ids.lt.0.or.id.le.jpoint) cycle
+         if (ids.lt.0) then 
+            write (*,*) 'something molto rotten in denmark'
+         end if 
 
          lcoor(i) = kcoct
 c                                 it's a solution:
-         ycoor(kcoct+1:kcoct+nstot(ids)) = 
+         if (.not.statik) then 
+c                                 get the composition from zco and, optionally
+c                                 save the composition in the auto-refine lst
+c                                 (savdyn)
+            ycoor(kcoct+1:kcoct+nstot(ids)) = 
      *                            zco(icoz(id)+1:icoz(id)+nstot(ids))
 
-         kcoct = kcoct + nstot(ids)
+            if (lopt(58).and.(.not.refine.or.lopt(55))) then
 
-         if (lopt(58).and.(.not.refine.or.lopt(55))) then
-
-            pa(1:nstot(ids)) = zco(icoz(id)+1:icoz(id)+nstot(ids))
+               pa(1:nstot(ids)) = zco(icoz(id)+1:icoz(id)+nstot(ids))
 c                                 only for pp comparison
-            if (lorder(ids)) call makepp (ids)
+               if (lorder(ids)) call makepp (ids)
 
-            call savdyn (ids)
+               call savdyn (ids)
+
+            end if
+
+         else
+
+            call setxyp (ids,id+jiinc,bad)
+
+            ycoor(kcoct+1:kcoct+nstot(ids)) = pa(1:nstot(ids))
 
          end if
+
+         kcoct = kcoct + nstot(ids)
 
       end do 
 
@@ -1815,13 +1831,25 @@ c                                 new point, add to list
             npt = npt + 1
             jdv(npt) = i
             amt(npt) = x(i)
-            if (id.gt.ipoint) then 
+c                                 post processing assume dynamic
+c                                 composition pointers, create those
+c                                 here in case there's no further iteration.
+            if (id.gt.ipoint) then
+
                jkp(i) = ikp(id)
-            else if (x(i).gt.zero) then
+
+            else
+
+               jkp(i) = -id
+
+            end if
+
+            if (x(i).gt.zero) then
 c                                 save compound amts for starting guess
                lcpt = lcpt + 1
                ldv(lcpt) = i
                lamt(lcpt) = x(i)
+
             end if
 
             if (lopt(34)) then
@@ -1833,11 +1861,9 @@ c                                 save compound amts for starting guess
                   write (*,'(/,a,i2,a,i7)') 'iteration ',0,' jphct = ',
      *                  jphct
                end if 
-               if (ikp(id).ne.0) then 
-                  call dumper (1,i,0,ikp(id),x(i),clamda(i))
-               else 
-                  call dumper (1,i,0,-id,x(i),clamda(i))
-               end if 
+
+               call dumper (1,i,0,jkp(i),x(i),clamda(i))
+
             end if
 
          end if 
@@ -2724,11 +2750,7 @@ c                                 index for stoichiometric compounds,
 c                                 endmembers, and static compositions
          id = jdv(i) + jiinc
 
-         if (stic) then
-            jds = ikp(id)
-         else
-            jds = jkp(jdv(i))
-         end if
+         jds = jkp(jdv(i))
 
          if (jdv(i).le.jpoint) then
 c                                 load compositional data

@@ -1644,6 +1644,10 @@ c                                 returns quit if nothing to refine
          if (quit) then 
 c                                 final processing, .true. indicates static
             statik = .true.
+c                                 for recovery of a previous optimization 
+c                                 result by savlst, call savpa, currently
+c                                 this is only done by liqdus
+            call savpa (statik)
 
          else
 c                                 initialize refinement point pointers
@@ -2482,7 +2486,6 @@ c                                 a compound at i > jpoint. this should be preve
             if (lkp(i).lt.0) cycle
 
             ids = lkp(i)
-            xlkp(i) = ids
             xlcoor(i) = lcoor(i)
             xycoor(lcoor(i)+1:lcoor(i)+nstot(ids)) = 
      *                       ycoor(lcoor(i)+1:lcoor(i)+nstot(ids))
