@@ -2097,7 +2097,7 @@ c                                fill hot cells
          write (*,1070) k,jtic
          ktic = ktic + jtic
 
-         write (*,1080) ktic,(loopx/kinc)*(loopy/kinc+1)/2*16
+         write (*,1080) ktic,(loopx/kinc)*(loopy/kinc+1)/2*18
 
          if (khot.eq.0.or.k.eq.jlev) exit 
 c                             now switch new and old hot list
@@ -2110,7 +2110,7 @@ c                             now switch new and old hot list
       end do 
 
       write (*,1060) rcount(5),loopx*(loopy+1)/2
-      write (*,1080) rcount(4),loopx*(loopx+1)/2*16
+      write (*,1080) rcount(4),loopx*(loopx+1)/2*18
 
 10    if (outprt) call outgrd (loopx,loopy,1,n4,0)
 
