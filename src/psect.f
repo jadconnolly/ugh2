@@ -1059,7 +1059,7 @@ c----------------------------------------------------------------------
       parameter (ctr=.false.)
 
       integer nseg,npts,npcs,mcon
-      parameter (nseg=100000,npts=250000,npcs=100000,mcon=50)
+      parameter (nseg=1000000,npts=2500000,npcs=1000000,mcon=50)
 
       integer lg
       parameter (lg=l7*(l7+1)/2)
@@ -1071,9 +1071,9 @@ c----------------------------------------------------------------------
 
       character text*240, plu*4
 
-      logical off, lmult, lyet, lnophs, lblphs(k3)
+      logical off, lmult, lyet, lnophs, lblphs(k3), readyn, interp
 
-      integer i, j, k, l, m, id, jcoor, iix, jix,
+      integer i, j, k, l, m, id, jcoor, iix, jix, klev, jd,
      *        v1, v2, v3, nsegs, iseg, tseg,
      *        noth, grp, iass, ictr, kass, msol,
      *        ii, jj, imn, imx, jmn, jmx, in, iend, cflag,
@@ -1088,7 +1088,8 @@ c----------------------------------------------------------------------
       equivalence (iix,itri(1)), (jix,jtri(1))
 
       integer nblen
-      external nblen
+
+      external nblen, readyn
 
       double precision lvmin, lvmax, vlo, vhi, vrt, x, y, cst, sum,
      *         xc, yc, xp(3), yp(3), xx1, yy1, xx2, yy2, xx3, yy3,
@@ -1103,6 +1104,7 @@ c----------------------------------------------------------------------
       integer n,ng,ntri,npeece,ipts,ipiece,iswit,ncon,ier,
      *        ipieces(2,npcs),npiece(mcon),segm(nseg),
      *        ifirst(mcon),next(nseg),ilast(mcon),ifnd(lg)
+
       equivalence (segm,next)
 
 c     This temporary algorithm storage could be remapped to some other large,
@@ -1185,39 +1187,68 @@ c        x  y  x  y  x  y   x y  x y   x y  x y  x y
 c----------------------------------------------------------------------
 c                                 initialization, phase lists etc
       call initlq
+
+      interp = .false.
+      write (*,'(a)') 'only use computed T (no interpolation) (y/n)?'
+      interp = .not.readyn()
+
+      write (*,'(a,i1,a)') 
+     *      'choose highest level at which to sample T data (1:'
+     *               ,jlev,') all nodes are populated at level 1'
+      read (*,*) klev
+      jinc = 2**(jlev - klev)
 c                                 reconstruct the temperature grid
-      do i = 1, loopx
+      do i = 1, loopx, jinc
 
          var(1) = (i-1)/dfloat(loopx-1)
 
-         do j = 1, loopy
+         do j = 1, loopy, jinc
 
-            itri(1) = i
-            jtri(1) = j
+            if (interp) then 
 
-            var(2) = (j-1)/dfloat(loopx-1)
+               itri(1) = i
+               jtri(1) = j
 
-            call triang (itri,jtri,ijpt,wt)
+               var(2) = (j-1)/dfloat(loopx-1)
 
-            if (ijpt.eq.0) then 
+               call triang (itri,jtri,ijpt,wt)
+
+               if (ijpt.eq.0) then 
 c                                no data for node i,j: could turn on 
 c                                extrapolation if this occurs a lot.
-               tgrid(i,j) = nopt(7)
+                  tgrid(i,j) = nopt(7)
+
+               else
+
+                  tgrid(i,j) = 0d0
+
+                  do k = 1, ijpt
+                     tgrid(i,j) = tgrid(i,j) 
+     *                            + wt(k) * tliq(igrd(itri(k),jtri(k)))
+                  end do
+
+               end if
 
             else
+c                                 no interpolation
+               jd = igrd(i,j)
 
-               tgrid(i,j) = 0d0
+               if (icog(jd).eq.i.and.jcog(jd).eq.j) then
+c                                 a computed point
+                  tgrid(i,j) = tliq(igrd(i,j))
 
-               do k = 1, ijpt
-                  tgrid(i,j) = tgrid(i,j) 
-     *                         + wt(k) * tliq(igrd(itri(k),jtri(k)))
-               end do
+               else
 
-            end if
+                  tgrid(i,j) = nopt(7)
+
+               end if
+
+            end if 
 
          end do
 
       end do
+
 
       if (loopx .gt. l7g) then
          write (*,*)
@@ -1228,7 +1259,20 @@ c                                extrapolation if this occurs a lot.
 
 c     Smooth temperature grid
 
-      call grdsmth(0.0d0, 5, 20, .false.)
+      if (.not.interp.and.klev.gt.1) then 
+c                                 if not interpolating and using a 
+c                                 high level grid, then must
+c                                 use grdsmth to fill in the holes.
+         call grdsmth(0.0d0, 5, 20, .false.)
+
+      else
+c                                 interpolation should in principle
+c                                 make a complete grid so grdsmth is
+c                                 optional
+         write (*,*) 'turn off grdsmth (y/n)'
+         if (.not.readyn()) call grdsmth(0.0d0, 5, 20, .false.)
+
+      end if 
 
 c     For every element in the compositional grid, find the bounding
 c     temperatures where liquid is the only phase to where it is present with
@@ -1424,8 +1468,21 @@ c                                 find when something reappears in area
 c                                 first newly visible point becomes start
 c                                 add a label if came in across upper diag
                   jix = j
+
+                  if (isnan(x)) then
+                     write (*,*) 'bad x'
+                     x = nopt(7)
+                  end if
+
+                  if (isnan(y)) then
+                     write (*,*) 'bad y'
+                     y = nopt(7)
+                  end if
+
+
                   linex(j) = x
                   liney(j) = y
+
                   call trneq (linex(j),liney(j))
                   if (noth.gt.5 .and. lmult .and.
      *                   abs(x+y-1d0).lt.0.75d-3) then
@@ -1468,6 +1525,10 @@ c
 c     Existence of the formula matrix inverse is guaranteed because we already
 c     know that it spans the compositional space.
  
+
+      jinc = 1
+      ng = 1 + (loopx-1)/jinc
+
 c                                 form inverse of formula matrix
 c                                 by multiplying by transpose and inverting
       do i = 1,3
