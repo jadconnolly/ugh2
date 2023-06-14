@@ -16988,6 +16988,8 @@ c----------------------------------------------------------------------
 
          call readnm (i,index,com,ier,name)
          if (ier.ne.0) goto 90
+c                                 eliminate flagging for liqdus calculations
+         if (icopt.eq.2) cycle
 
          index = match (idim,ier,name)
          if (ier.ne.0) goto 90
