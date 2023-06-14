@@ -918,10 +918,11 @@ c psrecb - subroutine to output a red rectangle for bad results in PSSECT
 
       end
 c----------------------------------------------------------------
-      subroutine pshexb (x1,y1,s,blr,rline,width)
+      subroutine pshexb (x1,y1,s,blr,clr,rline,width)
  
-c pstrib - subroutine to output parts/all of a red hexagon for bad results
-c          in PSSECT
+c pstrib - subroutine to output parts/all of a colored hexagon for bad results
+c          in PSSECT.
+c     clr is color code as used by psocfg
 c     blr is 3 bit code:
 c     x x 1 - point on right side of grid
 c     x 1 x - point on left side of grid
@@ -946,7 +947,7 @@ c     a.........b.........c  a = (0,0)  b = (1/2,0)  c = (1,0)
 
       double precision x1,y1,s,so2,so4,ss34,s3o4,rline,width,x(6),y(6)
 
-      integer blr, n
+      integer blr, clr, n
 
       integer nps
       double precision xscale,yscale,xmn,ymn
@@ -1052,7 +1053,7 @@ c                                   left apex
       write (nps,1030)
  
       call psolin (rline,width)
-      call psocfg (2,2)
+      call psocfg (clr,clr)
       call psofil (1)
       call psotrn
       call psopts (x,y,n)
@@ -1064,11 +1065,13 @@ c                                   left apex
 
       end
 c----------------------------------------------------------------
-      subroutine pstrib (x1,y1,s,rline,width)
+      subroutine pstrib (x1,y1,s,clr,rline,width)
  
-c pstrib - subroutine to output a red triangle for bad results in PSSECT
+c pstrib - subroutine to output a colored triangle for bad results in PSSECT
 
       implicit none
+
+      integer clr
 
       double precision x1,y1,s,rline,width,x(3),y(3)
 
@@ -1086,7 +1089,7 @@ c pstrib - subroutine to output a red triangle for bad results in PSSECT
       write (nps,1030)
  
       call psolin (rline,width)
-      call psocfg (2,2)
+      call psocfg (clr,clr)
       call psofil (1)
       call psotrn
       call psopts (x,y,3)

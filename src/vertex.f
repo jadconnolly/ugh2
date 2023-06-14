@@ -1356,6 +1356,7 @@ c                                 possibility.
 
       if (idead.eq.0) call lpopt0 (idead)
 c                                 if idead = 0 optimization was ok
+      if (idead.ne.0) idead = k2
       call isgood (i,j,idead)
 
       end 
@@ -1365,6 +1366,8 @@ c-----------------------------------------------------------------------
 c isgood - for sucessful gridded minimization sort and index the 
 c          assemblage. for bad minimizations flag the grid/assemblage
 c          pointer. in either case increment count stats.
+c          if idead > 0, should be either k2 or k2-1 which get mapped to
+c          iap(idead) = k3 or k3-1
 c-----------------------------------------------------------------------
       implicit none
 
@@ -1386,8 +1389,8 @@ c                                 the molar amounts of the phases are in amt.
 
          rcount(5) = rcount(5) + 1
 
-         igrd(i,j) = k2
-         iap(k2) = k3
+         igrd(i,j) = idead
+         iap(idead) = idead + k3-k2
 
       end if  
 
@@ -2220,7 +2223,7 @@ c                              generate this case.
       if (idead .ne. 0) then
 
          write (*,1020) 'low',vname(iv1),i,j
-         call isgood (i,j,idead)
+         call isgood (i,j,k2)
          return
 
       end if
@@ -2232,7 +2235,7 @@ c                              generate this case.
 c                              only warn if past exploratory phase
          if (refine) call liqwrn (i,j,'no solids','lowest')
 
-         call isgood (i,j,99)
+         call isgood (i,j,k2-1)
 
          return
 
@@ -2242,7 +2245,7 @@ c                              only warn if past exploratory phase
 c                              only warn if past exploratory phase
          if (refine) call liqwrn (i,j,'no liquid','lowest')
 
-         call isgood (i,j,99)
+         call isgood (i,j,k2-1)
 
          return
 
@@ -2260,7 +2263,7 @@ c                              do the optimization
       if (idead.ne.0) then
 
          write (*,1020) 'high',vname(iv1),i,j
-         call isgood (i,j,idead)
+         call isgood (i,j,k2)
          return
 
       end if
@@ -2272,7 +2275,7 @@ c                              do the optimization
 c                              only warn if past exploratory phase
          if (refine) call liqwrn (i,j,'solids','highest')
 
-         call isgood (i,j,99)
+         call isgood (i,j,k2-1)
 
          return
 
@@ -2280,7 +2283,7 @@ c                              only warn if past exploratory phase
 c                              only warn if past exploratory phase
          if (refine) call liqwrn (i,j,'liquid','highest')
 
-         call isgood (i,j,99)
+         call isgood (i,j,k2-1)
 
          return
 
@@ -2368,6 +2371,7 @@ c                                 fndliq failed
          if (refine) write (*,1020) 'liquidus grid',i,j
 c                                 here's an opportunity to set
 c                                 a bad value for the temperature.
+         idead = k2
       else 
 
          if (sol.and.l.ne.0 .or. .not.sol.and.l.eq.2) then

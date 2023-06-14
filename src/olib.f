@@ -938,7 +938,7 @@ c                                 starting coordinates
             lco(i) = icox(igrd(itri(i),jtri(i)))
          end do 
 c                                 no data test
-         if (ias.eq.k3) then 
+         if (ias.ge.k3-1) then 
             nodata = .true.
             goto 99 
          end if
@@ -3410,7 +3410,7 @@ c                                 identify the assemblage
 c                                 the iap(jd) check works if k2 is inconsistent
 c                                 between vertex and werami. the question is then
 c                                 whether there's any point in checking jd?           
-      if (jd.eq.k2.or.iap(jd).eq.0) then
+      if (jd.ge.k2-1.or.iap(jd).eq.0) then
 c                                 no data at point, set ijpt = 0 and return
          ijpt = 0 
          return

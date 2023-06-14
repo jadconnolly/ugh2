@@ -19791,11 +19791,13 @@ c                                 arrays
       end do
 c                                 close n8 for assemblage list (plopt(3), PSSECT)
       close (n8) 
-c                                 make the "null" assemblage
-      iap(k2) = k3
-      iavar(1,k3) = 0
-      iavar(2,k3) = 0 
-      iavar(3,k3) = 0 
+c                                 make the "null" assemblages
+      do i = 0, 1
+         iap(k2-i) = k3-i
+         iavar(1,k3-i) = 0
+         iavar(2,k3-i) = 0 
+         iavar(3,k3-i) = 0 
+      end do
 
       if (icopt.eq.7.and.fileio) then 
 c                                 if coodinates from a file, read

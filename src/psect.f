@@ -1524,7 +1524,14 @@ c                                 flag bad assemblages on grid
                x = cx(1)
                y = cx(2)
                call trneq (x, y)
-               call pshexb (x, y, jinc/dfloat(loopx-1), j, 1d0, 0d0)
+               if (isol.eq.k3) then
+c                                 red for failed minimizations
+                  k = 2
+               else
+c                                 orange for bad P or T bounds
+                  k = 8
+               end if
+               call pshexb (x,y,jinc/dfloat(loopx-1),j,k,1d0,0d0)
                cycle
             end if
 
