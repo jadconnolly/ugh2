@@ -363,7 +363,8 @@ c psotrn - subroutine to output transformation matrix.
 c----------------------------------------------------------------
       subroutine psoclr
  
-c psoclr - subroutine to output color choice.
+c psoclr - subroutine to output default color choice (black foreground,
+c          white background).
  
       implicit none
 
@@ -378,69 +379,57 @@ c psoclr - subroutine to output color choice.
  
       end
 c----------------------------------------------------------------
-      subroutine psored
- 
-c psoclr - subroutine to output red color.
- 
-      implicit none
-
-      integer nps
-      double precision xscale,yscale,xmn,ymn
-      common/ scales /xscale,yscale,xmn,ymn,nps
- 
-      write (nps,1000)
- 
-1000  format ('%I cfg Red',/,'1 0 0 SetCFg',/,'%I cbg Red',/,
-     *        '1 0 0 SetCBg')
- 
-      end
-
       subroutine psocfg (ifg,ibg)
  
 c psoclr - subroutine to output color fore/back-ground.
  
       implicit none
 
-      integer nps, j, ifg, ibg
+      integer nps, i, j, ifg, ibg, nblen
+      external nblen
 
-      real col(0:12,3)
+      real col(3,0:12)
+
+      character cnm(0:12)*11
 
       double precision xscale,yscale,xmn,ymn
       common/ scales /xscale,yscale,xmn,ymn,nps
 
-      save col
+      save col, cnm
 
-      data col/
+      data ((col(i,j),i=1,3),cnm(j),j=0,12)/
 c                                 0 - black 
-     *          0., 0., 0.,
+     *          0., 0., 0., 'black',
 c                                 1 - white 
-     *          1., 1., 1.,
+     *          1., 1., 1., 'white',
 c                                 2 - red 
-     *          1., 0., 0.,
+     *          1., 0., 0., 'red',
 c                                 3 - green
-     *          0., 1., 0.,
+     *          0., 1., 0., 'green',
 c                                 4 - blue
-     *          0., 0., 1.,
+     *          0., 0., 1., 'blue',
 c                                 5 - purple
-     *          0., 1., 1.,
+     *          0., 1., 1., 'purple',
 c                                 6 - yellow
-     *          1., 1., 0.,
+     *          1., 1., 0., 'yellow',
 c                                 7 - brown
-     *          1., 0., 1.,
+     *          1., 0., 1., 'brown',
 c                                 8 - orange
-     *          1., .5, 0.,
+     *          1., .5, 0., 'orange',
 c                                 9 - dark blue
-     *          0., 0., .5,
+     *          0., 0., .5, 'dark blue',
 c                                 10 - dark red
-     *          .5, .0, .0,
+     *          .5, .0, .0, 'dark red',
 c                                 11 - dark green
-     *          0., .5, 0.,
+     *          0., .5, 0., 'dark green',
 c                                 12 - dark yellow
-     *          0.5, 0.5, 0./
+     *          0.5, 0.5, 0., 'dark yellow'/
  
-      write (nps,1000) (col(ifg,j),j=1,3),(col(ibg,j),j=1,3)
+      write (nps,1000)
+     *   cnm(ifg)(1:nblen(cnm(ifg))), (col(j,ifg),j=1,3),
+     *   cnm(ibg)(1:nblen(cnm(ibg))), (col(j,ibg),j=1,3)
  
-1000  format ('%I cfg Red',/,3(F3.1,1x),'SetCFg',/,'%I cbg Red',/,
+1000  format ('%I cfg ',a,/,3(F3.1,1x),'SetCFg',/,'%I cbg ',a,/,
      *        3(F3.1,1x),' SetCBg')
  
       end
@@ -917,7 +906,7 @@ c psrecb - subroutine to output a red rectangle for bad results in PSSECT
       write (nps,1030)
  
       call psolin (rline,width)
-      call psored
+      call psocfg (2,2)
       call psofil (1)
       call psotrn
       call psopts (x,y,4)
@@ -1063,7 +1052,7 @@ c                                   left apex
       write (nps,1030)
  
       call psolin (rline,width)
-      call psored
+      call psocfg (2,2)
       call psofil (1)
       call psotrn
       call psopts (x,y,n)
@@ -1097,7 +1086,7 @@ c pstrib - subroutine to output a red triangle for bad results in PSSECT
       write (nps,1030)
  
       call psolin (rline,width)
-      call psored
+      call psocfg (2,2)
       call psofil (1)
       call psotrn
       call psopts (x,y,3)
