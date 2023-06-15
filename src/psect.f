@@ -1698,6 +1698,15 @@ c                                 endmember proportions
             yy(j) = cst
          end do
 
+c                                 normalize y, force small amts to zero
+c        print*,'y: ',(yy(j),j=1,3)
+         cst = yy(1) + yy(2) + yy(3)
+         if (cst.eq.0d0) cst = 1d0
+         do k = 1,3
+            if (yy(k).lt.0d0 .and. yy(k).gt.-1d-5) yy(k) = 0d0
+            yy(k) = yy(k)/cst
+         end do
+
          call trneq (yy(2),yy(3))
 
             if (lmult .or. .not.lnophs)
