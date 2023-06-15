@@ -935,9 +935,6 @@ c psaxop - subroutine to make graphics transformation and get some options
 
       double precision xmin,xmax,ymin,ymax,dcx,dcy,xlen,ylen
       common/ wsize /xmin,xmax,ymin,ymax,dcx,dcy,xlen,ylen
-
-      integer  iop0 
-      common / basic /iop0
 c----------------------------------------------------------------------
 
       jop0 = 0

@@ -20,9 +20,6 @@ c Please do not distribute any part of this source.
       logical first, err, readyn
 
       external readyn
- 
-      integer iop0 
-      common / basic /iop0
 
       integer iam
       common/ cst4 /iam
@@ -103,9 +100,6 @@ c psdplt - subroutine to plot gridded minimization sections
       logical readyn
 
       external readyn
-
-      integer  iop0 
-      common / basic /iop0
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
@@ -1592,8 +1586,11 @@ c                                 red for failed minimizations
 c                                 orange for bad P or T bounds
                   k = 8
                end if
+
                call pshexb (x,y,jinc/dfloat(loopx-1),j,k,1d0,0d0)
+
                cycle
+
             end if
 
 c                                 the ones that aren't a named liquid

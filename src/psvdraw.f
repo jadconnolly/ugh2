@@ -21,9 +21,6 @@ c Please do not distribute any part of this source.
 
       external readyn
 
-      integer  iop0 
-      common / basic /iop0
-
       character*100 prject,tfname
       common/ cst228 /prject,tfname
 
@@ -150,9 +147,6 @@ c----------------------------------------------------------------------
       logical readyn
 
       external readyn
-
-      integer  iop0 
-      common / basic /iop0
 
       integer iphct
       common/ ln4 /iphct
@@ -1198,9 +1192,6 @@ c psmixd - subroutine to draw binary mixed variable diagrams
 
       double precision xmin,xmax,ymin,ymax,dcx,dcy,xlen,ylen
       common/ wsize /xmin,xmax,ymin,ymax,dcx,dcy,xlen,ylen
-
-      integer  iop0 
-      common / basic /iop0
 
       integer iphct
       common/ ln4 /iphct

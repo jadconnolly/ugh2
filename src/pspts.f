@@ -23,9 +23,6 @@ c----------------------------------------------------------------------
 
       character*100 prject,tfname
       common/ cst228 /prject,tfname
-
-      integer  iop0 
-      common / basic /iop0
 c----------------------------------------------------------------------
 c                                 version info
       call vrsion (6)
