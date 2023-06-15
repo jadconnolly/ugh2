@@ -597,8 +597,7 @@ c psopen - subroutine to open LUN nps, write prologue
 
       implicit none
 
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
+      include 'perplex_parameters.h'
 
       integer nps
       double precision xscale, yscale, xmn, ymn

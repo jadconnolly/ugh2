@@ -152,9 +152,6 @@ c----------------------------------------------------------------------
 
       external dnan, readyn
 
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
-
       integer grid
       double precision rid 
       common/ cst327 /grid(6,2),rid(5,2)
@@ -5381,9 +5378,6 @@ c------------------------------------------------------------------------
 
       external readyn
 
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
-
       integer iam
       common/ cst4 /iam
 
@@ -5501,9 +5495,6 @@ c----------------------------------------------------------------------
  
       integer kscan, iscnlt, ierr, siz
 
-      character*100 prject, tfname
-      common/ cst228 /prject,tfname
-
       integer length,com
       character chars*1
       common/ cst51 /length,com,chars(lchar)
@@ -5591,9 +5582,6 @@ c----------------------------------------------------------------------
       include 'perplex_parameters.h'
  
       integer kscan, siz
-
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
 
       integer length,com
       character chars*1
@@ -7183,9 +7171,6 @@ c-----------------------------------------------------------------------
 
       character fname*10, aname*6, lname*22
       common/ csta7 /fname(h9),aname(h9),lname(h9)
-
-      character prject*100,tfname*100
-      common/ cst228 /prject,tfname
 c-----------------------------------------------------------------------
       call mertxt (tfname,prject,'_seismic_data.txt',0)
 
@@ -7377,9 +7362,6 @@ c----------------------------------------------------------------------
       integer length,com
       character chars*1
       common/ cst51 /length,com,chars(lchar)
-
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
 
       character tname*10
       logical refine, lresub
@@ -8651,9 +8633,6 @@ c-----------------------------------------------------------------------
       integer io3,io4,io9
       common / cst41 /io3,io4,io9
 
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
-
       integer iam
       common/ cst4 /iam
 
@@ -8804,9 +8783,6 @@ c----------------------------------------------------------------------
       logical readyn
 
       external readyn
-
-      character prject*100,tfname*100
-      common/ cst228 /prject,tfname
 c                                 solution model names
       character fname*10, aname*6, lname*22
       common/ csta7 /fname(h9),aname(h9),lname(h9)
@@ -9235,10 +9211,7 @@ c-----------------------------------------------------------------------
       common/ cst208 /ifct,idfl
 
       integer ixct,ifact
-      common/ cst37 /ixct,ifact 
-
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
+      common/ cst37 /ixct,ifact
 
       character*8 exname,afname
       common/ cst36 /exname(h8),afname(2)
@@ -10059,9 +10032,6 @@ c-----------------------------------------------------------------------
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
 
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
-
       integer ipot,jv,iv
       common/ cst24 /ipot,jv(l2),iv(l2)
 
@@ -10570,9 +10540,6 @@ c----------------------------------------------------------------------
       common/ cst77 /prop(i11),prmx(i11),prmn(i11),
      *               kop(i11),kcx(i11),k2c(i11),iprop,
      *               first,kfl(i11),tname
-
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
 c----------------------------------------------------------------------
 c                                 make plot file
       do i = 1, 1000
@@ -10628,9 +10595,6 @@ c----------------------------------------------------------------------
       integer i, ier, n
 
       character string*(*)
-
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
 c----------------------------------------------------------------------
 
       call mertxt (tfname,prject,string,0)

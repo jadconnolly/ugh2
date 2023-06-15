@@ -382,9 +382,6 @@ c----------------------------------------------------------------------
       integer inc,jpot
       common/ cst101 /inc(l2),jpot
 
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
-
       double precision delv
       common/ cst63 /delv(l2)
 

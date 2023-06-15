@@ -9446,9 +9446,6 @@ c-----------------------------------------------------------------------
 
       external chksol
 
-      character prject*100,tfname*100
-      common/ cst228 /prject,tfname
-
       integer ipoint,kphct,imyn
       common/ cst60 /ipoint,kphct,imyn
 
@@ -12436,9 +12433,6 @@ c-----------------------------------------------------------------------
       double precision tot
 
       character name*100
-
-      character prject*100, tfname*100
-      common/ cst228 /prject,tfname
 
       character fname*10, aname*6, lname*22
       common/ csta7 /fname(h9),aname(h9),lname(h9)
@@ -19603,9 +19597,6 @@ c----------------------------------------------------------------------
       integer iam
       common/ cst4 /iam
 
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
-
       integer jlow,jlev,loopx,loopy,jinc
       common/ cst312 /jlow,jlev,loopx,loopy,jinc
 
@@ -21481,9 +21472,6 @@ c-----------------------------------------------------------------------
 
       external readyn
 
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
-
       character tname*10
       logical refine, lresub
       common/ cxt26 /refine,lresub,tname
@@ -21744,9 +21732,6 @@ c-----------------------------------------------------------------------
       integer ier
 
       logical err
-
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
 
       integer iam
       common/ cst4 /iam

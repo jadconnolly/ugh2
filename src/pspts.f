@@ -20,9 +20,6 @@ c----------------------------------------------------------------------
       logical readyn
 
       external readyn
-
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
 c----------------------------------------------------------------------
 c                                 version info
       call vrsion (6)

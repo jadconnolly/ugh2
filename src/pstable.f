@@ -13,9 +13,6 @@ c----------------------------------------------------------------------
  
       external readyn
 
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
-
       integer ix,iy,mvar
       double precision z
       common/ dim   /z(nx,ny),ix,iy,mvar

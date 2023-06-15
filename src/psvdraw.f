@@ -21,9 +21,6 @@ c Please do not distribute any part of this source.
 
       external readyn
 
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
-
       integer iphct
       common/ ln4 /iphct
 

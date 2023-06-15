@@ -597,3 +597,6 @@ c                                 LP workspace into common
 
       integer  iop0 
       common / basic /iop0
+
+      character prject*100,tfname*100
+      common/ cst228 /prject,tfname

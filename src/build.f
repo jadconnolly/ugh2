@@ -43,9 +43,6 @@ c-----------------------------------------------------------------------
 
       external chksol, findph, readyn, nblen
 
-      character prject*100,tfname*100
-      common/ cst228 /prject,tfname
-
       character tname*10
       logical refine, lresub
       common/ cxt26 /refine,lresub,tname
@@ -1816,9 +1813,6 @@ c---------------------------------------------------------------------------
       integer icont
       double precision dblk,cx
       common/ cst314 /dblk(3,k5),cx(2),icont
-
-      character prject*100,tfname*100
-      common/ cst228 /prject,tfname
 
       integer ipot,jv,iv
       common/ cst24 /ipot,jv(l2),iv(l2)

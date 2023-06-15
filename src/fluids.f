@@ -307,9 +307,6 @@ c-----------------------------------------------------------------------
       double precision vmax,vmin,dv
       common/ cst9  /vmax(l2),vmin(l2),dv(l2)
 
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
-
       integer inc,jpot
       common/ cst101 /inc(l2),jpot
 

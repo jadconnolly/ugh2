@@ -73,14 +73,11 @@ c-----------------------------------------------------------------------
       integer jfct,jmct,jprct,jmuct
       common/ cst307 /jfct,jmct,jprct,jmuct
 
-      save err,first
-      data err,first/.false.,.true./
-
-      character prject*100,tfname*100
-      common/ cst228 /prject,tfname
-
       integer iam
       common/ cst4 /iam
+
+      save err,first
+      data err,first/.false.,.true./
 c----------------------------------------------------------------------- 
 c                                 iam indicates the Perple_X program
 c                                    iam = 1  - vertex
@@ -198,9 +195,6 @@ c----------------------------------------------------------------------
       integer n
 
       double precision tt
-
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
 c----------------------------------------------------------------------
 c                                 the total time is in etime(30)
       call CPU_TIME(etime(30))
@@ -332,9 +326,6 @@ c-----------------------------------------------------------------------
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
-
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
 
       character*100 cfname
       common/ cst227 /cfname
@@ -580,9 +571,6 @@ c-----------------------------------------------------------------------
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
-
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
 
       character*100 cfname
       common/ cst227 /cfname
@@ -1846,9 +1834,6 @@ c---------------------------------------------------------------------
 
       integer io3,io4,io9
       common / cst41 /io3,io4,io9
-
-      character prject*100,tfname*100
-      common/ cst228 /prject,tfname
 
       save init
       data init/.true./
@@ -3237,9 +3222,6 @@ c----------------------------------------------------------------------
 
       character phase(k23)*10, name*100
 
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
-
       integer fmode,ifrct,ifr
       logical gone
       common/ frct1 /fmode,ifrct,ifr(k23),gone(k5)
@@ -3364,9 +3346,6 @@ c-----------------------------------------------------------------------
       integer i
 
       character phase*10
-
-      character*100 prject,tfname
-      common/ cst228 /prject,tfname
 c-----------------------------------------------------------------------
  
       tfname = '_'//phase//'.dat'

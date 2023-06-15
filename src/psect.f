@@ -1165,8 +1165,6 @@ c                                 working arrays
       double precision dblk,cx
       common/ cst314 /dblk(3,k5),cx(2),icont
 
-      character prject*100,tfname*100
-      common/ cst228 /prject,tfname
 
       integer ix,iy,mvar
       double precision z,zt
