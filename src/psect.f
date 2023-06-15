@@ -1065,7 +1065,8 @@ c----------------------------------------------------------------------
 
       character text*240, plu*4
 
-      logical off, lmult, lyet, lnophs, lblphs(k3), readyn, interp
+      logical off, lmult, lyet, lnophs, lblphs(k3), readyn, interp,
+     *        smooth
 
       integer i, j, k, l, m, id, jcoor, iix, jix, klev, jd,
      *        v1, v2, v3, nsegs, iseg, tseg,
@@ -1179,15 +1180,45 @@ c        x  y  x  y  x  y   x y  x y   x y  x y  x y
 c----------------------------------------------------------------------
 c                                 initialization, phase lists etc
       call initlq
-
+c                                 default options:
+c                                 use only lowest grid level for P/T
+      klev = 1
+c                                 don't use interpolation (triang) to fill
+c                                 unpopulated high level grid nodes
       interp = .false.
-      write (*,'(a)') 'only use computed T (no interpolation) (y/n)?'
-      interp = .not.readyn()
+c                                 don't smooth the data (grdsmth)
+      smooth = .false.
 
-      write (*,'(a,i1,a)') 
-     *      'choose highest level at which to sample T data (1:'
-     *               ,jlev,') all nodes are populated at level 1'
-      read (*,*) klev
+      if (iop0.eq.1) then 
+c                                 modify [some] default plot options
+         write (*,'(a,i1,a)') 
+     *         'choose highest level at which to sample T data (1:'
+     *         ,jlev,') all nodes are populated at level 1'
+c                                 need to test here exploratory vs
+c                                 autorefine as in WERAMI
+         read (*,*) klev
+c
+         write (*,'(a)') 'only use computed T (no interpolation) (y/n)?'
+         interp = .not.readyn()
+
+         if (.not.interp.and.klev.gt.1) then 
+c                                 if not interpolating and using a 
+c                                 high level grid, then must
+c                                 use grdsmth to fill in the holes.
+c                                 this doesn't work well. 
+             smooth = .true.
+
+         else
+c                                 interpolation should in principle
+c                                 make a complete grid so grdsmth is
+c                                 optional
+             write (*,*) 'turn on P/T data smoothing (y/n)'
+             if (readyn()) smooth = .true.
+
+         end if
+
+      end if
+
       jinc = 2**(jlev - klev)
 c                                 reconstruct the temperature grid
       do i = 1, loopx, jinc
@@ -1248,27 +1279,12 @@ c                                 a computed point
      *      l7g,' <',loopx
          stop
       end if
+c                                 -------------------------------------
+c                                 plot the isotherms:
+c                                 -------------------------------------
+c                                 smooth temperature grid
 
-c     Smooth temperature grid
-
-      if (.not.interp.and.klev.gt.1) then 
-c                                 if not interpolating and using a 
-c                                 high level grid, then must
-c                                 use grdsmth to fill in the holes.
-         call grdsmth(0.0d0, 5, 20, .false.)
-
-      else
-c                                 interpolation should in principle
-c                                 make a complete grid so grdsmth is
-c                                 optional
-         write (*,*) 'turn off grdsmth (y/n)'
-         if (.not.readyn()) call grdsmth(0.0d0, 5, 20, .false.)
-
-      end if 
-
-c     For every element in the compositional grid, find the bounding
-c     temperatures where liquid is the only phase to where it is present with
-c     another phase.
+      if (smooth)  call grdsmth (0.0d0, 5, 20, .false.)
 
 c                                 determine temperature range in grid, copy to
 c                                 uniformly dense grid for contouring.
@@ -1281,17 +1297,24 @@ c                                 values are reflected across the diagonal.
 
       ng = 1 + (loopx-1)/jinc
       ix = 0
+
       do i = 1, loopx, jinc
+
          ix = ix + 1
          iy = 0
+c                                 this is probably wrong, i.e., works only for jinc = 1?
          do j = 1, loopy-i+1, jinc
+
             iy = iy + 1
             zt(ix,iy) = tgrid(i,j)
             zt(ng-iy+1,ng-ix+1) = tgrid(i,j)
             lvmin = min(lvmin,tgrid(i,j))
             lvmax = max(lvmax,tgrid(i,j))
+
          end do
+
       end do
+
       write(text,1000) ng,ng,lvmin,vnm(3)(1:nblen(vnm(3))),lvmax
       call deblnk (text)
       write(*,'(1x,a)') text(1:nblen(text))
@@ -1312,12 +1335,11 @@ c                                 define contour levels
       end do
       write(*,text) ncon,'contour levels:',(z(j,1),j=1,ncon)
 
-
-c     Contour result on compositional grid
-
+c                                 Contour result on compositional grid
 c                                 why is this loopx/loopy rather than ng?
       ix = loopx
       iy = loopy
+
       call contra (0d0,1d0,0d0,1d0,
      *             ncon,z,
      *             clinex,cliney,cline,segs,
@@ -1489,9 +1511,15 @@ c    *                  text(1:nblen(text)),noth,x,y
                end do
 
                ipiece = ipiece + 1
+
             end do 
          end if
-      end do 
+      end do
+c                                 -------------------------------------
+c                                 plot liquidus phase compositions, this 
+c                                 is only possible for true ternary (3 component)
+c                                 problems.
+c                                 -------------------------------------
 
 c     Solve for position of compounds on the triangular grid using the scheme
 c     below:
@@ -3552,8 +3580,6 @@ c---------------------------------------------------------------
 
       integer c1, c2, c3, cst(3)
       equivalence (c1,cst(1)),(c2,cst(2)),(c3,cst(3))
-
-      logical got
 
       integer jlow,jlev,loopx,loopy,jinc
       common/ cst312 /jlow,jlev,loopx,loopy,jinc
