@@ -1066,7 +1066,7 @@ c----------------------------------------------------------------------
       character text*240, plu*4
 
       logical off, lmult, lyet, lnophs, lblphs(k3), readyn, interp,
-     *        smooth
+     *        smooth, pltcmp
 
       integer i, j, k, l, m, id, jcoor, iix, jix, klev, jd,
      *        v1, v2, v3, nsegs, iseg, tseg,
@@ -1166,7 +1166,6 @@ c                                 working arrays
       double precision dblk,cx
       common/ cst314 /dblk(3,k5),cx(2),icont
 
-
       integer ix,iy,mvar
       double precision z,zt
       common/ dim   /z(nx,ny),ix,iy,mvar
@@ -1188,6 +1187,11 @@ c                                 unpopulated high level grid nodes
       interp = .false.
 c                                 don't smooth the data (grdsmth)
       smooth = .false.
+c                                 plot liquidus phases
+      pltcmp = .true.
+c                                 george's inversion strategy won't work 
+c                                 for pseudo-ternary calculations.
+      if (icp.ne.3) pltcmp = .false.
 
       if (iop0.eq.1) then 
 c                                 modify [some] default plot options
@@ -1212,8 +1216,16 @@ c                                 this doesn't work well.
 c                                 interpolation should in principle
 c                                 make a complete grid so grdsmth is
 c                                 optional
-             write (*,*) 'turn on P/T data smoothing (y/n)'
+             write (*,*) 'turn on P/T data smoothing (y/n)?'
              if (readyn()) smooth = .true.
+
+         end if
+
+         if (icp.eq.3) then
+
+            write (*,*) 
+     *           'plot liquidus/solidus phase compositions (y/n)?'
+            pltcmp = readyn()
 
          end if
 
@@ -1302,7 +1314,7 @@ c                                 values are reflected across the diagonal.
 
          ix = ix + 1
          iy = 0
-c                                 this is probably wrong, i.e., works only for jinc = 1?
+c                                 could this be wrong, i.e., works only for jinc = 1?
          do j = 1, loopy-i+1, jinc
 
             iy = iy + 1
@@ -1515,11 +1527,16 @@ c    *                  text(1:nblen(text)),noth,x,y
             end do 
          end if
       end do
+c                                 reset jinc/ng to use maximum resolution for the
+c                                 remainder of the plottting
+      jinc = 1
+      ng = 1 + (loopx-1)/jinc
 c                                 -------------------------------------
-c                                 plot liquidus phase compositions, this 
+c                                 plot liquidus phase compositions (pltcmp), this 
 c                                 is only possible for true ternary (3 component)
 c                                 problems.
 c                                 -------------------------------------
+      if (pltcmp) then 
 
 c     Solve for position of compounds on the triangular grid using the scheme
 c     below:
@@ -1544,10 +1561,7 @@ c     ((F) F)  (F) C = I Y = Y
 c
 c     Existence of the formula matrix inverse is guaranteed because we already
 c     know that it spans the compositional space.
- 
 
-      jinc = 1
-      ng = 1 + (loopx-1)/jinc
 
 c                                 form inverse of formula matrix
 c                                 by multiplying by transpose and inverting
@@ -1684,20 +1698,8 @@ c                                 endmember proportions
             yy(j) = cst
          end do
 
-c                                 normalize y, force small amts to zero
-c        print*,'y: ',(yy(j),j=1,3)
-         cst = yy(1) + yy(2) + yy(3)
-         if (cst.eq.0d0) cst = 1d0
-         do k = 1,3
-            if (yy(k).lt.0d0 .and. yy(k).gt.-1d-5) yy(k) = 0d0
-            yy(k) = yy(k)/cst
-         end do
-
-c                                 project and clip to triangular area, label
-         off = yy(2).lt.0d0 .or. yy(2).gt.1d0 .or.
-     *         yy(3).lt.0d0 .or. yy(3).gt.1d0
          call trneq (yy(2),yy(3))
-         if (.not.off) then
+
             if (lmult .or. .not.lnophs)
      *         call pselip (yy(2), yy(3), 0.50d0*dcx, 0.50d0*dcy,
      *                      1d0, 0d0, 7, 0, 1)
@@ -1713,9 +1715,53 @@ c                                 first one centered above location (a hack)
      *                      text,k)
                lblphs(id) = .false.
             end if
-         end if
+
       end do
 
+!      else 
+!
+!         do i = 1, 3
+!c                                 label the apices by the compositions
+!            write (text,'(a,i1)') 'C',i-1
+!
+!            if (i.eq.1) then 
+!               xc = 0d0
+!               yc = 0d0
+!               xinc = -0.5*dcx
+!               yinc = -dcy
+!            else if (i.eq.2) then
+!               xc = 1d0
+!               yc = 0d0
+!               xinc = 0.5*dcx*ascale
+!               yinc = dcy
+!            else 
+!               xc = 1d0
+!               yc = 1d0
+!               xinc = 0.5*dcx*ascale
+!               yinc = dcy
+!            end if
+!c                                 text coordinate
+!            x = xc + xinc
+!            y = yc + yinc
+!c                                 put a circle on the apex
+!            call trneq (xc,yc)
+!
+!            call pselip (xc, yc, 0.5d0*dcx, 0.5d0*dcy,
+!     *                      1d0, 0d0, 7, 0, 1)
+!c                                 add the label
+!            call trneq (x,y)
+!c                                 set character transformation
+!            call pssctr (ifont,ascale,ascale, 0d0)
+!
+!            call pstext (x,y,text,2)
+!
+!         end do
+
+      end if
+c                                 -------------------------------------
+c                                 end of liquidus phase composition plotting, 
+c                                 beginning of phase field labelling
+c                                 -------------------------------------
 c     we want to group based on the solids present, not the presence/absence of
 c     liquid.  lass(k) is an array that is indexed by assemblage k (from the
 c     grid, = iap(igrd(i,j))), that remaps the k to the set of solids that
@@ -1797,6 +1843,7 @@ c                                 new solid assemblage; make name for debug
          text(iend+1:iend+1) = ' '
 c        print '(a,1x,i3,1x,a)','Defined liq. ass.',nass,text(1:iend)
       end do
+
 
 c     Map out liquidus/solidus assemblages by finding grid points where the
 c     unique solid assemblages are crystallizing, then outline.  This is done
@@ -2480,7 +2527,6 @@ c----------------------------------------------------------------------
 
       end 
 
-
 c--------------------------------------------------------------- 
       subroutine watend (i,j,iend)
 
@@ -2584,11 +2630,10 @@ c----------------------------------------------------------------------
 
       end 
 
-
       subroutine checki (iw,iun,itis)
 c----------------------------------------------------------------------
 c checki - subroutine to determine if the phase iun is in the
-c          list exclude list, two versions one in psect checks
+c          exclude list, two versions one in psect checks
 c          only one index list, the other on psvdraw checks two
 c          lists.
 
