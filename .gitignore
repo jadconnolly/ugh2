@@ -674,3 +674,7 @@ fort.18
 *.liq
 
 my_project.dat
+
+*.jpg
+
+*.tif
