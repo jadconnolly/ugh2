@@ -146,12 +146,6 @@ c                               restrict by phase absence
             end if 
          end if
 
-c                               omit single phase field compositions?
-         write (*,1160)
-
-         if (readyn()) then
-            iop5 = iop5 + 2
-         end if
       end if
 c                                 gridded pseudosection construction
       if (oned) then 
@@ -159,7 +153,7 @@ c                                 gridded pseudosection construction
       else if (icopt.ne.2) then
          call psgrid (jop0,iop5,iop6,iop7)
       else
-         call pscliq (jop0,iop5,iop6,iop7)
+         call pscliq (jop0)
       end if 
 
       call maktit
@@ -176,7 +170,6 @@ c                                 gridded pseudosection construction
      *        '   - show fields that do not contain specified phases',/,
      *        '   - show fields that contain any of a set of specified',
      *            ' phases ')
-1160  format (/,'Omit single phase field compositions (y/n)?')
 1400  format (/,'WARNING: You can not specify saturated phases or',
      *          ' phases determined by',/,'component saturation',
      *          ' constraints in these restrictions.',/)       
@@ -1039,7 +1032,7 @@ c                                  true phase assemblages.
      *          'field filling for fields with variance > 6 (y/n)? ')
       end
 
-      subroutine pscliq (jop0,iop5,iop6,iop7)
+      subroutine pscliq (jop0)
 c---------------------------------------------------------------------- 
 c pscliq - contour liquidus temperature on a ternary grid.
 
@@ -1061,21 +1054,21 @@ c----------------------------------------------------------------------
       double precision lxtol, lytol
       parameter (lxtol = 0.02d0, lytol = 0.05d0)
 
-      integer jop0, iop5, iop6, iop7
+      integer jop0
 
       character text*240, plu*4
 
-      logical off, lmult, lyet, lnophs, lblphs(k3), readyn, interp,
-     *        smooth, pltcmp
+      logical off, lmult, lyet, lblphs(k3), readyn, interp,
+     *        denois, pltcmp, george
 
       integer i, j, k, l, m, id, jcoor, iix, jix, klev, jd,
-     *        v1, v2, v3, nsegs, iseg, tseg,
+     *        v1, v2, nsegs, tseg,
      *        noth, grp, iass, ictr, kass, msol,
-     *        ii, jj, imn, imx, jmn, jmx, in, iend, cflag,
-     *        iliq, jliq, isol, nsol, ngrp,
+     *        ii, jj, in, iend, cflag, isol, nsol, ngrp,
      *        nssol, issol(k2),
      *        lass(k2), lsol(k2), labs(k2), nabs(k2),
      *        gixi(8), gixj(8), lblix(k3)
+
       equivalence (lblix,lblphs)
 
       integer itri(4),jtri(4),ijpt
@@ -1086,9 +1079,8 @@ c----------------------------------------------------------------------
 
       external nblen, readyn
 
-      double precision lvmin, lvmax, vlo, vhi, vrt, x, y, cst, sum,
-     *         xc, yc, xp(3), yp(3), xx1, yy1, xx2, yy2, xx3, yy3,
-     *         cvec(3), dinv(3,3), yssol(m14+2,k2), cssol(k2), wt(3),
+      double precision lvmin, lvmax, vlo, vhi, vrt, x, y, cst, 
+     *         xc, yc, cvec(3), dinv(3,3), yssol(m14+2,k2), wt(3),
      *         cont, lloc(2,k3)
 
       double precision rline,thick,font,xdc,
@@ -1096,18 +1088,24 @@ c----------------------------------------------------------------------
      *                 linex(npts),liney(npts),
      *                 cline(2,npts),segs(4,nseg)
 
-      integer n,ng,ntri,npeece,ipts,ipiece,iswit,ncon,ier,
-     *        ipieces(2,npcs),npiece(mcon),segm(nseg),
-     *        ifirst(mcon),next(nseg),ilast(mcon),ifnd(lg)
+      integer n,ng,ntri,npeece,ipts,ipiece,ncon,
+     *        ipiecs(2,npcs),npiece(mcon),segm(nseg),
+     *        ifirst(mcon),next(nseg),ilast(mcon)
 
       equivalence (segm,next)
 
 c     This temporary algorithm storage could be remapped to some other large,
 c     unused common area
+
       integer l7s, l7g
+
       parameter (l7s=l7*(l7+1)/2 / 5, l7g=l7 / 5)
+c                                 use common block cst313
+c                                 w(k5*k1+k5+1), iw(k1+k5)
+c                                 to store integer workspace?
       integer nass, iassi(l7s), iassj(l7s), iassp(l7s), iasss(l7s),
      *        iassk(l7g,l7g)
+
       integer iassf
       external iassf
 
@@ -1184,50 +1182,47 @@ c                                 use only lowest grid level for P/T
       klev = 1
 c                                 don't use interpolation (triang) to fill
 c                                 unpopulated high level grid nodes
-      interp = .false.
-c                                 don't smooth the data (grdsmth)
-      smooth = .false.
+      interp = .true.
+c                                 don't smooth the data (unnois)
+      denois = .true.
 c                                 plot liquidus phases
       pltcmp = .true.
+c                                 george's contour intervals
+      george = .true.
 c                                 george's inversion strategy won't work 
 c                                 for pseudo-ternary calculations.
       if (icp.ne.3) pltcmp = .false.
 
       if (iop0.eq.1) then 
 c                                 modify [some] default plot options
-         write (*,'(a,i1,a)') 
-     *         'choose highest level at which to sample T data (1:'
-     *         ,jlev,') all nodes are populated at level 1'
-c                                 need to test here exploratory vs
-c                                 autorefine as in WERAMI
-         read (*,*) klev
-c
-         write (*,'(a)') 'only use computed T (no interpolation) (y/n)?'
-         interp = .not.readyn()
+         call getlvl (klev)
 
-         if (.not.interp.and.klev.gt.1) then 
-c                                 if not interpolating and using a 
-c                                 high level grid, then must
-c                                 use grdsmth to fill in the holes.
-c                                 this doesn't work well. 
-             smooth = .true.
+         if (klev.eq.1) then
+c                                 shut off interpolation if only using
+c                                 low level grid
+            write (*,'(a)') 
+     *         'Only use computed T/P values (no interpolation) (y/n)?'
 
-         else
-c                                 interpolation should in principle
-c                                 make a complete grid so grdsmth is
-c                                 optional
-             write (*,*) 'turn on P/T data smoothing (y/n)?'
-             if (readyn()) smooth = .true.
+            interp = .not.readyn()
 
          end if
+c                                 denoising doesn't always improve
+c                                 things, especially on level 1.
+         write (*,'(a)') 'Turn off P/T data denoising (y/n)?'
+
+         if (readyn()) denois = .false.
 
          if (icp.eq.3) then
 
-            write (*,*) 
-     *           'plot liquidus/solidus phase compositions (y/n)?'
+            write (*,'(a)') 
+     *           'Plot liquidus/solidus phase compositions (y/n)?'
             pltcmp = readyn()
 
          end if
+
+         write (*,'(a)') 'Modify default contour levels (y/n)?'
+
+         if (readyn()) george = .false.
 
       end if
 
@@ -1237,7 +1232,7 @@ c                                 reconstruct the temperature grid
 
          var(1) = (i-1)/dfloat(loopx-1)
 
-         do j = 1, loopy, jinc
+         do j = 1, loopy - i + 1, jinc
 
             if (interp) then 
 
@@ -1251,7 +1246,11 @@ c                                 reconstruct the temperature grid
                if (ijpt.eq.0) then 
 c                                no data for node i,j: could turn on 
 c                                extrapolation if this occurs a lot.
-                  tgrid(i,j) = nopt(7)
+                  if (igrd(i,j).eq.k2-1) then
+                     tgrid(i,j) = vmax(iv1)
+                  else 
+                     tgrid(i,j) = nopt(7)
+                  end if
 
                else
 
@@ -1274,7 +1273,11 @@ c                                 a computed point
 
                else
 
-                  tgrid(i,j) = nopt(7)
+                  if (igrd(i,j).eq.k2-1) then
+                     tgrid(i,j) = vmax(iv1)
+                  else 
+                     tgrid(i,j) = nopt(7)
+                  end if
 
                end if
 
@@ -1286,18 +1289,17 @@ c                                 a computed point
 
 
       if (loopx .gt. l7g) then
-         write (*,*)
+         write (*,'(a)')
      *      '**Size of liquidus/solidus grid too small, recompile: ',
      *      l7g,' <',loopx
-         stop
+         call errpau
       end if
 c                                 -------------------------------------
 c                                 plot the isotherms:
 c                                 -------------------------------------
-c                                 smooth temperature grid
+c                                 denoise temperature grid
 
-      if (smooth)  call grdsmth (0.0d0, 5, 20, .false.)
-
+      if (denois)  call unnois (0.0d0, 5, 20, .false.)
 c                                 determine temperature range in grid, copy to
 c                                 uniformly dense grid for contouring.
 c                                 contouring uses a rectangular grid, however.
@@ -1314,7 +1316,7 @@ c                                 values are reflected across the diagonal.
 
          ix = ix + 1
          iy = 0
-c                                 could this be wrong, i.e., works only for jinc = 1?
+
          do j = 1, loopy-i+1, jinc
 
             iy = iy + 1
@@ -1326,36 +1328,67 @@ c                                 could this be wrong, i.e., works only for jinc
          end do
 
       end do
-
-      write(text,1000) ng,ng,lvmin,vnm(3)(1:nblen(vnm(3))),lvmax
+c                                 write blurb about grid and range:
+      write (text,1000) ng,ng,lvmin,vnm(3)(1:nblen(vnm(3))),lvmax
       call deblnk (text)
-      write(*,'(1x,a)') text(1:nblen(text))
+      write (*,'(/,a)') text(1:nblen(text))
+c                                 get contour levels:
+      if (george) then
+c                                 use george's contour choices
+c                                 tcont/pcont set via contour_t_interval
+c                                 contour_p_interval in perplex_plot_options
+         if (0.ne.index(vnm(3),'T')) then
+            cont = tcont
+         else
+            cont = pcont
+         end if
 
-c                                 define contour levels
-      if (0.ne.index(vnm(3),'T')) then
-         cont = tcont
-         text = '(i3,1x,a,/,(10(1x,f6.1)))'
-      else
-         cont = pcont
-         text = '(i3,1x,a,/,(9(1x,f7.0)))'
+         vlo = int((lvmin+0.5d0*cont)/cont)*cont
+         vhi = int((lvmax+0.5d0*cont)/cont)*cont
+
+      else 
+c                                 min level
+         write (text,'(a,g12.5,a)') 
+     *        'Enter the minimum contour level for '//vnm(3)//' [',
+     *        lvmin,']'
+         call deblnk (text)
+         write (*,'(/,a)') text(1:nblen(text))
+         call rdnum1 (vlo,lvmin,lvmax,lvmin,i,i,i,i,.true.)
+c                                 max level
+         write (text,'(a,g12.5,a)') 
+     *        'Enter the maximum contour level for '//vnm(3)//' [',
+     *        lvmax,']'
+         call deblnk (text)
+         write (*,'(/,a)') text(1:nblen(text))
+         call rdnum1 (vhi,lvmin,lvmax,lvmax,i,i,i,i,.true.)
+c                                 interval
+         cst = (vhi-vlo)/1d1
+         write (text,'(a,g12.5,a)') 
+     *        'Enter the contour interval for '//vnm(3)//' [',
+     *        cst,']'
+         call deblnk (text)
+         write (*,'(/,a)') text(1:nblen(text))
+         call rdnum1 (cont,0d0,lvmax-lvmin,cst,i,i,i,i,.true.)
+
       end if
-      vlo = int((lvmin+0.5d0*cont)/cont)*cont
-      vhi = int((lvmax+0.5d0*cont)/cont)*cont
+
       ncon = 1 + nint((vhi-vlo)/cont)
+
       do j = 1, ncon
          z(j,1) = vlo + (j-1)*(vhi-vlo)/(ncon-1)
       end do
-      write(*,text) ncon,'contour levels:',(z(j,1),j=1,ncon)
 
-c                                 Contour result on compositional grid
-c                                 why is this loopx/loopy rather than ng?
+      write (*,'(i3,1x,a)') ncon,'contour levels:'
+      write (*,'(10(g12.6,1x))') (z(j,1),j=1,ncon)
+      write (*,'(/)')
+
       ix = loopx
       iy = loopy
 
       call contra (0d0,1d0,0d0,1d0,
      *             ncon,z,
      *             clinex,cliney,cline,segs,
-     *             npts,nseg,npcs,ipieces,npiece,
+     *             npts,nseg,npcs,ipiecs,npiece,
      *             ifirst,next,ilast)
 
 c                                 font size for contour labels
@@ -1391,8 +1424,8 @@ c                                 label contour if multiple of 100 K
          if (n.gt.0) then 
             lyet = .false.
             do i = 1, n
-               iix = ipieces(1,ipiece)
-               ipts = ipieces(2,ipiece)
+               iix = ipiecs(1,ipiece)
+               ipts = ipiecs(2,ipiece)
                 
 c                                 only retain pieces that stay within the
 c                                 bounds of a ternary plot (lower left triangle
@@ -1536,7 +1569,7 @@ c                                 plot liquidus phase compositions (pltcmp), thi
 c                                 is only possible for true ternary (3 component)
 c                                 problems.
 c                                 -------------------------------------
-      if (pltcmp) then 
+      if (pltcmp.or..not.pltcmp) then 
 
 c     Solve for position of compounds on the triangular grid using the scheme
 c     below:
@@ -1608,7 +1641,9 @@ c                                 define crystallizing solids on liquidus
 c                                 get assemblage properties
 c                                 solution phase - find/save species proportions
 c                                 note itri <-> iix, jtri <-> jix by equivalence
-            call getloc (itri,jtri,1,wt,lmult)
+            j = 1
+
+            call getloc (itri,jtri,j,wt,lmult)
 
 c                                 flag bad assemblages on grid
             if (lmult) then 
@@ -1671,7 +1706,7 @@ c    *               'Found crystallizing phase:',text(1:k)
 c                                 label composition of each solid
 c                                 make sure orientation is horizontal
       call pssctr (ifont,ascale,ascale, 0d0)
-      lnophs = mod(iop5/2,2) .eq. 1
+c     lnophs = mod(iop5/2,2) .eq. 1
 
       do i = 1, nssol
          id = issol(i)
@@ -1709,14 +1744,17 @@ c        print*,'y: ',(yy(j),j=1,3)
 
          call trneq (yy(2),yy(3))
 
-            if (lmult .or. .not.lnophs)
+         if (lmult .or. pltcmp)
+c           if (lmult .or. .not.lnophs)
      *         call pselip (yy(2), yy(3), 0.50d0*dcx, 0.50d0*dcy,
      *                      1d0, 0d0, 7, 0, 1)
             k = nblen (text(1:14))
             if (id.lt.0) then
                call pstext (yy(2)+dcx*ascale,yy(3)+.7d0*dcy*ascale,
      *                      text,k)
-            else if (lblphs(id) .and. .not.lnophs) then
+
+         else if (lblphs(id) .and. pltcmp) then
+c           else if (lblphs(id) .and. .not.lnophs) then
 c                                 solutions will be a point cluster, so label
 c                                 first one centered above location (a hack)
                call pstext (yy(2)-k*0.5d0*dcx*ascale,
@@ -1888,13 +1926,13 @@ c                                 ctr controls whether boundaries always include
 c                                 the triangle's center; if you want straight
 c                                 lines, set it to .false.
                if (ctr) tseg = tseg + 3
-               call seglnk(ng, tseg, npeece, ipieces, nsegs, segm)
+               call seglnk(ng, tseg, npeece, ipiecs, nsegs, segm)
 c              if (off) then
 c                 print*,'Path(s) so far:'
 c                 do j=1,npeece
-c                    print'(1x,i2,1x,i3)',j,1+ipieces(2,j)-ipieces(1,j)
+c                    print'(1x,i2,1x,i3)',j,1+ipiecs(2,j)-ipiecs(1,j)
 c                    print'((8(1x,f8.1)))',
-c    *                  (segm(l)/10d0,l=ipieces(1,j),ipieces(2,j))
+c    *                  (segm(l)/10d0,l=ipiecs(1,j),ipiecs(2,j))
 c                 end do
 c              end if
             end if
@@ -1902,7 +1940,7 @@ c              end if
 c                                 process resulting paths
          do i = 1, npeece
             l = 0
-            do j = ipieces(1,i), ipieces(2,i)
+            do j = ipiecs(1,i), ipiecs(2,i)
                call segadd(l, segm(j), linex, liney)
                if (ctr) then
                   call seg3hk(l, linex, liney)
@@ -1923,7 +1961,7 @@ c           it out eliminates the small triangles.
 c           To be reviewed at some later time when more experience is gained.
 
 c                                 closes on itself and is small?
-            tseg = ipieces(2,i) - ipieces(1,i) + 1
+            tseg = ipiecs(2,i) - ipiecs(1,i) + 1
             cst = dsqrt(
      *         (linex(1)-linex(l))**2 + (liney(1)-liney(l))**2
      *      )
@@ -2668,17 +2706,21 @@ c----------------------------------------------------------------------
  
       end
 
-      subroutine grdsmth(sigma, nitn, nitv, nbore)
+      subroutine unnois (sigma, nitn, nitv, nbore)
 c--------------------------------------------------------------------
-c grdsmth - smooth a ternary grid using algorithm of Sun et al. (2007),
+c unnois - smooth a ternary grid using algorithm of Sun et al. (2007),
 c           IEEE Trans. Computer Graphics v.13, 925-938.
+
 c    sigma - normal smoothing threshold (T)
 c    nitn - number of iterations on smoothing normals
 c    nitv - number of iterations on smoothing vertices
 c    nbore - if true, neighbors are those who share an edge (3 max); if
-c      false, neighbors are those who share a vertex (12 max).
+c            false, neighbors are those who share a vertex (12 max).
+
 c Not a complete smooth because only the z values of the grid are changed,
 c not the compositional grid vertices.
+
+c G Helffrich, Tokyo, ~2016.
 c--------------------------------------------------------------------
       implicit none
 
@@ -2743,7 +2785,7 @@ c                                 load vertex coordinates
       end do
 
       if (n.ne.nvrt) then
-         write(0,*) '**GULP - vertex numbering mismatch in grdsmth!'
+         write(0,*) '**GULP - vertex numbering mismatch in unnois!'
       end if
 
 c                                 rescale to make gradients work sensibly.  if
@@ -2760,8 +2802,8 @@ c                                 work.
 
 c                                 load face normals and vertex normals
       do i=1,nfac
-         call grdecod(i, gdim, vi1, vi2, vi3, i1, i2, i3)
-         call subd(v0, vrtx(1,vi2), vrtx(1,vi1))
+         call grdcod (i, gdim, vi1, vi2, vi3, i1, i2, i3)
+         call subd (v0, vrtx(1,vi2), vrtx(1,vi1))
 
          do j = 1, 3
 
@@ -2829,7 +2871,7 @@ c                                 ...with neighboring edges to i (4 max)
                call grdnnf(i, gdim, nn, nnb)
             else
 c                                 ...with neighboring vertices on i (13 max)
-               call grdecod(i, gdim, vi1, vi2, vi3, i1, i2, i3)
+               call grdcod (i, gdim, vi1, vi2, vi3, i1, i2, i3)
                nn = 0
                do l=1,3
                   do j=1,vfn(vin(l))
@@ -2870,7 +2912,7 @@ c                                 update vertices - iterate z (T) values
             do j=1,vfn(i)
                if (i.eq.vfi(j,i)) cycle
                nn = nn + 1
-               call grdecod(vfi(j,i),gdim,vi1,vi2,vi3,i1,i2,i3)
+               call grdcod (vfi(j,i),gdim,vi1,vi2,vi3,i1,i2,i3)
 c                                 make center of triangle
                v0(1) = (vrtx(1,vi1) + vrtx(1,vi2) + vrtx(1,vi3))/3
      *               - vrtx(1,i)
@@ -2887,11 +2929,11 @@ c    *         write(*,'(1x,a,i5)') 'Face dup:',i
          end do
 c                                 recalculate face normals and vertex normals
          do i=1,nfac
-            call grdecod(i, gdim, vi1, vi2, vi3, i1, i2, i3)
-            call subd(v0, vrtx(1,vi2), vrtx(1,vi1))
-            call subd(v1, vrtx(1,vi3), vrtx(1,vi1))
-            call crossd(v2, v0, v1)
-            call nrmd(v2)
+            call grdcod (i, gdim, vi1, vi2, vi3, i1, i2, i3)
+            call subd (v0, vrtx(1,vi2), vrtx(1,vi1))
+            call subd (v1, vrtx(1,vi3), vrtx(1,vi1))
+            call crossd (v2, v0, v1)
+            call nrmd (v2)
 
 c           if (v2(3).lt.0) then
 c              v2(1) = -v2(1)
@@ -2910,11 +2952,11 @@ c           fnrm(3,i) = v2(3)
             
 c                                 copy result back into T grid use ig() 
 c                                 to convert the dense grid indices that
-c                                 grdecod uses into the sparse grid indices
+c                                 grdcod uses into the sparse grid indices
 c                                 that define the physical grid
       dot = (ghi-glo)/grdscl
       do i=1,nfac
-         call grdecod(i, gdim, vi1, vi2, vi3, i1, i2, i3)
+         call grdcod (i, gdim, vi1, vi2, vi3, i1, i2, i3)
          tgrid(ig(i1(1)),ig(i1(2))) = vrtx(3,vi1)*dot + glo
          tgrid(ig(i2(1)),ig(i2(2))) = vrtx(3,vi2)*dot + glo
          tgrid(ig(i3(1)),ig(i3(2))) = vrtx(3,vi3)*dot + glo
@@ -2922,21 +2964,11 @@ c                                 that define the physical grid
       
       end
 
-      subroutine grdecod(i, ng, vi, vj, vk, i1, i2, i3)
+      subroutine grdcod (i, ng, vi, vj, vk, i1, i2, i3)
 c--------------------------------------------------------------------
-c grdecod - decode face index i into vertex numbers vi, vj, vk of each
+c grdcod - decode face index i into vertex numbers vi, vj, vk of each
 c           of the vertices in a triangular grid
-c--------------------------------------------------------------------
-      implicit none
-      
-      integer vi, vj, vk, i, ng, ii, ij, j, n, ix, iy, iseq, ihgt,
-     *        i1(2), i2(2), i3(2), vc
 
-c     vc - statement function to convert grid (i,j) -> vertex number
-      vc(ii,ij) = ii + (ij-1)*ng - (ij-2)*(ij-1)/2
-
-c     .
-c     .
 c     .       height is up vertical, strip along is diagonal from bottom
 c  10 x
 c     | \
@@ -2956,6 +2988,15 @@ c     1       2       3       4 (vertex # in 4x4 grid is digit next to x)
 c     i1, i2, i3 show how the vertex numbering works.
 c     i.(1,2) = (x,y) node indices in grid
 
+c G Helffrich, Tokyo, ~2016.
+c--------------------------------------------------------------------
+      implicit none
+
+      integer vi, vj, vk, i, ng, ii, ij, j, n, ix, iy, iseq, ihgt,
+     *        i1(2), i2(2), i3(2), vc
+c--------------------------------------------------------------------
+c     vc - statement function to convert grid (i,j) -> vertex number
+      vc(ii,ij) = ii + (ij-1)*ng - (ij-2)*(ij-1)/2
 c                                 find cell's sequence and height
       iseq = 1
       n = 0
@@ -2990,14 +3031,16 @@ c                                 even numbers (0, 2, ... point up)
       stop '**GRDDEC: GULP! Must be wrong "ng" for face "i"'
       end
 
-      subroutine grdnnf(i, ng, nn, nnf)
+      subroutine grdnnf (i, ng, nn, nnf)
 c--------------------------------------------------------------------
 c grdnnf - decode face (or triangle number) i and return faces (triangle
-c          numbers) with adjoining edges.  See grdecod for numbering scheme.
+c          numbers) with adjoining edges.  See grdcod for numbering scheme.
 c   i - face index
 c   ng - grid dimension
 c   nn - number of neighboring faces:  1 <= n <= 3
 c   nnf - list of neighboring face numbers:  1 .. n
+
+c G Helffrich, Tokyo, ~2016.
 c--------------------------------------------------------------------
       implicit none
 
@@ -3046,13 +3089,15 @@ c          This routine handles segments of three points each (middle of which
 c          always is the center of a triangle).
 c  j - number of path points
 c  x, y - arrays containing path coordinates
+
+c G Helffrich, Tokyo, ~2016.
 c---------------------------------------------------------------------- 
       implicit none
 
       integer i,j
 
       double precision x(*), y(*), tol, dist
-
+c---------------------------------------------------------------------- 
       dist(i,j) = ((x(i)-x(j))**2 + (y(i)-y(j))**2)
 
       tol = 0.1d0*dist(1,2)
@@ -3115,6 +3160,8 @@ c     There is always a duplicate point that gets deleted.
       subroutine flippt(n, xpts, ypts)
 c--------------------------------------------------------------------
 c flippt - end-for-end point swap of a real array
+
+c G Helffrich, Tokyo, ~2016.
 c--------------------------------------------------------------------
       implicit none
 
@@ -3143,6 +3190,8 @@ c          point.  Look at the previous segment and figure out how to join up
 c          the new segment.
 c  j - number of path points
 c  x, y - arrays containing path coordinates
+
+c G Helffrich, Tokyo, ~2016.
 c---------------------------------------------------------------------- 
       implicit none
 
@@ -3232,7 +3281,8 @@ c
 c   Segment numbers 4, 5 & 6 are same as 1, 2 & 3 but ALSO go through
 c   center of each triangle.  They get drawn as two line segments rather
 c   than one line segment for 1, 2 & 3.
-c
+
+c G Helffrich, Tokyo, ~2016.
 c---------------------------------------------------------------------- 
       implicit none
 
@@ -3250,14 +3300,14 @@ c----------------------------------------------------------------------
 
       integer jlow,jlev,loopx,loopy,jinc
       common/ cst312 /jlow,jlev,loopx,loopy,jinc
-
+c---------------------------------------------------------------------- 
 c                                  these shenanigans are to convert the dense
-c                                  grid indices that grdecod uses into the
+c                                  grid indices that grdcod uses into the
 c                                  sparse grid indices that define the physical
 c                                  coordinates
       k = 1 + (loopx-1) / jinc
       tseg = seg/10
-      call grdecod(tseg, k, v1, v2, v3, i1, i2, i3)
+      call grdcod (tseg, k, v1, v2, v3, i1, i2, i3)
       do k = 1, 3
          xp(k) = ((ii(1,k)-1)*jinc)/dfloat(loopx-1)
          yp(k) = ((ii(2,k)-1)*jinc)/dfloat(loopy-1)
@@ -3312,7 +3362,7 @@ c                                  coordinates
       end if
       end
 
-      subroutine seglnk(ng, tseg, npiece, piece, nsegs, segs)
+      subroutine seglnk (ng, tseg, npiece, piece, nsegs, segs)
 c--------------------------------------------------------------------
 c seglnk - link a path segment across a triangle into the structure
 c          describing a path across the compositional space.
@@ -3355,23 +3405,24 @@ c   +-----------------------------------------------------------+
 c   | T.S | T.S | T.S | T.S | T.S | T.S | T.S | T.S | T.S | T.S |
 c   +-----------------------------------------------------------+
 c segs(1)   (2)   (3)   (4)   (5)   (6)   (7)   (8)   (9)   (10)
-c--------------------------------------------------------------------
 
+c G Helffrich, Tokyo, ~2016.
+c--------------------------------------------------------------------
       implicit none
 
-      integer i, j, n, if, ng, tseg, npiece, piece(2,*), nsegs, segs(*)
+      integer i, n, if, ng, tseg, npiece, piece(2,*), nsegs, segs(*)
 
-      integer it, ie, ft, lt, swap, v1, v2, v3, i1(2), i2(2), i3(2)
+      integer it, ie, ft, lt, v1, v2, v3, i1(2), i2(2), i3(2)
 
-      integer jb, js, jp, jm, p1, p2, p3, nc, nn, nnt(3), ngot, gots(2)
+      integer jb, jp, jm, p1, p2, nc, nn, nnt(3), ngot, gots(2)
 
-      logical up, bot, lft, got
-
+      logical up, got
+c--------------------------------------------------------------------
       it = tseg/10
       call grdnnf (it, ng, nn, nnt)
       ie = mod(tseg,10)
       if (ie .gt. 3) ie = ie - 3
-      call grdecod(it, ng, v1, v2, v3, i1, i2, i3)
+      call grdcod (it, ng, v1, v2, v3, i1, i2, i3)
       up = v2 .eq. v1+1
 
 c                                 check if connects to front or rear
@@ -3525,14 +3576,16 @@ c                                 add new entry as new piece
       end if
       end
 
-      subroutine segflp(ptrs, segs)
+      subroutine segflp (ptrs, segs)
 c--------------------------------------------------------------------
 c segflp - swap a path segment end-for-end in the segment array
+
+c G Helffrich, Tokyo, ~2016. 
 c--------------------------------------------------------------------
       implicit none
 
       integer i, jb, je, swap, ptrs(2), segs(*)
-
+c--------------------------------------------------------------------
       do i = 0, (ptrs(2)-ptrs(1)+1)/2-1
          jb = ptrs(1)+i
          je = ptrs(2)-i
@@ -3542,7 +3595,7 @@ c--------------------------------------------------------------------
       end do
       end
 
-      subroutine inv3x3(mat)
+      subroutine inv3x3 (mat)
 c---------------------------------------------------------------------- 
 c inv3x3 - invert a 3x3 matrix using the method of determinants.  This is
 c          ugly and not particularly efficient but only needs to be done
@@ -3612,7 +3665,7 @@ c                                 now form inverse for return
       end do
       end
 
-      subroutine liqphs(tnum, id, lass, tseg)
+      subroutine liqphs (tnum, id, lass, tseg)
 c--------------------------------------------------------------- 
 c liqphs - given liquidus phase id, decide which vertexes of the
 c          triangle contain it.
@@ -3620,6 +3673,8 @@ c  id - solid phase assemblage of interest
 c  lass(*) - remapping from iap(igrd(.,.)) to solid phase assemblage
 c  tseg - = 0 if id present in none or all of the vertexes
 c         = T.S encoding for boundary
+
+c G Helffrich, Tokyo,~2016. 
 c--------------------------------------------------------------- 
       implicit none
 
@@ -3637,9 +3692,9 @@ c---------------------------------------------------------------
 
       integer jlow,jlev,loopx,loopy,jinc
       common/ cst312 /jlow,jlev,loopx,loopy,jinc
-
+c--------------------------------------------------------------- 
       k = 1 + (loopx-1)/jinc
-      call grdecod(tnum, k, v1, v2, v3, i1, i2, i3)
+      call grdcod (tnum, k, v1, v2, v3, i1, i2, i3)
       cst(1:3) = 0
       do i = 1, 3
          k = 1 + (ii(1,i)-1) * jinc
@@ -3667,25 +3722,31 @@ c                                 find different vertex
       if (c3 .eq.-1 .and. c1 .eq. c2) tseg = 10*tnum + 3
       end
 
+c routines below replicate functionality of those in blas2lib
+
       double precision function dotd(x,y)
 c--------------------------------------------------------------------
 c dotd - three dimensional dot product
+
+c G Helffrich, Tokyo, ~2016.
 c--------------------------------------------------------------------
       implicit none
 
       double precision x(3), y(3)
-
+c--------------------------------------------------------------------
       dotd = x(1)*y(1) + x(2)*y(2) + x(3)*y(3)
       end
 
       subroutine crossd(r,x,y)
 c--------------------------------------------------------------------
 c crossd - three dimensional cross product r = x cross y
+
+c G Helffrich, Tokyo, ~2016.
 c--------------------------------------------------------------------
       implicit none
 
       double precision x(3), y(3), r(3)
-
+c--------------------------------------------------------------------
       r(1) = x(2)*y(3) - x(3)*y(2)
       r(2) = x(3)*y(1) - x(1)*y(3)
       r(3) = x(1)*y(2) - x(2)*y(1)
@@ -3694,11 +3755,13 @@ c--------------------------------------------------------------------
       subroutine nrmd(x)
 c--------------------------------------------------------------------
 c nrmd - normalize three dimensional vector
+
+c G Helffrich, Tokyo, ~2016. 
 c--------------------------------------------------------------------
       implicit none
 
       double precision x(3), len, dotd
-
+c--------------------------------------------------------------------
       len = sqrt(dotd(x,x))
       if (len.ne.0) then
          x(1) = x(1)/len
@@ -3710,11 +3773,13 @@ c--------------------------------------------------------------------
       subroutine subd(r,x,y)
 c--------------------------------------------------------------------
 c subd - three dimensional vector subtraction, r = x - y
+
+c G Helffrich, Tokyo, ~2016. 
 c--------------------------------------------------------------------
       implicit none
 
       double precision x(3), y(3), r(3)
-
+c--------------------------------------------------------------------
       r(1) = x(1) - y(1) 
       r(2) = x(2) - y(2)
       r(3) = x(3) - y(3)

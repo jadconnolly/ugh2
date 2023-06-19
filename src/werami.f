@@ -163,7 +163,7 @@ c----------------------------------------------------------------------
 
       double precision tmin(2), tmax(2), dx(2)
 
-      character n6name*100, n5name*100, tag*9
+      character n6name*100, n5name*100
 
       external readyn
 
@@ -181,10 +181,6 @@ c----------------------------------------------------------------------
       common/ cst77 /prop(i11),prmx(i11),prmn(i11),
      *               kop(i11),kcx(i11),k2c(i11),iprop,
      *               first,kfl(i11),tname
-
-      integer grid
-      double precision rid 
-      common/ cst327 /grid(6,2),rid(5,2)
 
       integer inv
       character dname*14, title*162
@@ -229,7 +225,7 @@ c                                 allow restricted plot limits
 
       end if
 
-      if (lopt(48).and.icopt.eq.5) then
+      if (lopt(48).and.(icopt.eq.5.or.icopt.eq.2)) then
 
          if (lopt(47)) then
 c                                 unsplt, could work out sample on grid with 
@@ -240,58 +236,11 @@ c                                 the spt file, but i'm too lazy.
            write (*,1000) loopx, loopy
 
          else 
-c                                 work out if exploratory or auto-refine grid
-c                                 parameters are to be used:
-            i = 0
 
-            do j = 1, 2
+            call getlvl (i)
 
-               if (loopx.eq.(grid(1,j)-1) * 2**(grid(3,j)-1) + 1) then
-                  i = j
-                  exit
-               end if
-
-            end do
-
-            if (i.eq.0)
-     *         call error (999,0d0,i,'user changed grid parms?')
-c                                 sample on a grid, this is awkward
-c                                 since it's not known if auto-refine
-c                                 or exploratory
-10          write (*,'(/,a,/)') 'Select the grid resolution (to use an '
-     *                      //'arbitrary grid set sample_on_grid to F):'
-
-            tag = '[default]'
-
-            do j = 1, grid(3,i)
-
-               nxy(1) = (grid(1,i)-1) * 2**(j-1) + 1
-               nxy(2) = (grid(2,i)-1) * 2**(j-1) + 1
-
-               write (*,'(4x,i1,a,2(i4,a),a)') j,' - ',nxy(1),
-     *                                           ' x ',nxy(2),
-     *                                           ' nodes ',tag
-
-               tag = ' '
-
-            end do
-c                                 get grid spacing
-            call rdnumb (nopt(1),0d0,j,1,.false.)
-            
-            if (j.eq.1.or..not.lopt(56)) then 
-
-               write (*,'(/)')
-
-            else
-
-               write (*,1010)
-
-               if (.not.readyn()) goto 10 
-
-            end if
-
-            nxy(1) = (loopx - 1)/ 2**(grid(3,i)-j) + 1
-            nxy(2) = (loopy - 1)/ 2**(grid(3,i)-j) + 1
+            nxy(1) = (loopx - 1)/ 2**(jlev-i) + 1
+            nxy(2) = (loopy - 1)/ 2**(jlev-i) + 1
 
          end if 
 
@@ -345,14 +294,6 @@ c                                 wrap up the calculation
      *       'PLT, sample_on_grid uses the',/,'highest resolution pos',
      *       'sible (',i4,'x',i4,'), if this is excessive set ',/,
      *       'sample_on_grid to false and restart WERAMI',/)
-1010  format (/,'**warning ver538** use of multi-level grids may gener',
-     *       'ate noise due to data',/,'interpolation onto unpopulated',
-     *       ' nodes. If exceptional resolution is required set',/,
-     *       'grid_levels to 1 1 and change the 2nd value of x/y_nodes',
-     *       'to obtain the desired resolution.',//,
-     *       'To disable [all] interactive warnings set warn_interact',
-     *       'ive to F.',
-     *       //,'Continue (y/n)?')
 1040  format (/,'Change default variable range (y/n)?')
 1060  format (/,'Current limits on ',a,' are: ',g14.7,'->',g14.7,/,
      *          'Enter new values:')

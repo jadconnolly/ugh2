@@ -2196,8 +2196,11 @@ c                              generate this case.
       call chkblk (idead)
 
       if (idead.ne.0) then 
+
          write (*,*) 'outta bounds?',i,j
+
          return
+
       end if
 
       ktic = ktic + 1
@@ -2208,7 +2211,9 @@ c                              generate this case.
       if (idead .ne. 0) then
 
          write (*,1020) 'low',vname(iv1),i,j
+
          call isgood (i,j,k2)
+
          return
 
       end if
@@ -2241,6 +2246,7 @@ c                              update dependent variables, if any
       call incdp0
 c                              do the optimization
       ktic = ktic + 1
+
       if (0.eq.mod(ktic,500)) write (*,1090) cr,ktic
 
       call lpopt1 (idead,statik)
@@ -2248,7 +2254,9 @@ c                              do the optimization
       if (idead.ne.0) then
 
          write (*,1020) 'high',vname(iv1),i,j
+
          call isgood (i,j,k2)
+
          return
 
       end if

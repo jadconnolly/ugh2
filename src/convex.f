@@ -5864,8 +5864,9 @@ c---------------------------------------------------------------------
       double precision cp
       common/ cst12 /cp(k5,k10)
 
+      integer is
       double precision a,b,c
-      common/ cst313 /a(k5,k1),b(k5),c(k1)
+      common/ cst313 /a(k5,k1),b(k5),c(k1),is(k1+k5)
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp  

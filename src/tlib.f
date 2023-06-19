@@ -36,7 +36,7 @@ c----------------------------------------------------------------------
       integer n
 
       write (n,'(/,a,//,a)') 
-     *     'Perple_X release 7.1.0, Jun 13, 2023.',
+     *     'Perple_X release 7.1.0, Jun 19, 2023.',
 
      *     'Copyright (C) 1986-2023 James A D Connolly '//
      *     '<www.perplex.ethz.ch/copyright.html>.'
@@ -2488,6 +2488,76 @@ c                                 read data from card
             inumb = idef
          end if 
       end if 
+
+      end
+
+      subroutine rdnum1 (numb,rmn,rmx,def,inumb,imn,imx,idef,reel)
+c----------------------------------------------------------------------
+c rdnumb - reads a line from terminal input for numeric input, if blank
+c assigns default (def, idef); if non numeric prompts for new value.
+c----------------------------------------------------------------------    
+      implicit none
+
+      integer inumb, imn, imx, idef, ier
+
+      double precision numb, rmn, rmx, def
+
+      logical defalt, reel
+
+      character card*80
+c----------------------------------------------------------------------
+      defalt = .true.
+
+      do 
+c                                 read input
+         read (*,'(a)',iostat=ier) card
+c                                 user enters a blank
+         if (ier.ne.0.or.card.eq.' ') exit
+c                                 read data from card
+         if (reel) then 
+            read (card,*,iostat=ier) numb
+         else 
+            read (card,*,iostat=ier) inumb
+         end if 
+
+         if (ier.ne.0) then
+
+            call rerr
+
+         else
+c                                 somethings been entered
+            if (reel) then 
+               if (numb.gt.rmx.or.numb.lt.rmn) then
+                  write (*,1000) rmn, rmx
+                  cycle
+               end if
+            else
+               if (inumb.gt.imx.or.inumb.lt.imn) then
+                  write (*,1010) imn, imx
+                  cycle
+               end if
+            end if
+
+            defalt = .false.
+
+            exit
+
+         end if 
+
+      end do
+
+      if (defalt) then 
+         if (reel) then 
+            numb = def
+         else 
+            inumb = idef
+         end if 
+      end if 
+
+1000  format (/,'invalid value, enter a number between ',g12.6,' and ',
+     *        g12.6,/)
+1010   format (/,'invalid value, enter a number between ',i6,' and ',
+     *        i6,/)
 
       end
 
@@ -9141,7 +9211,7 @@ c-----------------------------------------------------------------------
       logical eof, first, err
 
       character*100 blank*1,string(3)*8,rname*5,name*8,strg*80,n2name,
-     *              n9name,y*1,sname*10,prt*3,plt*3,line
+     *              n9name,y*1,sname*10,prt*3,plt*3
 
       integer idum, nstrg, i, j, k, ierr, icmpn, jcont, kct
 
@@ -10222,7 +10292,8 @@ c                                 read aliquot composition
             call errpau
          else 
             read (n8,*) (iblk(ilay+1,i),i=1,icp)
-         end if 
+         end if
+
       end if 
 
       close (n8)

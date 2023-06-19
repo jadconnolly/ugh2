@@ -1112,6 +1112,82 @@ c                                 compute aggregate properties:
 
       end
 
+      subroutine getlvl (klev)
+c----------------------------------------------------------------------
+c choose grid level for data sampling when sample_on_grid = T.
+c----------------------------------------------------------------------
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      logical readyn
+
+      character tag*9
+
+      integer j, mx, my, klev
+
+      double precision r
+
+      external readyn
+
+      integer jlow,jlev,loopx,loopy,jinc
+      common/ cst312 /jlow,jlev,loopx,loopy,jinc
+
+      integer iam
+      common/ cst4 /iam
+c----------------------------------------------------------------------
+10    if (iam.eq.3) then
+c                                 WERAMI
+         write (*,'(/,a,/)') 'Select the grid resolution (to use an '
+     *                     //'arbitrary grid set sample_on_grid to F):'
+
+         tag = '[default]'
+
+         do j = 1, jlev
+
+            mx = loopx * 2**(j-1) + 1
+            my = loopy * 2**(j-1) + 1
+
+            write (*,'(4x,i1,a,2(i4,a),a)') j,' - ',nx,' x ',ny,
+     *                                     ' nodes ',tag
+
+            tag = ' '
+
+         end do
+
+      else
+c                                 PSSECT (liquidus)
+         write (*,1000) jlev
+
+      end if
+c                                 get grid level
+      call rdnum1 (r,r,r,r,klev,1,jlev,1,.false.)
+
+      if (klev.eq.1.or..not.lopt(56)) then 
+
+         write (*,'(/)')
+
+      else
+
+         write (*,1010)
+
+         if (.not.readyn()) goto 10 
+
+      end if
+
+1000  format (/,'Specify highest grid level to be sampled for const',
+     *       'ructing isotherms/isobars, 1[default]-',i1,':')
+1010  format (/,'**warning ver538** use of multi-level grids may gener',
+     *       'ate noise due to data',/,'interpolation onto unpopulated',
+     *       ' nodes. If exceptional resolution is required set',/,
+     *       'grid_levels to 1 1 and change the 2nd value of x/y_nodes',
+     *       'to obtain the desired resolution.',//,
+     *       'To disable [all] interactive warnings set warn_interact',
+     *       'ive to F.',
+     *       //,'Continue (y/n)?')
+
+      end
+
       subroutine getspc (id,jd)
 c-----------------------------------------------------------------------
 c getspc loads independent endmember fractions of a solution id into a 
@@ -2167,8 +2243,8 @@ c                                 expansivity
 
       end if
 
-      if (ppois.and.iwarn2.lt.iopt(1).and.pname(jd).ne.wname2.
-     *                                               and.pois) then 
+      if (ppois.and.iwarn2.lt.iopt(1).and.pname(jd).ne.wname2
+     *    .and.pois.and.iam.ne.7) then 
 
          iwarn2 = iwarn2 + 1
          wname2 = pname(jd)

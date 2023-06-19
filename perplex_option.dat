@@ -41,7 +41,7 @@
 dynamic_LP_start          default | [warm] hot, cold, warm. 
 GFSM                      default | [F] allow GFSM/disable saturated-phase constraints
 intermediate_savrpc       default | [F] save intermediate compositions during dynamic optiomization
-intermediate_savdyn       default | [F] save intermediate dynamic compositions as auto-refine static compositions
+intermediate_savdyn      T default | [F] save intermediate dynamic compositions as auto-refine static compositions
 logarithmic_X             default | [F] VERTEX/MEEMUM only, replace saturated phase compositional variable X with log10(X)
 LP_max_it                 default | [500] max number of iterations for a single LP optimization
 MINFRC_diff_increment     default | [1d-7] finite difference increment used during NLP when analytical derivatives are not available
