@@ -678,3 +678,7 @@ my_project.dat
 *.jpg
 
 *.tif
+
+*.xlsx
+
+input file.dat
