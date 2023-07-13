@@ -682,3 +682,7 @@ my_project.dat
 *.xlsx
 
 input file.dat
+
+*.zip
+
+partial_molar_volumes.dat
