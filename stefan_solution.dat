@@ -1,0 +1,51 @@
+690 DO NOT DELETE THIS LINE
+
+                      --------------------------------------------------------
+begin_model
+                       MgS-FeS  solid solution 
+Nin                   
+abbreviation Nin
+full_name    niningerite
+
+2                                     model type: simplicial composition space
+
+2                                     endmembers
+nin tro
+  0  0                     | endmember flags
+0  1  .1   0               | subdivision range, imod = 0 -> cartesian subdivision
+
+begin_excess_function
+W(nin tro)  37390.48289
+end_excess_function
+
+1                                     1 site configurational entropy model
+
+2 1                                   2 species (Fe, Mg), site multiplicity = 1.
+z(M,Mg) = 1 nin
+
+end_of_model
+                      --------------------------------------------------------
+
+begin_model
+                       MgS-FeS liquid
+melt                   
+abbreviation melt
+full_name    melt
+
+2                                     model type: simplicial composition space
+
+2                                     endmembers
+ninL troL 
+  0  0                     | endmember flags
+0  1  .1   0               | subdivision range, imod = 0 -> cartesian subdivision
+
+begin_excess_function
+W(ninL troL)  27869.70898
+end_excess_function
+
+1                                     1 site configurational entropy model
+
+2 1                                   2 species (Fe, Mg), site multiplicity = 1.
+z(M,Mg) = 1 ninL
+
+end_of_model

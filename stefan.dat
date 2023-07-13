@@ -1,0 +1,71 @@
+
+ | for documentation of Perple_X thermodynamic data file structure and content refer to:
+
+ | www.perplex.ethz.ch/perplex_thermodynamic_data_file.html
+
+ | comments are indicated by the | character.
+ | check for warnings at the end of the header section.
+ | make definition formats used in this file can only be read by Perple_X 6.7.3+
+
+Stefan           |<= data base title
+
+begin_standard_variables |<= name (<9 characters), reference value, tolerance
+P(bar)      1.00   0.1E-3
+T(K)      298.15   0.1E-4
+Y(CO2)      0.00   0.1E-6
+mu(C1)      0.00   0.1E-2
+mu(C2)      0.00   0.1E-2
+end_standard_variables
+
+tolerance  -.1E-2  |<= DTOL for unconstrained minimization, energy units
+
+begin_components   | < 6 chars, molar weight (g), elemental entropy (R)
+MgS     56.3695     
+CaS     72.1425    
+FeS     87.9095     
+end_components
+
+end
+
+
+FeSnin    EoS = 1  
+FeS(1)
+G0 = -730d3 V0 = 1
+end
+
+
+tro       EoS = 1  
+FeS(1)
+G0 = -732.5426d3 V0 = 1
+end
+
+troL       EoS = 1  
+FeS(1)
+G0 = 21307.41 S0 = 22.02772 V0 = 1
+c1 = -22.02772    c6 = 323540
+end
+
+old       EoS = 1  
+CaS(1)
+G0 = -369.9891e3 V0 = 1
+end
+
+oldL       EoS = 1  | Tm = 2526 C
+CaS(1)
+G0 = 21307.41 S0 = 22.02772 V0 = 1
+c1 = -25.0076    c6 = 7d4
+end
+
+nin       EoS = 1  
+MgS(1)
+G0 =  -261.1628e3  V0 = 1
+end
+
+ninL       EoS = 1  | Tm = 2125 C
+MgS(1)
+G0 = 21307.41 S0 = 22.02772 V0 = 1
+c1 = -26.27025    c6 = 63e3
+end
+
+
+
