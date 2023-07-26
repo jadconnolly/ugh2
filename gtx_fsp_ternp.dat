@@ -98,10 +98,10 @@ melt(W)
 feldspar
 end solution phase list
 
-  15000.00        1550.00        0.00000        0.00000        0.00000     max p, t, xco2, mu_1, mu_2
-      1.00        1550.00        0.00000        0.00000        0.00000     min p, t, xco2, mu_1, mu_2
+  15000.00        1450.00        0.00000        0.00000        0.00000     max p, t, xco2, mu_1, mu_2
+      1.00        1450.00        0.00000        0.00000        0.00000     min p, t, xco2, mu_1, mu_2
    0.00000        0.00000        0.00000        0.00000        0.00000     unused place holder post 06
 
  1  2  4  5  3   indices of 1st & 2nd independent & sectioning variables
 
-melt(W) solidus | liquid phase(s)
+melt(W) solidus | abL anL kspL solidus | liquid phase(s)
