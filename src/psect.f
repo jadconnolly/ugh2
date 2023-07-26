@@ -1315,6 +1315,10 @@ c                                 values are reflected across the diagonal.
          ix = ix + 1
          iy = 0
 c                                 could this be wrong, i.e., works only for jinc = 1?
+c                                 jamie: no, it isn't wrong.  ix and iy have to
+c                                 be contiguous for contouring to work, so jinc
+c                                 must be ignored in forming ix and iy.
+c                                 (remove this comment when you're satisfied)
          do j = 1, loopy-i+1, jinc
 
             iy = iy + 1
@@ -1876,7 +1880,7 @@ c                                 form name of solids assembly for any messages
          k = nblen(text)-1
          text(k+1:k+1) = ' '
 c        write(*,*) 'Outlining ',text(1:k),' field.'
-c        off = text(1:k) .eq. 'pswo'
+c        off = text(1:k) .eq. 'sill'
 
 c                                 classify every triangle in grid
          npeece = 0
@@ -1968,7 +1972,7 @@ c                                 form name of solids assembly for any messages
          text(iend+1:iend+1) = ' '
  
 c        print*,'Working on ',text(1:iend)
-c        off = text(1:iend) .eq. 'pswo'
+c        off = text(1:iend) .eq. 'sill'
 
          ngrp = 0
          iassk(1:loopx,1:loopx) = 0
