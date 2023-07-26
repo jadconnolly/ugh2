@@ -1,8 +1,8 @@
 hp633ver.dat     thermodynamic data file                                                                                                 
-print | print generates print output
+no_print | print generates print output
 plot     | obsolete 6.8.4+
 solution_model.dat     | solution model file, blank = none                                                                                                                                                                                                      
-dfd                                                                                                                                                                                                                                                             
+Ternary feldspar solidus/liquidus                                                                                                                                                                                                                               
 cmas-option.dat     | Perple_X option file                                                                                                                                                                                                                   
     2 calculation type: 0- composition, 1- Schreinemakers, 3- Mixed, 4- swash, 5- gridded min, 7- 1d fract, 8- gwash, 9- 2d fract, 10- 7 w/file input, 11- 9 w/file input, 12- 0d infiltration
     0 unused place holder, post 06
@@ -72,65 +72,11 @@ jdjL
 cats
 lrn
 rnk
-pswo
-wo
-woL
-cacf
-jd
-ab
-kjdTH
-wal
-prl
-cor
-corL
-amul
-lime
 
-nacfb
-kjdh
-apv
-gr
-npv
-cpv
-and
-ky
-sill
-smul
-tpz
-cstn
-caes
-mu
-pa
-ma
-kcm
-hol
-silL
-q8L
-nacfb
-mcpv
-mnpv
-capv
-cnpv
-ojd
-qHL
-ojdTH
-pre
-nacf
-cz
-zo
+
 anl
-dsp
-
-ma
-ma_dqf
-heu
-kao
-ma1_dqf
-wrk
-stlb
-lmt
-
-
+woL
+ anL     
  kspL    
 lcL     
 sil8L   
@@ -147,9 +93,6 @@ kWL
 qTHL    
 foTHL   
 kjTHL   
-zo
-kjd
-
 end excluded phase list
 
 
@@ -158,10 +101,10 @@ melt(W)
 feldspar
 end solution phase list
 
-   5000.00        2400.00        0.00000        0.00000        0.00000     max p, t, xco2, mu_1, mu_2
-   5000.00        800.000        0.00000        0.00000        0.00000     min p, t, xco2, mu_1, mu_2
+   5000.00        2200.00        0.00000        0.00000        0.00000     max p, t, xco2, mu_1, mu_2
+   5000.00        1000.00        0.00000        0.00000        0.00000     min p, t, xco2, mu_1, mu_2
    0.00000        0.00000        0.00000        0.00000        0.00000     unused place holder post 06
 
  2  1  4  5  3   indices of 1st & 2nd independent & sectioning variables
 
-melt(W) | liquid phase(s)
+melt(W) liquidus | liquid phase(s)

@@ -44,4 +44,4 @@ splines                  T      | use B-splines to smooth curves (psvdraw only; 
 tenth_ticks              F      | draw tenth-interval ticks on axes 
 text_scale              1.0     | default scaling for text
 contour_t_interval       50     | 50 K contour interval
-contour_p_interval      500     | 2000 bars
+contour_p_interval     5000     | 2000 bars

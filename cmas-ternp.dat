@@ -53,6 +53,7 @@ foTL
 foL
 fojL
 anL
+ctjL
 end excluded phase list
 
 
@@ -69,4 +70,4 @@ end solution phase list
 
  1  2  4  5  3   indices of 1st & 2nd independent & sectioning variables
 
-melt(HGPH) solidus     | names of melt phases for liquidus finding
+melt(HGPH) liquidus    | names of melt phases for liquidus finding

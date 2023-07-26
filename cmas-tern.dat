@@ -3,7 +3,7 @@ print    | print generates print output
 plot     | obsolete 6.8.4+
 solution_model.dat     | solution model file, blank = none                                                                                                                                                                                                      
 CMAS liquidus test                                                                                                                                                                                                                                              
-cmas-option.dat        | Perple_X option file                                                                                                                                                                                                                   
+Xcmas-option.dat        | Perple_X option file                                                                                                                                                                                                                   
     2 calculation type: 0- composition, 1- Schreinemakers, 3- Mixed, 4- swash, 5- gridded min, 7- 1d fract, 8- gwash, 9- 2d fract, 10- 7 w/file input, 11- 9 w/file input, 12- 0d infiltration
     0 unused place holder, post 06
     0 unused place holder, post 06
@@ -52,6 +52,8 @@ enL
 foTL
 foL
 fojL
+ctjL
+anL
 end excluded phase list
 
 
@@ -68,4 +70,4 @@ end solution phase list
 
  2  1  4  5  3   indices of 1st & 2nd independent & sectioning variables
 
-melt(HGPH)             | names of melt phases for liquidus finding
+melt(HGPH) silL        | names of melt phases for liquidus finding
