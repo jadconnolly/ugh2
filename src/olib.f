@@ -3102,7 +3102,9 @@ c                                 only of fluid.
 c                                 fluid absent properties:
          root = psys1(4)/psys1(10)
 
-         if (root.gt.0d0) then 
+         if (isnan(root)) then
+            bsick = .true.
+         else if (root.gt.0d0) then 
 c                                 sound velocity
             psys1(6) = dsqrt(root) * units
 
@@ -3116,14 +3118,17 @@ c                                 sound velocity P derivative
             else 
                psys1(22) = nopt(7)
                psys1(25) = nopt(7) 
-            end if 
+            end if
+
          end if
 
          if (shear.and.solid) then 
 
             root = psys1(5)/psys1(10)
 
-            if (root.gt.0d0) then 
+            if (isnan(root)) then
+               bsick = .true.
+            else if (root.gt.0d0) then 
 c                                 s-wave velocity
                psys1(8) = dsqrt(root) * units
 
@@ -3138,11 +3143,14 @@ c                                 P-derivative
                   psys1(24) = nopt(7)
                   psys1(27) = nopt(7) 
                end if 
+
             end if 
 
             root = (psys1(4)+r43*psys1(5))/psys1(10)
 
-            if (root.gt.0d0) then 
+            if (isnan(root)) then
+               bsick = .true.
+            else if (root.gt.0d0) then 
 c                                 p-wave velocity
                psys1(7) = dsqrt(root)*units
 
@@ -3160,7 +3168,8 @@ c                                 p-wave velocity P derivative
                else 
                   psys1(23) = nopt(7)
                   psys1(26) = nopt(7) 
-               end if 
+               end if
+
             end if 
 c                                 vp/vs
             if (psys1(8).gt.0d0) then 

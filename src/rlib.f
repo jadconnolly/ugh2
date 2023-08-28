@@ -3090,15 +3090,23 @@ c volume of water in j/bar [HKF_epsilon.mws].
 c----------------------------------------------------------------------
       implicit none
 
-      double precision v
+      double precision v, sqrtt
 
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
 c----------------------------------------------------------------------
+
+      if (t.ge.273.15d0) then 
+         sqrtt = dsqrt(t - 273.15d0)
+      else
+c                            assume no-one is seriously doing anything at T < 273
+         sqrtt = 0d0
+      end if
+
       epsh2o = dexp(-0.8016651D-4 * t + 0.4769870482D1 - 0.6871618D-1 *
-     *         dsqrt(t - 0.27315D3)) * (0.1801526833D1 / v) **
+     *         sqrtt) * (0.1801526833D1 / v) **
      *         (-0.1576377D-2 * t + 0.1185462878D1 + 0.6810288D-1 *
-     *         dsqrt(t - 0.27315D3))
+     *         sqrtt)
 
       end
 
