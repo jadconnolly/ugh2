@@ -249,8 +249,8 @@ c                                 solvent species
 c                                 mole fraction
                             ysp(ns+m,i) = caq(i,j)
                         else 
-c                                 molality             
-                            ysp(ns+m,i) = caq(i,j)/caq(i,na3)
+c                                 molality 
+                            ysp(ns+m,i) = caq(i,j)*caq(i,na2)
                         end if   
 
                      else if (j.le.nsa) then 
@@ -272,7 +272,7 @@ c                                 special properties
                          else if (j.eq.na2) then 
                             spnams(ns+m,id) = 'tot_mola'
                          else if (j.eq.na3) then
-                            spnams(ns+m,id) = 'solv_mas'
+                            spnams(ns+m,id) = 'solv_kfw'
                          else if (j.eq.na3+1) then
                             spnams(ns+m,id) = 'err_lgKw'
                          else if (j.eq.na3+2) then

@@ -12231,6 +12231,7 @@ c                                 lagged model
                   do j = 1, kbulk
 
                      if (i.lt.sn1) then
+c                                 this needs to be checked
                         dn = pa(i)/caq(jd,na3) * cp(j,jnd(i))
                      else
                         dn = caq(jd,i) * aqcp(j,i-ns)

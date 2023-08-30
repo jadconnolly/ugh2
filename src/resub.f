@@ -1017,6 +1017,7 @@ c                                 solvent molar weight
                   end do
 c                                 total molality
                   caq(i,na2) = 1d0/msol
+c                                 solvent molar mass
                   caq(i,na3) = msol
 
                else
