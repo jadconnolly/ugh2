@@ -686,3 +686,27 @@ input file.dat
 *.zip
 
 partial_molar_volumes.dat
+
+andrea_COH-Fluid.dat
+
+andrea.dat
+
+frac2d_perplex_option.dat
+
+frac2d8_COH-Fluid\+.dat
+
+frac2d8_fractionated_bulk.dat
+
+src/build.f
+
+frac2d8.fld
+
+perplex_option_inf.dat
+
+y.dat
+
+frac2d8.aux
+
+frac2d8.dat
+
+andrea_fractionated_bulk.dat
