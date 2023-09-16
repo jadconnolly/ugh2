@@ -7661,9 +7661,9 @@ c---------------------------------------------------------------------
       logical oned
       common/ cst82 /oned
 
-      logical fileio, flsh, anneal, short
+      logical fileio, flsh, anneal, verbos, siphon
       integer ncol, nrow
-      common/ cst226 /ncol,nrow,fileio,flsh,anneal,short
+      common/ cst226 /ncol,nrow,fileio,flsh,anneal,verbos,siphon
 
       integer iind, idep
       double precision c0,c1,c2,c3,c4,c5
@@ -9217,9 +9217,9 @@ c-----------------------------------------------------------------------
 
       integer idum, nstrg, i, j, k, ierr, icmpn, jcont, kct
 
-      logical fileio, flsh, anneal, short
+      logical fileio, flsh, anneal, verbos, siphon
       integer ncol, nrow
-      common/ cst226 /ncol,nrow,fileio,flsh,anneal,short
+      common/ cst226 /ncol,nrow,fileio,flsh,anneal,verbos,siphon
 
       character*100 cfname
       common/ cst227 /cfname
@@ -10126,9 +10126,9 @@ c-----------------------------------------------------------------------
       common/ cst23  /a(k8,k8),b(k8),ipvt(k8),idv(k8),iophi,idphi,
      *                iiphi,iflg1
 
-      logical fileio, flsh, anneal, short
+      logical fileio, flsh, anneal, verbos, siphon
       integer ncol, nrow
-      common/ cst226 /ncol,nrow,fileio,flsh,anneal,short
+      common/ cst226 /ncol,nrow,fileio,flsh,anneal,verbos,siphon
 
       character*100 cfname
       common/ cst227 /cfname
@@ -10164,7 +10164,9 @@ c                                 true => basal mass flux
 c                                 true => anneal the column
       read (n8,*) anneal
 c                                 true => don't output console info on the fractionated phase
-      read (n8,*) short
+      read (n8,*) verbos
+c                                 true => in frac2d, don't pass fluid through overlying nodes
+      read (n8,*) siphon
 c                                 true => p-t field from file/internal function
       read (n8,*) pzfunc
 c                                 Perple_X assumes upward directed depth, but to 
@@ -10358,9 +10360,9 @@ c----------------------------------------------------------------------
       double precision vn
       common/ cst31 /vn(k2,k7),irct,ird
 
-      logical fileio, flsh, anneal, short
+      logical fileio, flsh, anneal, verbos, siphon
       integer ncol, nrow
-      common/ cst226 /ncol,nrow,fileio,flsh,anneal,short
+      common/ cst226 /ncol,nrow,fileio,flsh,anneal,verbos,siphon
 
       double precision vmax,vmin,dv
       common/ cst9  /vmax(l2),vmin(l2),dv(l2)
@@ -10518,9 +10520,9 @@ c----------------------------------------------------------------------
       integer iam
       common/ cst4 /iam
 
-      logical fileio, flsh, anneal, short
+      logical fileio, flsh, anneal, verbos, siphon
       integer ncol, nrow
-      common/ cst226 /ncol,nrow,fileio,flsh,anneal,short
+      common/ cst226 /ncol,nrow,fileio,flsh,anneal,verbos,siphon
 c------------------------------------------------------------------------
 c                                 generate a file name and
 c                                 open the file on n5

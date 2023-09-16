@@ -26,9 +26,9 @@ c----------------------------------------------------------------------
       integer iam
       common/ cst4 /iam
 
-      logical fileio, flsh, anneal, short
+      logical fileio, flsh, anneal, verbos, siphon
       integer ncol, nrow
-      common/ cst226 /ncol,nrow,fileio,flsh,anneal,short
+      common/ cst226 /ncol,nrow,fileio,flsh,anneal,verbos,siphon
 
       integer icps, jcx, jcx1, kds
       logical stol, savg, spec
@@ -383,9 +383,9 @@ c---------------------------------------------------------------------
       double precision vip
       common/ cst28 /vip(l2,k2)
 
-      logical fileio, flsh, anneal, short
+      logical fileio, flsh, anneal, verbos, siphon
       integer ncol, nrow
-      common/ cst226 /ncol,nrow,fileio,flsh,anneal,short
+      common/ cst226 /ncol,nrow,fileio,flsh,anneal,verbos,siphon
 c----------------------------------------------------------------------
       if (icopt.eq.7.and.fileio) then
 c                                 fractionation from a coodinate file

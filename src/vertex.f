@@ -336,9 +336,9 @@ c-----------------------------------------------------------------------
       integer io3,io4,io9
       common / cst41 /io3,io4,io9
 
-      logical fileio, flsh, anneal, short
+      logical fileio, flsh, anneal, verbos, siphon
       integer ncol, nrow
-      common/ cst226 /ncol,nrow,fileio,flsh,anneal,short
+      common/ cst226 /ncol,nrow,fileio,flsh,anneal,verbos,siphon
 
       double precision dcomp
       common/ frct2 /dcomp(k5)
@@ -581,9 +581,9 @@ c-----------------------------------------------------------------------
       integer io3,io4,io9
       common / cst41 /io3,io4,io9
 
-      logical fileio, flsh, anneal, verbos
+      logical fileio, flsh, anneal, verbos, siphon
       integer ncol, nrow
-      common/ cst226 /ncol,nrow,fileio,flsh,anneal,verbos
+      common/ cst226 /ncol,nrow,fileio,flsh,anneal,verbos,siphon
 
       double precision dcomp
       common/ frct2 /dcomp(k5)
@@ -696,7 +696,7 @@ c-----------------------------------------------------------------------
 
       double precision gblk(maxbox,k5),cdcomp(k5,lay),vox(k5),rho,zbox,
      *                 tot,lcomp(k5,lay),cmass(k5),cfmass(k5),area,
-     *                 imass(k5),errr(k5),icerr(k5),ccerr(k5)
+     *                 imass(k5),errr(k5),icerr(k5),ccerr(k5),cccomp(k5)
 
       double precision atwt
       common/ cst45 /atwt(k0)
@@ -740,9 +740,9 @@ c-----------------------------------------------------------------------
       common/ cst66 /abc0(0:mord,mpol),vz(6),iblk(lay,k5),ilay,
      *               irep(lay),npoly,ord,pzfunc
 
-      logical fileio, flsh, anneal, verbos
+      logical fileio, flsh, anneal, verbos, siphon
       integer ncol, nrow
-      common/ cst226 /ncol,nrow,fileio,flsh,anneal,verbos
+      common/ cst226 /ncol,nrow,fileio,flsh,anneal,verbos,siphon
 
       integer inv
       character dname*14, title*162
@@ -1080,13 +1080,14 @@ c                                 loopx is the number of steps along the subduct
 c                                 path:
       do j = 1, loopx
 c                                 initialize column mass for conservation test
-         do i = 1, icp
+         do i = 1, icp1
             cmass(i) = 0d0
             icerr(i) = 0d0
+            cccomp(i) = 0d0
          end do 
 c                                 initialize avg layer comp
          do l = 1, ilay
-            do m = 1, icp
+            do m = 1, icp1
                lcomp(m,l) = 0d0
             end do
          end do
@@ -1111,7 +1112,7 @@ c                                 array into the local array and get the total
 c                                 number of moles (ctotal)
             ctotal = 0d0
 c                                 get total moles to compute mole fractions
-            do i = 1, icp+1
+            do i = 1, icp1
                dcomp(i) = 0d0
                cblk(i) = gblk(k,i)
 c                                 apply the zero_bulk filter only to the working 
@@ -1156,7 +1157,7 @@ c                                 assemblage at each point in our column
 c                                 and could do mass transfer, etc etc 
 c                                 here we'll simply fractionate the fluid 
 c                                 phase
-            if (iox.ne.0) dcomp(icp+1) = dcomp(iox)
+            if (iox.ne.0) dcomp(icp1) = dcomp(iox)
 
             do i = 1, icp 
 c                                 subtract the fluid from the current composition
@@ -1165,32 +1166,57 @@ c                                 by not applying the zero_bulk threshold to the
 c                                 global array near zero components may accumulate
 c                                 to become significant
                if (gblk(k,i).lt.0d0) gblk(k,i) = 0d0
-c                                 and add it to the overlying composition
-               if (k.lt.ncol) gblk(k+1,i) = gblk(k+1,i) + dcomp(i)
+
+               if (.not.siphon) then 
+c                                 add the fluid to the overlying node
+                  if (k.lt.ncol) gblk(k+1,i) = gblk(k+1,i) + dcomp(i)
+               end if
+
 c                                 oxygen deficit and cumulative change
                if (iox.ne.0d0) dcomp(icp1) = dcomp(icp1) 
      *                                     - vox(i)*dcomp(i)
 c                                 average layer comp
                lcomp(i,layer(k)) = lcomp(i,layer(k)) + gblk(k,i)/
      *                             dfloat(irep(layer(k)))
+               if (.not.siphon) then
 c                                 save layer specific results
-               do l = 1, ilay
+                  do l = 1, ilay
 c                                 cumulative change
-                  if (k.eq.itop(l)) cdcomp(i,l) = cdcomp(i,l) + dcomp(i)
-               end do
+                     if (k.eq.itop(l)) cdcomp(i,l) =
+     *                                 cdcomp(i,l) + dcomp(i)
+                  end do
 
-            end do
-
-            do l = 1, ilay
-c                                 cumulative change
-               if (k.eq.itop(l)) then 
-                  cdcomp(icp1,l) = cdcomp(icp1,l) + dcomp(icp1)
-                  write (lun + l,'(200(g13.6,1x))') 
-     *                                       x,(dcomp(i),i=1,icp1),
-     *                                      (cdcomp(i,l),i=1,icp1)
+               else
+c                                 siphoning, add all fluid to
+c                                 cccomp, cdcomp
+                  cccomp(i) = cccomp(i) + dcomp(i)
+                  cdcomp(i,ilay) = cdcomp(i,ilay) + dcomp(i)
                end if
 
             end do
+
+            if (.not.siphon) then
+
+               do l = 1, ilay
+c                                 cumulative change
+                  if (k.eq.itop(l)) then 
+                     cdcomp(icp1,l) = cdcomp(icp1,l) + dcomp(icp1)
+                     write (lun + l,'(200(g13.6,1x))') 
+     *                                         x,(dcomp(i),i=1,icp1),
+     *                                         (cdcomp(i,l),i=1,icp1)
+                  end if
+
+               end do
+
+            else
+
+               cccomp(icp1) = cccomp(icp1) + dcomp(icp1)
+               cdcomp(icp1,ilay) = cdcomp(icp1,ilay) + dcomp(icp1)
+               write (lun + ilay,'(200(g13.6,1x))') 
+     *                                         x,(cccomp(i),i=1,icp1),
+     *                                         (cdcomp(i,ilay),i=1,icp1)
+
+            end if
 
             do i = 1, icp
 c                                 mass being lost from the column
@@ -1236,7 +1262,11 @@ c                                 conservation tests:
          write (*,'(2x,12(f10.5,1x))') (ccerr(i),i=1,icp)
 
          write (*,'(/,a)') 'Cumulative molar mass-loss by fractionation'
-         write (*,'(2x,12(f10.5,1x))') (cfmass(i),i=1,icp)
+         if (.not.siphon) then
+            write (*,'(2x,12(f10.5,1x))') (cfmass(i),i=1,icp)
+         else
+            write (*,'(2x,12(f10.5,1x))') (cdcomp(i,ilay),i=1,icp)
+         end if
 
          if (flsh) then 
 
