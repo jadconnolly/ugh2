@@ -12588,19 +12588,19 @@ end_excess_function
 z(m1,ca) =   1 cc + 1 odo + 1 oank
 z(m1,mg) =   1 mag
 
-3 0.25                                 |3 species on m2a, mult. = 1/4
+3 0.25                                |3 species on m2a, mult. = 1/4
 z(m2a,ca) =  1 cc
 z(m2a,mg) =  1 mag + 1 odo
 
-3 0.25                                 |3 species on m2b, mult. = 1/4
+3 0.25                                |3 species on m2b, mult. = 1/4
 z(m2b,ca) =  1 cc
 z(m2b,mg) =  1 mag + 1 odo + 1 oank
 
 begin_van_laar_sizes
-alpha(cc)     0.25 0.000929*T
+alpha(cc)     0.25 + 0.000929*T
 alpha(mag)    1
 alpha(odo)    0.95
-alpha(sid)    0.01 0.000666*T
+alpha(sid)    0.01 + 0.000666*T
 alpha(oank)   0.929
 end_van_laar_sizes
 
@@ -12705,7 +12705,7 @@ full_name    gas
 
 2
 
-7                                     number of endmembers
+9                                     number of endmembers
 
                                     | ENDMEMBER NAMES:
 SiO2
@@ -12714,32 +12714,32 @@ Si
 O2
 O
 MgO
-| Mg commented out so entropy model can be read without changing parameter m11
+Mg
 FeO
-| Fe
+Fe
 
 0 0 0 0 0 0 0 0 0                   | endmember flags.
 
-0    1    .1 0                      | range and resolution of X(SiO2), 0 => cartesian subdivision/1 => asymmetric subdivision
+0     1   .1 0                      | range and resolution of X(SiO2), 0 => cartesian subdivision/1 => asymmetric subdivision
 0    .5   .1 0                      | range and resolution of X(SiO)
 0    .5   .1 0                      | range and resolution of X(Si)
 0    .5   .1 0                      | range and resolution of X(O2)
 0    .5   .1 0                      | range and resolution of X(O)
 0    .5   .1 0                      | range and resolution of X(MgO)
-| 0    .5   .1 0                      | range and resolution of X(Mg)
-|0    .5   .1 0                      | range and resolution of X(FeO)
+0    .5   .1 0                      | range and resolution of X(Mg)
+0    .5   .1 0                      | range and resolution of X(FeO)
 
 ideal
 
   1                                 | molecular configurational entropy model
-7 1                                 | 6 species, multiplicity 1
+9 1                                 | 6 species, multiplicity 1
 
 z(SiO2)  = 1 SiO2
 z(SiO)   = 1 SiO
 z(O2)   = 1 O2
 z(O)   = 1 O
-| z(Mg)  = 1 Mg
-| z(Fe)  = 1 Fe
+z(Mg)  = 1 Mg
+z(Fe)  = 1 Fe
 z(FeO) = 1 FeO
 z(MgO) = 1 MgO
 

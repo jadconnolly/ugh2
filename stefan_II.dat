@@ -81,10 +81,10 @@ G0 = -317931.4720 S0 = 47.907 V0 = 1
 c1 = 67.000
 end
 
-fnin       EoS = 1  HSC
+fnin       EoS = 1  | regression fit to all 4 brackets:
 FeS(1)
-G0 = -151357
-S0 = 22
+G0 = -147248 | best est using 2 brackets => G0 = -151357
+S0 =  28.054 | best est using 2 brackets => S0 = 22
 c1 = 75.4 
 V0 = 1
 end

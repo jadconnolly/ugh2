@@ -15,7 +15,7 @@ nin fnin
 0  1  .1   0               | subdivision range, imod = 0 -> cartesian subdivision
 
 begin_excess_function
-W(nin fnin)  -4293
+W(nin fnin) 10499 | best est using 2 brackets => -4293
 end_excess_function
 
 1                                     1 site configurational entropy model
@@ -40,7 +40,7 @@ ninL troL
 0  1  .1   0               | subdivision range, imod = 0 -> cartesian subdivision
 
 begin_excess_function
-W(ninL troL)  10672
+W(ninL troL) 18040 | best est using 2 brackets => 10672
 end_excess_function
 
 1                                     1 site configurational entropy model
