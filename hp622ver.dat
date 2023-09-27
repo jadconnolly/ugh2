@@ -140,9 +140,9 @@ begin_makes
  | fbi = 1 east - 1/2 cor + 1/2 hem  | Fe3+-biotite endmember for TiBio(WPH) model, definition corrected for
  |                                   | presumed typo in the WPH (JMG, 2007) paper by L Tajcamanova, 5/11/2007.
  | 13.45e3 0 0                       | fbi = 1 east - 1/2 cor + 1 hem, 8/10/2007, L Tajcamanova               
-
-                                | Fe endmembers for ultramafic mineral solution
-                                | models, based on the talc Fe-Mg exchange.
+                                 |--------------------------------------------------------
+                                 | Fe endmembers for ultramafic mineral solution
+                                 | models, based on the talc Fe-Mg exchange.
 fbr = 1 br - 1/3 ta + 1/3 fta
 DQF(J/mol) = 0
 
@@ -154,11 +154,22 @@ DQF(J/mol) = 0
 
 fatg = 1 atg - 16 ta + 16 fta
 DQF(J/mol) = 0
-
-atgts = 4 clin + 9/17 atg - 24/17 br      | Tshermaks antigorite for Atg(PN) model (Padrón-Navarta et al., 2013, Lithos)
-DQF = -2e3 + 46.1*T_K
-
-| ettore's makes:
+                                 |--------------------------------------------------------
+                                 | for Atg(PN) model (Padrón-Navarta et al., 2013, Lithos)
+atgts = 4 clin + 9/17 atg - 24/17 br
+    DQF = -2e3 + 46.1*T_K
+                                 |--------------------------------------------------------
+                                 | for Atg(LE) model (Eberhard et al., 2023, JPet)
+atgFe2 = 1 atg - 16 ta + 16 fta
+     DQF(J/mol) = -350e3
+oatg   = 1 atg - 17/3 ta + 17/3 fta
+     DQF(J/mol) = -124e3
+atgAl  = 1 atg - 17 ta + 17 tats
+     DQF(J/mol) = -450e3
+atgFe3 = 1 atg - 17 ta + 17 tats - 8.5 gr + 8.5 andr
+     DQF(J/mol) = -127e3 -3.4 * P_bar
+                                 |--------------------------------------------------------
+                                 | ettore's makes:
 | odo = 1/2 mag 1/2 cc 
 | -1000. 0 0 
 | oank = 1/4 sid 1/2 cc 1/4 mag 

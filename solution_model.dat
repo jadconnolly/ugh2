@@ -14192,9 +14192,9 @@ begin_model
                                       Mutliplicity    44       4         8
                                                      ______________________
 
-                                      1 atg          Mg      Mg       SiSi
-                            Species:  2 fatg         Fe      Fe       SiSi
-                                      3 atgts        Mg      Al       AlSi
+                                      1 atg           Mg      Mg       SiSi
+                            Species:  2 fatg          Fe      Fe       SiSi
+                                      3 atgts         Mg      Al       AlSi
                                                       ______________________
 
 
@@ -14243,7 +14243,11 @@ begin_model
 
                              All endmembers reformulated to match antigorite stoichiometry of 17(M0)-31(M1)-17(T0)-17(T1).
                              DQF terms adjusted to match experiments and natural samples
-                             
+
+                             NOTE: the names of the new atigorite endmembers in Eberhard et al (2023)
+                             have been changed to prevent conflicts with the earlier solution models. 
+
+                             Converted to 688 format, JADC, 9/27/2033
 
                                                       M1      M0      T1
                                                      ___________________
@@ -14252,51 +14256,64 @@ begin_model
                                                      ___________________
 
                                       1 atg           Mg      Mg      Si
-                            Species:  2 fatg          Fe      Fe      Si
-                                      3 atgts         Al      Mg      Al
-                                      4 f3atg         Fe3+    Mg      Al
-                                      5 atgo          Fe      Mg      Si  ordered endmember
+                            Species:  2 atgFe2        Fe      Fe      Si
+                                      3 atgAl         Al      Mg      Al
+                                      4 atgFe3        Fe3+    Mg      Al
+                                      5 oatg          Fe      Mg      Si  ordered endmember
                                                       ____________________
 
                              This model requires the following make definition in the thermodynamic data file:
-                             fatg = 1 atg - 16 ta + 16 fta, DQF(J/mol) = -350e3 0 0
-                             atgo = 1 atg - 17/3 ta + 17/3 fta, DQF(J/mol) = -124e3 0 0
-                             atgts = 1 atg - 17 ta + 17 tats, DQF = -450e3 0 0
-                             f3atg = 1 atg - 17 ta + 17 tats - 8.5 gr + 8.5 andr, DQF = -127e3 0 -3.4
+
+                             atgFe2 = 1 atg - 16 ta + 16 fta
+                                  DQF(J/mol) = -350e3
+                             oatg   = 1 atg - 17/3 ta + 17/3 fta
+                                  DQF(J/mol) = -124e3
+                             atgAl  = 1 atg - 17 ta + 17 tats
+                                  DQF(J/mol) = -450e3
+                             atgFe3 = 1 atg - 17 ta + 17 tats - 8.5 gr + 8.5 andr
+                                  DQF(J/mol) = -127e3 -3.4 * P_bar
 
 Atg(LE)                    | solution name
 abbreviation Atg
 full_name    serpentine
 
-2                             | model type: simplicial composition space
-5                             | number of endmembers
-atg  fatg  atgts  f3atg  atgo | endmember names, this order implies:
-0 0 0 0 0                     | endmember flags, indicate if the endmember is part of the solution.
+688                                | model type: 688 format, brute force O/D
 
-0  1  .1  0                   | range and resolution for atg, imod = 0 -> cartesian subdivision
-0  1  .1  0                   | range and resolution for fatg, imod = 0 -> cartesian subdivision
-0  1  .1  0                   | range and resolution for atgs, imod = 0 -> cartesian subdivision
-0  1  .1  0                   | range and resolution for atgo, imod = 0 -> cartesian subdivision
+1                                  | number of polytopes
+1                                  | number of simplices
+5                                  | number of vertices on each simplex
+
+atg  atgFe2  atgAl  atgFe3  oatg   | endmembers on the vertices
+
+0  1  .1  0                        | range and resolution for atg,    imod = 0 -> cartesian subdivision
+0  1  .1  0                        | range and resolution for atgFe2, imod = 0 -> cartesian subdivision
+0  1  .1  0                        | range and resolution for atgAl,  imod = 0 -> cartesian subdivision
+0  1  .1  0                        | range and resolution for oatg,   imod = 0 -> cartesian subdivision
 
 ideal
 
-3                          | 3 site (M0, M1, T1) configurational entropy model
+3                                  | 3 site (M0, M1, T1) configurational entropy model
 
-4 17.                      | 4 species on M1, 17 sites per formula unit.
+M0                                 | site name
+2 31 31                            | number of species, effective multiplicity, true multiplicity
+z(Mg,M1)  = 1 atg + 1 atgFe3 + 1 oatg + 1 atgAl
+z(Fe,M1)  = 1 atgFe2
 
-z(m1,mg) = 1 atg
-z(m1,fe) = 1 fatg + 1 atgo
-z(m1,al) = 1 atgts
+M1                                 | site name
+4 17 17                            | number of species, effective multiplicity, true multiplicity
 
-2 17.                       | 2 species on T1, 17 sites per formula unit.
+z(Mg,M1)  = 1 atg
+z(Fe,M1)  = 1 atgFe2 + 1 oatg
+z(Al,M1)  = 1 atgAl
+z(Fe3,M1) = 1 atgFe3
 
-z(t0,al) = 1 atgts + 1 f3atg
+T1                                 | site name
+2 17 17                            | number of species, effective multiplicity, true multiplicity
 
-2 31.                       | 2 species on M0, 31 site per formula unit.
+z(Al,T1) = 1 atgAl + 1 atgFe3
+z(Si,T1) = 1 atg + 1 oatg + 1 atgFe2
 
-z(m2,mg) = 1 atg + 1 atgts + 1 f3atg + 1 atgo
-
-reach_increment 0
+[O85(OH)62]                        | formula suffix, enter "none" for no suffix.
 
 end_of_model
                       --------------------------------------------------------
