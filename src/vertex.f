@@ -1232,10 +1232,9 @@ c                                 instantaneous column mass
 c                                 end of the k index loop
          end do
 
-            do i = 1, icp
-               ccerr(i) = ccerr(i) + icerr(i)
-               if (k.eq.ncol) cfmass(i) = cfmass(i) + dcomp(i)
-            end do 
+         do i = 1, icp
+            ccerr(i) = ccerr(i) + icerr(i)
+         end do 
 
          if (flsh) then 
             write (*,'(/,a,f9.0)') 'Average Layer Compositions at '
