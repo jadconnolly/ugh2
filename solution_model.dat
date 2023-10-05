@@ -14247,7 +14247,9 @@ begin_model
                              NOTE: the names of the new atigorite endmembers in Eberhard et al (2023)
                              have been changed to prevent conflicts with the earlier solution models. 
 
-                             Converted to 688 format, JADC, 9/27/2033
+                             Converted to 688 format, JADC, 9/27/2023
+
+                             Eliminated useless ordered oatg endmember, JADC 10/1/2023
 
                                                       M1      M0      T1
                                                      ___________________
@@ -14259,36 +14261,41 @@ begin_model
                             Species:  2 atgFe2        Fe      Fe      Si
                                       3 atgAl         Al      Mg      Al
                                       4 atgFe3        Fe3+    Mg      Al
-                                      5 oatg          Fe      Mg      Si  ordered endmember
                                                       ____________________
 
                              This model requires the following make definition in the thermodynamic data file:
 
                              atgFe2 = 1 atg - 16 ta + 16 fta
                                   DQF(J/mol) = -350e3
-                             oatg   = 1 atg - 17/3 ta + 17/3 fta
-                                  DQF(J/mol) = -124e3
                              atgAl  = 1 atg - 17 ta + 17 tats
                                   DQF(J/mol) = -450e3
                              atgFe3 = 1 atg - 17 ta + 17 tats - 8.5 gr + 8.5 andr
                                   DQF(J/mol) = -127e3 -3.4 * P_bar
 
-Atg(LE)                    | solution name
+                             NB! the Atg(LE) and Liz(LE) models require the
+                             following make definition for ferri-clinochlore in Chl(W)
+
+                             f3clin = 1 clin - 1/2 gr + 1/2 andr
+                                  DQF(J/mol) = 40d3
+
+                             to use Atg(LE) with Chl(W) comment or modify the entry for f3clin 
+                             associated with the Chl(W) parameterization.
+
+Atg(LE)                            | solution name
 abbreviation Atg
 full_name    serpentine
 
-688                                | model type: 688 format, brute force O/D
+688                                | model type: 688 format
 
 1                                  | number of polytopes
 1                                  | number of simplices
-5                                  | number of vertices on each simplex
+4                                  | number of vertices on each simplex
 
-atg  atgFe2  atgAl  atgFe3  oatg   | endmembers on the vertices
+atg  atgFe2  atgAl  atgFe3         | endmembers on the vertices
 
 0  1  .1  0                        | range and resolution for atg,    imod = 0 -> cartesian subdivision
 0  1  .1  0                        | range and resolution for atgFe2, imod = 0 -> cartesian subdivision
 0  1  .1  0                        | range and resolution for atgAl,  imod = 0 -> cartesian subdivision
-0  1  .1  0                        | range and resolution for oatg,   imod = 0 -> cartesian subdivision
 
 ideal
 
@@ -14296,14 +14303,14 @@ ideal
 
 M0                                 | site name
 2 31 31                            | number of species, effective multiplicity, true multiplicity
-z(Mg,M1)  = 1 atg + 1 atgFe3 + 1 oatg + 1 atgAl
+z(Mg,M1)  = 1 atg + 1 atgFe3 + 1 atgAl
 z(Fe,M1)  = 1 atgFe2
 
 M1                                 | site name
 4 17 17                            | number of species, effective multiplicity, true multiplicity
 
 z(Mg,M1)  = 1 atg
-z(Fe,M1)  = 1 atgFe2 + 1 oatg
+z(Fe,M1)  = 1 atgFe2
 z(Al,M1)  = 1 atgAl
 z(Fe3,M1) = 1 atgFe3
 
@@ -14311,7 +14318,7 @@ T1                                 | site name
 2 17 17                            | number of species, effective multiplicity, true multiplicity
 
 z(Al,T1) = 1 atgAl + 1 atgFe3
-z(Si,T1) = 1 atg + 1 oatg + 1 atgFe2
+z(Si,T1) = 1 atg + 1 atgFe2
 
 [O85(OH)62]                        | formula suffix, enter "none" for no suffix.
 
@@ -14324,6 +14331,8 @@ begin_model
                              All endmembers reformulated to match stoichiometry of 1(M0)-2(M1)-1(T1).
                              DQF terms adjusted to match experiments and natural samples
 
+                             Eliminated useless ordered oliz endmember, JADC, 10/1/2023
+
                                                       M1      M0      T1
                                                      _____________________
 
@@ -14334,28 +14343,36 @@ begin_model
                             Species:  2 fliz          Fe      Fe      Si
                                       3 lizts         Al      Mg      Al
                                       4 f3liz         Fe3+    Mg      Al
-                                      5 lizo          Fe      Mg      Si  ordered endmember
                                                       ____________________
 
                              This model requires the following make definition in the thermodynamic data:
-                             fliz = 1 liz - 1 ta + 1 fta, DQF(J/mol) = -21e3 0 0
-                             lizo = 1 liz - 1/3 ta + 1/3 fta, DQF(J/mol) = -9e3 0 0
-                             lizts = 1 liz - 1 ta + 1 tats, DQF = -37e3 0 0.1
-                             f3liz = 1 liz - 1 ta + 1 tats - 0.5 gr + 0.5 andr, DQF = -18e3 0 -0.1
+
+                             fliz = 1 liz - 1 ta + 1 fta, DQF(J/mol) = -21e3
+                             lizts = 1 liz - 1 ta + 1 tats, DQF = -37e3 +0.1 * P_bar
+                             f3liz = 1 liz - 1 ta + 1 tats - 0.5 gr + 0.5 andr, DQF = -18e3 -0.1 * P_bar
+
+
+                             NB! the Atg(LE) and Liz(LE) models require the
+                             following make definition for ferri-clinochlore in Chl(W)
+
+                             f3clin = 1 clin - 1/2 gr + 1/2 andr
+                                  DQF(J/mol) = 40d3
+
+                             to use Liz(LE) with Chl(W) comment or modify the entry for f3clin 
+                             associated with Chl(W) the parameterization.
 
 Liz(LE)                    | solution name
 abbreviation Liz
 full_name    serpentine
 
 2                             | model type: simplicial composition space
-5                             | number of endmembers
-liz  fliz  lizts  f3liz lizo  | endmember names, this order implies:
+4                             | number of endmembers
+liz  fliz  lizts  f3liz       | endmember names, this order implies:
 0 0 0 0 0                     | endmember flags, indicate if the endmember is part of the solution.
 
 0  1  .1  0                   | range and resolution for liz, imod = 0 -> cartesian subdivision
 0  1  .1  0                   | range and resolution for fliz, imod = 0 -> cartesian subdivision
 0  1  .1  0                   | range and resolution for lizts, imod = 0 -> cartesian subdivision
-0  1  .1  0                   | range and resolution for lizo, imod = 0 -> cartesian subdivision
 
 ideal
 
@@ -14364,7 +14381,7 @@ ideal
 4 1.                       | 4 species on M1, 1 sites per formula unit.
 
 z(m1,mg) = 1 liz
-z(m1,fe) = 1 fliz + 1 lizo
+z(m1,fe) = 1 fliz
 z(m1,al) = 1 lizts
 
 2 1.                       | 2 species on T1, 1 sites per formula unit.
@@ -14373,7 +14390,7 @@ z(t1,al) = 1 lizts + 1 f3liz
 
 2 2.                       | 2 species on M0, 1 site per formula unit.
 
-z(m2,mg) = 1 liz + 1 lizts + 1 f3liz + 1 lizo
+z(m2,mg) = 1 liz + 1 lizts + 1 f3liz
 
 reach_increment 0
 
