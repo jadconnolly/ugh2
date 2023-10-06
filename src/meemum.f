@@ -11,14 +11,14 @@ c----------------------------------------------------------------------
       include 'perplex_parameters.h'
 
       integer i, n, ier, conchk, kcount, icount, numres, ifault, iprint,
-     *        iquad, j
+     *        iquad, j, igood, ntry, ibest
 
       logical bulk, bad, readyn
 
       character amount*6
 
       double precision num, var(l2+k5), objf, mcobjf, x(l2+k5),
-     *                 tol, step(l2+k5), simplx
+     *                 tol, step(l2+k5), simplx, bstobj
 
       external readyn, mcobjf, mcobj1
 
@@ -95,9 +95,13 @@ c                                 read phase compositions
          tol = 1d-8
          step(1:n) = 5d-1
          conchk = 10
-         iprint = 10
+         iprint = -1
          iquad = 1
+         ibest = 0
+         igood = 0
+         bstobj = 1d99
          simplx = 1d-8
+         ntry = 100
 c                                 max number of objf evaluations
          kcount = 10000
 c                                 initialize drand
@@ -106,12 +110,15 @@ c                                 initialize drand
 1080  format ('Search ',i3,' initial normalized coordinates: ',
      *        5(g12.6,1x))
 1090  format (10x,'initial potentials: ',5(g12.6,1x))
-1020  format ('Minimization failed IFAULT = ',i1)
+1020  format ('Minimization failed IFAULT = ',i3,' igood = ',i3)
 1030  format ('Final normalized coordinates: ',5(g12.6,1x))
 1040  format ('Final potentials: ',5(g12.6,1x))
-1050  format ('Number of function evaluations: ',i5)
+1050  format ('Number of function evaluations: ',i5,
+     *        ' igood = ',i3,' icount = ',i5)
+1100  format (i3,' Successes in ',i4,' tries.')
+1110  format ('Best result was search ',i3,' objf =',g12.6)
 
-         do i = 1, 10
+         do i = 1, ntry
 
             write (*,1080) i, x(1:n)
 
@@ -126,16 +133,37 @@ c https://people.sc.fsu.edu/~jburkardt/f77_src/asa047/asa047.html
 c           call nelmin (mcobjf, n, xini, xopt, objf, tol, step, conchk,
 c    *                kcount, icount, numres, ifault)
 
-            write (*,1030) x(1:n)
-            call mcsetv (x)
-            write (*,1040) (v(jv(j)),j= 1, ipot)
-            write (*,1050) icount
+            if (ifault.ne.0) then 
+
+               write (*,1020) ifault,igood,icount
+
+            else
+
+               igood = igood + 1
+
+               if (objf.lt.bstobj) then 
+                  ibest = i
+                  bstobj = objf
+               end if
+
+               write (*,1030) x(1:n)
+               call mcsetv (x)
+               write (*,1040) (v(jv(j)),j= 1, ipot)
+               write (*,1050) icount, igood
+            end if
 c                               new starting point
             do j = 1, n
                call random_number (x(j))
             end do
 
+c           if (i.eq.5) then 
+c              x(1:n) = 0.5
+c           end if
+
          end do
+
+         write (*,1100) igood, ntry
+         write (*,1110) ibest, bstobj
 
          pause
 
@@ -343,135 +371,6 @@ c                                 to the normal variables:
 
       end 
 
-      double precision function mcobjf (x)
-c-----------------------------------------------------------------------
-c a subprogram to evaluate objective function for MC thermobarometry
-c-----------------------------------------------------------------------
-      implicit none
-
-      include 'perplex_parameters.h'
-
-      logical bad, ok, imout(k5), imin(k5)
-
-      integer i, j, l, kct(k5), ksol(k5,k5)
-
-      double precision x(*), obj, wcomp, wextra, wmiss, total, mpred
-
-      double precision v,tr,pr,r,ps
-      common/ cst5  /v(l2),tr,pr,r,ps
-
-      integer icomp,istct,iphct,icp
-      common/ cst6  /icomp,istct,iphct,icp
-
-      integer kkp,np,ncpd,ntot
-      double precision cp3,amt
-      common/ cxt15 /cp3(k0,k19),amt(k19),kkp(k19),np,ncpd,ntot
-
-      double precision props,psys,psys1,pgeo,pgeo1
-      common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),pgeo1(i8)
-c-----------------------------------------------------------------------
-c                                 convert the scaled potential variables back
-c                                 to the normal variables:
-      call mcsetv (x)
-c                                 set the bulk composition
-      call mcsetb (x)
-c                                 do the optimization and via getloc compute system
-c                                 and derivative properties, these computations are costly 
-c                                 and can be streamlined for specific applications.
-      call meemum (bad)
-c                                 compute the objective function
-      kct(1:mphase) = 0
-c                                 compositional residual weight
-      wcomp  = 1d0
-c                                 extra phase amount residual weight
-      wextra = 1d1
-c                                 missing phase residual weight
-      wmiss  = 1d1
-
-      ok = .false. 
-
-      imout(1:ntot) = .true.
-      imin(1:mphase) = .false.
-
-      do i = 1, ntot
-
-         do j = 1, mphase
-
-            if (kkp(i).eq.pids(j)) then
-
-               ok = .true.
-               imout(i) = .false.
-
-               kct(j) = kct(j) + 1
-               ksol(j,kct(j)) = i
-
-            end if
-
-         end do
-
-      end do
-
-      if (.not.ok) then
-c                                 none of the target phases found
-c                                 set obj to ridiculous value
-         obj = 1d99
-
-      else
-
-         obj = 0d0
-         mpred = 0
-c                                 first extraneous phases:
-         do i = 1, ntot
-
-            if (imout(i)) then 
-c                                 residual is wextra * mass_fraction^2
-               obj = obj + 
-     *               wextra * (props(17,i)*props(16,i)/psys(17))**2
-
-            end if
-
-         end do
-c                                 potential target phases:
-         do j = 1, mphase
-
-            if (kct(j).eq.1) then
-
-               mpred = mpred + 1d0
-c                                 found phase and no ambiguity
-               if (kkp(ksol(j,1)).gt.0) then
-c                                 it's a solution compute and add residual
-                  total = 0d0
-c                                 normalization
-                  do l = 1, icomp
-                     total = total + pcomp(l,ksol(j,1))
-                  end do
-c                                 residual
-                  do l = 1, icomp
-                     obj = obj +
-     *               wcomp * (pcomp(l,ksol(j,1))/total - 
-     *                       pblk(j,l))**2
-                  end do
-
-               end if
-
-            else if (kct(j).gt.1) then 
-
-               mpred = mpred + 1d0
-c                                 found phase and ambiguity
-               call errdbg ('need more')
-
-            end if
-
-         end do
-c                                 missing phase residual
-         obj = obj + wmiss * (1d0 - mpred/mphase)
-
-      end if
-
-      mcobjf = obj
-
-      end
-
       subroutine mcsetb (x)
 c-----------------------------------------------------------------------
 c set bulk composition for MC thermobarometry
@@ -531,490 +430,7 @@ c                                 get total moles to compute mole fractions
 
       end
 
-      subroutine nelmin ( fn, n, start, xmin, ynewlo, reqmin, step,
-     &  konvge, kcount, icount, numres, ifault )
-
-c*********************************************************************72
-c
-c this is https://people.sc.fsu.edu/~jburkardt/f77_src/asa047/asa047.html
-
-c see also:
-
-c http://lib.stat.cmu.edu/apstat/47
-
-c and for NAG
-
-c http://www.ifuap.buap.mx/manuales/NAGdoc/fl/pdf/E04/e04ccf_fl19.pdf
-
-
-c with constraints and bounded variables:
-
-c https://www.emse.fr/~leriche/GBNM_SMO_1026_final.pdf
-
-cc nelmin() minimizes a function using the Nelder-Mead algorithm.
-c
-c  Discussion:
-c
-c    This routine seeks the minimum value of a user-specified function.
-c
-c     Simplex function minimisation procedure due to Nelder+Mead(1965),
-c     as implemented by O'Neill(1971, Appl.Statist. 20, 338-45), with
-c     subsequent comments by Chambers+Ertel(1974, 23, 250-1), Benyon(1976,
-c     25, 97) and Hill(1978, 27, 380-2)
-c
-c    The function to be minimized must be defined by a function of
-c    the form
-c
-c      function fn ( x, f )
-c      double precision fn
-c      double precision x(*)
-c
-c    and the name of this subroutine must be declared EXTERNAL in the
-c    calling routine and passed as the argument FN.
-c
-c    This routine does not include a termination test using the
-c    fitting of a quadratic surface.
-c
-c  Licensing:
-c
-c    This code is distributed under the GNU LGPL license.
-c
-c  Modified:
-c
-c    27 February 2008
-c
-c  Author:
-c
-c    FORTRAN77 version by R ONeill
-c    This version by John Burkardt
-c
-c  Reference:
-c
-c    John Nelder, Roger Mead,
-c    A simplex method for function minimization,
-c    Computer Journal,
-c    Volume 7, 1965, pages 308-313.
-c
-c    R ONeill,
-c    Algorithm AS 47:
-c    Function Minimization Using a Simplex Procedure,
-c    Applied Statistics,
-c    Volume 20, Number 3, 1971, pages 338-345.
-c
-c  Parameters:
-c
-c    Input, external FN, the name of the function which evaluates
-c    the function to be minimized.
-c
-c    Input, integer N, the number of variables.
-c
-c    Input/output, double precision START(N).  On input, a starting point
-c    for the iteration.  On output, this data may have been overwritten.
-c
-c    Output, double precision XMIN(N), the coordinates of the point which
-c    is estimated to minimize the function.
-c
-c    Output, double precision YNEWLO, the minimum value of the function.
-c
-c    Input, double precision REQMIN, the terminating limit for the variance
-c    of function values.
-c
-c    Input, double precision STEP(N), determines the size and shape of the
-c    initial simplex.  The relative magnitudes of its elements should reflect
-c    the units of the variables.
-c
-c    Input, integer KONVGE, the convergence check is carried out every
-c    KONVGE iterations.
-c
-c    Input, integer KCOUNT, the maximum number of function evaluations.
-c
-c    Output, integer ICOUNT, the number of function evaluations used.
-c
-c    Output, integer NUMRES, the number of restarts.
-c
-c    Output, integer IFAULT, error indicator.
-c    0, no errors detected.
-c    1, REQMIN, N, or KONVGE has an illegal value.
-c    2, iteration terminated because KCOUNT was exceeded without convergence.
-c
-      implicit none
-
-      integer n
-      integer n_max
-      parameter ( n_max = 20 )
-
-      double precision ccoeff
-      parameter ( ccoeff = 0.5D+00 )
-      double precision del
-      double precision dn
-      double precision dnn
-      double precision ecoeff
-      parameter ( ecoeff = 2.0D+00 )
-      double precision eps
-c default 1d-3
-      parameter ( eps = 1d-3 )
-      double precision fn
-      external fn
-      integer i
-      integer icount
-      integer ifault
-      integer ihi
-      integer ilo
-      integer j
-      integer jcount
-      integer kcount
-      integer konvge
-      integer l
-      integer nn
-      integer numres
-      double precision p(n_max,n_max+1)
-      double precision pstar(n_max)
-      double precision p2star(n_max)
-      double precision pbar(n_max)
-      double precision rcoeff
-      parameter ( rcoeff = 1.0D+00 )
-      double precision reqmin
-      double precision rq
-      double precision start(n)
-      double precision step(n)
-      double precision x
-      double precision xmin(n)
-      double precision y(n_max+1)
-      double precision y2star
-      double precision ylo
-      double precision ynewlo
-      double precision ystar
-      double precision z
-c
-c  Check the input parameters.
-c
-      if ( reqmin .le. 0.0D+00 ) then
-        ifault = 1
-        return
-      end if
-
-      if ( n .lt. 1 ) then
-        ifault = 1
-        return
-      end if
-
-      if ( n_max .lt. n ) then
-        ifault = 1
-        return
-      end if
-
-      if ( konvge .lt. 1 ) then
-        ifault = 1
-        return
-      end if
-
-      icount = 0
-      numres = 0
-
-      jcount = konvge  
-      dn = dble ( n )   
-      nn = n + 1         
-      dnn = dble ( nn ) 
-      del = 1.0D+00
-      rq = reqmin * dn
-c
-c  Construction of initial simplex.
-c
-   10 continue
-
-      do i = 1, n     
-        p(i,nn) = start(i)
-      end do
-
-      y(nn) = fn(start)
-
-      do j = 1, n     
-        x = start(j)
-        start(j) = start(j) + step(j) * del
-        do i = 1, n
-          p(i,j) = start(i)
-        end do
-        y(j) = fn ( start )
-        start(j) = x
-      end do
-
-      icount = icount + nn
-c                    
-c  The simplex construction is complete.
-c                    
-c  Find highest and lowest Y values.  YNEWLO = Y(IHI) indicates
-c  the vertex of the simplex to be replaced.
-c                    
-      ylo = y(1)
-      ilo = 1
-
-      do i = 2, nn
-        if ( y(i) .lt. ylo ) then
-          ylo = y(i) 
-          ilo = i
-        end if
-      end do
-
-   50 continue
-
-      ynewlo = y(1)
-      ihi = 1
-
-      do i = 2, nn
-        if ( ynewlo .lt. y(i) ) then
-          ynewlo = y(i)
-          ihi = i
-        end if
-      end do
-c
-c  Calculate PBAR, the centroid of the simplex vertices
-c  excepting the vertex with Y value YNEWLO.
-c
-      do i = 1, n
-        z = 0.0D+00
-        do j = 1, nn    
-          z = z + p(i,j)
-        end do
-        z = z - p(i,ihi)   
-        pbar(i) = z / dn   
-      end do
-c
-c  Reflection through the centroid.
-c
-      do i = 1, n
-        pstar(i) = pbar(i) + rcoeff * ( pbar(i) - p(i,ihi) )
-      end do
-
-      ystar = fn ( pstar )
-      icount = icount + 1
-c
-c  Successful reflection, so extension.
-c
-      if ( ystar .lt. ylo ) then
-
-        do i = 1, n
-          p2star(i) = pbar(i) + ecoeff * ( pstar(i) - pbar(i) )
-        end do
-
-        y2star = fn ( p2star )
-        icount = icount + 1
-c
-c  Check extension.
-c
-        if ( ystar .lt. y2star ) then
-
-          do i = 1, n
-            p(i,ihi) = pstar(i)
-          end do
-
-          y(ihi) = ystar
-c
-c  Retain extension or contraction.
-c
-        else
-
-          do i = 1, n
-            p(i,ihi) = p2star(i)
-          end do
-
-          y(ihi) = y2star
-
-        end if
-c
-c  No extension.
-c
-      else
-
-        l = 0
-        do i = 1, nn
-          if ( ystar .lt. y(i) ) then
-            l = l + 1
-          end if
-        end do
-
-        if ( 1 .lt. l ) then
-
-          do i = 1, n
-            p(i,ihi) = pstar(i)
-          end do
-
-          y(ihi) = ystar
-c
-c  Contraction on the  Y(IHI) side of the centroid.
-c
-        else if ( l .eq. 0 ) then
-
-          do i = 1, n
-            p2star(i) = pbar(i) + ccoeff * ( p(i,ihi) - pbar(i) )
-          end do
-          y2star = fn ( p2star )
-          icount = icount + 1
-c
-c  Contract the whole simplex.
-c
-          if ( y(ihi) .lt. y2star ) then
-
-            do j = 1, nn
-              do i = 1, n
-                p(i,j) = ( p(i,j) + p(i,ilo) ) * 0.5D+00
-                xmin(i) = p(i,j)
-              end do
-              y(j) = fn ( xmin )
-            end do
-
-            icount = icount + nn
-            if ( kcount .lt. icount ) then
-               go to 260
-            end if
-
-            ylo = y(1)
-            ilo = 1
-
-            do i = 2, nn
-              if ( y(i) .lt. ylo ) then
-                ylo = y(i) 
-                ilo = i
-              end if
-            end do
-
-            go to 50
-c
-c  Retain contraction.
-c
-          else
-
-            do i = 1, n
-              p(i,ihi) = p2star(i)
-            end do
-            y(ihi) = y2star
-
-          end if
-c
-c  Contraction on the reflection side of the centroid.
-c
-        else if ( l .eq. 1 ) then
-
-          do i = 1, n
-            p2star(i) = pbar(i) + ccoeff * ( pstar(i) - pbar(i) )
-          end do
-
-          y2star = fn ( p2star )
-          icount = icount + 1
-c
-c  Retain reflection?
-c
-          if ( y2star .le. ystar ) then
-
-            do i = 1, n
-              p(i,ihi) = p2star(i)
-            end do
-            y(ihi) = y2star
-
-          else
-
-            do i = 1, n
-              p(i,ihi) = pstar(i)
-            end do
-            y(ihi) = ystar  
-
-          end if
- 
-        end if
-
-      end if
-c
-c  Check if YLO improved.
-c
-      if ( y(ihi) .lt. ylo ) then
-        ylo = y(ihi)
-        ilo = ihi
-      end if
-
-      jcount = jcount - 1
-
-      if ( jcount .ne. 0 ) then
-        go to 50
-      end if
-c
-c  Check to see if minimum reached.
-c
-      if ( icount .le. kcount ) then
-
-        jcount = konvge
-
-        z = 0.0D+00
-        do i = 1, nn
-          z = z + y(i)
-        end do
-        x = z / dnn
-
-        z = 0.0D+00
-        do i = 1, nn
-          z = z + ( y(i) - x )**2
-        end do
-
-        if ( rq .lt. z ) then
-          go to 50
-        end if
-
-      end if
-c
-c  Factorial tests to check that YNEWLO is a local minimum.
-c
-  260 continue
-
-      do i = 1, n
-        xmin(i) = p(i,ilo)
-      end do
-
-      ynewlo = y(ilo)
-
-      if ( kcount .lt. icount ) then
-        ifault = 2
-        return
-      end if
-
-      ifault = 0
-
-      do i = 1, n
-        del = step(i) * eps
-        xmin(i) = xmin(i) + del
-        z = fn ( xmin )
-        icount = icount + 1
-        if ( z .lt. ynewlo ) then
-          ifault = 2
-          go to 290
-        end if
-        xmin(i) = xmin(i) - del - del
-        z = fn ( xmin )
-        icount = icount + 1
-        if ( z .lt. ynewlo ) then
-          ifault = 2
-          go to 290
-        end if
-        xmin(i) = xmin(i) + del
-      end do
-
-290   continue
-
-      if ( ifault == 0 ) then
-        return
-      end if
-c
-c  Restart the procedure.
-c
-      do i = 1, n
-        start(i) = xmin(i)
-      end do
-
-      del = eps
-      numres = numres + 1
-      go to 10
-
-      end
-
-
-      subroutine mcobj1 (x,obj)
+      subroutine mcobj1 (x,obj,bad)
 c-----------------------------------------------------------------------
 c a subprogram to evaluate objective function for MC thermobarometry
 c-----------------------------------------------------------------------
@@ -1147,423 +563,8 @@ c                                 missing phase residual
 
       end if
 
-c     write (*,'(12(g12.6,1x))') obj,x(1:mphase+ipot)
-c     write (*,'(12(g12.6,1x))') v(1:ipot)
-
-c     call calpr0 (6)
-
       end
 
-
-      subroutine dummy (x,obj)
-c-----------------------------------------------------------------------
-c a subprogram to evaluate objective function for MC thermobarometry
-c-----------------------------------------------------------------------
-      implicit none
-
-      include 'perplex_parameters.h'
-
-      logical bad, ok, imout(k5), imin(k5)
-
-      integer i, j, l, kct(k5), ksol(k5,k5)
-
-      double precision x(*), obj, wcomp, wextra, wmiss, total, mpred
-
-      double precision v,tr,pr,r,ps
-      common/ cst5  /v(l2),tr,pr,r,ps
-
-      integer ipot,jv,iv
-      common / cst24 /ipot,jv(l2),iv(l2)
-
-      double precision vmax,vmin,dv
-      common/ cst9  /vmax(l2),vmin(l2),dv(l2)
-
-      integer icomp,istct,iphct,icp
-      common/ cst6  /icomp,istct,iphct,icp
-
-      integer kkp,np,ncpd,ntot
-      double precision cp3,amt
-      common/ cxt15 /cp3(k0,k19),amt(k19),kkp(k19),np,ncpd,ntot
-
-      double precision props,psys,psys1,pgeo,pgeo1
-      common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),pgeo1(i8)
-c-----------------------------------------------------------------------
-c                                 compute the objective function
-      kct(1:mphase) = 0
-c                                 compositional residual weight
-      wcomp  = 1d0
-c                                 extra phase amount residual weight
-      wextra = 1d1
-c                                 missing phase residual weight
-      wmiss  = 1d1
-
-      ok = .false. 
-
-      imout(1:ntot) = .true.
-      imin(1:mphase) = .false.
-
-      do i = 1, ntot
-
-         do j = 1, mphase
-
-            if (kkp(i).eq.pids(j)) then
-
-               ok = .true.
-               imout(i) = .false.
-
-               kct(j) = kct(j) + 1
-               ksol(j,kct(j)) = i
-
-            end if
-
-         end do
-
-      end do
-
-      if (.not.ok) then
-c                                 none of the target phases found
-c                                 set obj to ridiculous value
-         obj = 1d99
-
-      else
-
-         obj = 0d0
-         mpred = 0
-c                                 first extraneous phases:
-         do i = 1, ntot
-
-            if (imout(i)) then 
-c                                 residual is wextra * mass_fraction^2
-               obj = obj + 
-     *               wextra * (props(17,i)*props(16,i)/psys(17))**2
-
-            end if
-
-         end do
-c                                 potential target phases:
-         do j = 1, mphase
-
-            if (kct(j).eq.1) then
-
-               mpred = mpred + 1d0
-c                                 found phase and no ambiguity
-               if (kkp(ksol(j,1)).gt.0) then
-c                                 it's a solution compute and add residual
-                  total = 0d0
-c                                 normalization
-                  do l = 1, icomp
-                     total = total + pcomp(l,ksol(j,1))
-                  end do
-c                                 residual
-                  do l = 1, icomp
-                     obj = obj +
-     *               wcomp * (pcomp(l,ksol(j,1))/total - 
-     *                       pblk(j,l))**2
-                  end do
-
-               end if
-
-            else
-
-               mpred = mpred + 1d0
-c                                 found phase and ambiguity
-               call errdbg ('need more')
-
-            end if
-
-         end do
-c                                 missing phase residual
-         obj = obj + wmiss * (1d0 - mpred/mphase)
-
-      end if
-
-      write (*,'(12(g12.6,1x))') obj,x(1:mphase+ipot)
-      write (*,'(12(g12.6,1x))') v(1:ipot)
-
-c     call calpr0 (6)
-
-      end
-
-
-c This file contains two versions of the Nelder & Mead simplex algorithm
-c for function minimization.   The first is that published in the journal
-c of Applied Statistics.   This does not include the fitting of a quadratic
-c surface, which provides the only satisfactory method of testing whether
-c a minimum has been found.   The search for a minimum is liable to
-c premature termination.
-c The second version is one which has been developed jointly by CSIRO and
-c Rothamsted, and does include the quadratic-surface fitting.
-c
-c
-      subroutine nelmn0 (fn, n, start, xmin, ynewlo, reqmin, step,
-     #     konvge, kcount, icount, numres, ifault)
-      implicit double precision (a-h,o-z)
-c
-c     Simplex function minimisation procedure due to Nelder+Mead(1965),
-c     as implemented by O'Neill(1971, Appl.Statist. 20, 338-45), with
-c     subsequent comments by Chambers+Ertel(1974, 23, 250-1), Benyon(1976,
-c     25, 97) and Hill(1978, 27, 380-2)
-c                                                                           
-c        Algorithm AS 47  Applied Statistics (J.R. Statist. Soc. C),
-c        (1971) Vol.20, No. 3
-c
-c     The Nelder-Mead Simplex Minimisation Procedure
-c
-c
-c        Purpose :: To find the minimum value of a user-specified 
-c                   function
-c
-c        Formal parameters ::
-c         
-c            fn :        : The name of the function to be minimized.
-c             n :  input : The number of variables over which we are
-c                        : minimising
-c         start :  input : Array; Contains the coordinates of the
-c                          starting point.
-c                 output : The values may be overwritten.
-c          xmin : output : Array; Contains the coordinates of the
-c                        : minimum.
-c        ynewlo : output : The minimum value of the function.
-c        reqmin :  input : The terminating limit for the variance of
-c                        : function values.
-c          step :  input : Array; Determines the size and shape of the
-c                        : initial simplex.  The relative magnitudes of
-c                        : its n elements should reflect the units of
-c                        : the n variables.
-c        konvge :  input : The convergence check is carried out every
-c                        : konvge iterations.
-c        kcount :  input : Maximum number of function evaluations.
-c        icount : output : Function evaluations performed
-c        numres : output : Number of restarts.
-c        ifault : output : 1 if reqmin, n, or konvge has illegal value;
-c                        : 2 if terminated because kcount was exceeded
-c                        :   without convergence;
-c                        : 0 otherwise.
-c
-c        All variables and arrays are to be declared in the calling
-c        program as double precision.
-c
-c
-c        Auxiliary algorithm :: The double precision function
-c        subprogram fn(a) calculates the function value at point a.
-c        a is double precision with n elements.
-c
-c
-c        Reference :: Nelder,J.A. and Mead,R.(1965).  A simplex method
-c        for function minimization.  Computer J., Vol.7,308-313.
-c
-c************************************************************************
-c
-      double precision start(n), xmin(n), ynewlo, reqmin, step(n),
-     1   p(20,21), pstar(20), p2star(20), pbar(20), y(21),
-     2   dn, dnn, z, ylo, rcoeff, ystar, ecoeff, y2star, ccoeff,
-     3   rq, x, del, fn, one, half, zero, eps
-      external fn
-c
-      data rcoeff/1.0d0/, ecoeff/2.0d0/, ccoeff/5.0d-1/
-      data one/1.0d0/, half/0.5d0/, zero/0.0d0/, eps/0.001d0/
-c        reflection, extension and contraction coefficients.
-c
-c       validity checks on input parameters.
-c
-      ifault=1
-      if(reqmin .le. zero .or. n .lt. 1 .or. n .gt. 20
-     #   .or. konvge .lt. 1) return
-      ifault=2
-      icount=0
-      numres=0
-c
-      jcount=konvge                                                         
-      dn=float(n)                                                          
-      nn=n+1                                                                
-      dnn=float(nn)                                                        
-      del=one
-      rq=reqmin*dn
-c
-c        construction of initial simplex.                                   
-c
-   10 do 20 i=1,n                                                            
-   20 p(i,nn)=start(i)                                                      
-      y(nn)=fn(start)
-      do 40 j=1,n                                                            
-        x=start(j)
-        start(j)=start(j)+step(j)*del                                         
-        do 30 i=1,n                                                            
-   30   p(i,j)=start(i)                                                       
-        y(j)=fn(start)
-        start(j)=x
-   40 continue
-      icount=icount+nn
-c                                                                           
-c       simplex construction complete                                       
-c                                                                           
-c       find highest and lowest y values.  ynewlo (=y(ihi) ) indicates       
-c       the vertex of the simplex to be replaced.                           
-c                                                                           
-   43 ylo=y(1)
-      ilo=1   
-      do 47 i=2,nn
-        if(y(i).ge.ylo) goto 47
-        ylo=y(i)                                                              
-        ilo=i                                                                 
-   47 continue
-   50 ynewlo=y(1)
-      ihi=1
-      do 70 i=2,nn
-        if(y(i) .le. ynewlo) goto 70
-        ynewlo=y(i)
-        ihi=i                                                                 
-   70 continue
-c
-c      calculate pbar,the centroid of the simplex vertices                  
-c          excepting that with y value ynewlo.                              
-c
-      do 90 i=1,n                                                            
-        z=zero
-        do 80 j=1,nn                                                           
-   80   z=z+p(i,j)
-        z=z-p(i,ihi)                                                          
-        pbar(i)=z/dn                                                          
-   90 continue
-c
-c      reflection through the centroid                                      
-c
-      do 100 i=1,n
-  100 pstar(i)=pbar(i) + rcoeff * (pbar(i) - p(i,ihi))
-      ystar=fn(pstar)
-      icount=icount+1                                                       
-      if (ystar.ge.ylo) goto 140
-c
-c      successful reflection,so extension                                   
-c
-      do 110 i=1,n
-  110 p2star(i)=pbar(i) + ecoeff * (pstar(i)-pbar(i))
-      y2star=fn(p2star)
-      icount=icount+1                                                       
-c
-c       check extension
-c
-      if(y2star .ge. ystar) goto 133
-c
-c       retain extension or contraction.                                    
-c
-      do 130 i=1,n
-  130 p(i,ihi)=p2star(i)                                                    
-      y(ihi)=y2star                                                         
-      goto 230
-c
-c     retain reflection
-c
-  133 do 137 i=1,n
-  137 p(i,ihi)=pstar(i)
-      y(ihi)=ystar
-      goto 230
-c
-c     no extension
-c
-  140 l=0
-      do 150 i=1,nn
-        if (y( i).gt.ystar) l=l+1                                             
-  150 continue                                                              
-      if (l.gt.1) goto 133
-      if (l.eq.0) goto 170
-c
-c     contraction on the reflection side of the centroid.                   
-c
-      do 160 i=1,n
-  160 p2star(i) = pbar(i) + ccoeff * (pstar(i) - pbar(i))
-      y2star = fn(p2star)
-      icount=icount+1
-      if(y2star .le. ystar) goto 182
-c
-c        retain reflection
-c
-      do 165 i=1,n
-  165 p(i,ihi)=pstar(i)
-      y(ihi)=ystar                                                          
-      goto 230
-c
-c      contraction on the  y(ihi) side of the centriod.                     
-c
-  170 do 180 i=1,n
-  180 p2star(i)=pbar(i) + ccoeff * (p(i,ihi) - pbar(i))
-      y2star=fn(p2star)
-      icount=icount+1                                                       
-      if (y2star .gt. y(ihi)) goto 188
-c
-c        retain contraction
-c
-  182 do 185 i=1,n
-  185 p(i,ihi) = p2star(i)
-      y(ihi)=y2star
-      goto 230
-c
-c       contract whole simplex.                                             
-c
-  188 do 200 j=1,nn
-        do 190 i=1,n
-          p(i,j)=(p(i,j)+p(i,ilo))*half
-          xmin(i)=p(i,j) 
-  190   continue
-        y(j)=fn(xmin)
-  200 continue
-      icount=icount+nn
-      if (icount .gt. kcount) go to 260
-      goto 43
-c
-c        Check if ylo improved
-c
-  230 if (y(ihi) .ge. ylo) goto 235
-      ylo=y(ihi)
-      ilo=ihi
-  235 jcount=jcount-1
-      if(jcount .ne. 0) goto 50
-c
-c     check to see if minimum reached.                                      
-c
-      if (icount.gt.kcount) goto 260
-      jcount=konvge
-      z=zero
-      do 240 i=1, nn
-  240 z = z+y(i)
-      x=z / dnn
-      z=zero
-      do 250 i=1,nn
-  250 z = z+(y(i)-x) ** 2
-      if (z .gt. rq) goto 50
-c
-c       factorial tests to check that ynewlo is a local minimum.             
-c
-  260 do 270 i=1,n
-  270 xmin(i)=p(i,ilo)
-      ynewlo=y(ilo)
-      if (icount.gt.kcount) return
-      do 280 i=1,n
-        del=step(i)*eps
-        xmin(i)=xmin(i)+del
-        z=fn(xmin)
-        icount=icount+1
-        if (z.lt.ynewlo) goto 290
-        xmin(i)=xmin(i)-del-del
-        z=fn(xmin)
-        icount=icount+1
-        if (z.lt.ynewlo) goto 290
-        xmin(i)=xmin(i)+del
-  280 continue
-      ifault = 0
-      return
-c
-c     restart procedure
-c
-  290 do 300 i=1,n
-  300 start(i) = xmin(i)
-      del=eps
-      numres = numres + 1
-      goto 10
-      end
-c
-c----------------------------------------------------------------------
-c
       SUBROUTINE MINIM(P,STEP,NOP,FUNC,MAX,IPRINT,STOPCR,NLOOP,IQUAD,
      1  SIMP,VAR,FUNCTN,NEVAL,IFAULT)
 C
@@ -1649,6 +650,9 @@ C*****************************************************************************
 C
       implicit double precision (a-h, o-z)
       external FUNCTN
+
+      logical bad
+
       DIMENSION P(NOP),STEP(NOP),VAR(NOP)
       DIMENSION G(21,20),H(21),PBAR(20),PSTAR(20),PSTST(20),AVAL(20),
      1  BMAT(210),PMIN(20),VC(210),TEMP(20)
@@ -1688,7 +692,8 @@ C
 C     IF NAP = 0 EVALUATE FUNCTION AT THE STARTING POINT AND RETURN
 C
       IF(NAP.GT.0) GO TO 30
-      CALL FUNCTN(P,FUNC)
+      CALL FUNCTN(P,FUNC,bad)
+      if (bad) ifault = 99
       RETURN
 C
 C     SET UP THE INITIAL SIMPLEX
@@ -1708,7 +713,13 @@ C
       DO 90 I=1,NP1
         DO 70 J=1,NOP
    70   P(J)=G(I,J)
-        CALL FUNCTN(P,H(I))
+        CALL FUNCTN(P,H(I),bad)
+
+        if (bad) then 
+           ifault = 99
+           return
+        end if
+
         NEVAL=NEVAL+1
         IF(IPRINT.LE.0) GO TO 90
         WRITE(LOUT,1010) NEVAL,H(I),(P(J),J=1,NOP)
@@ -1752,8 +763,14 @@ C     HSTAR = FUNCTION VALUE AT PSTAR.
 C
       DO 170 I=1,NOP
   170 PSTAR(I)=A*(PBAR(I)-G(IMAX,I))+PBAR(I)
-      CALL FUNCTN(PSTAR,HSTAR)
+      CALL FUNCTN(PSTAR,HSTAR,bad)
       NEVAL=NEVAL+1
+
+        if (bad) then 
+           ifault = 99
+           return
+        end if
+
       IF(IPRINT.LE.0) GO TO 180
       IF(MOD(NEVAL,IPRINT).EQ.0) WRITE(LOUT,1010) NEVAL,HSTAR,
      1  (PSTAR(J),J=1,NOP)
@@ -1764,8 +781,14 @@ C
   180 IF(HSTAR.GE.HMIN) GO TO 220
       DO 190 I=1,NOP
   190 PSTST(I)=C*(PSTAR(I)-PBAR(I))+PBAR(I)
-      CALL FUNCTN(PSTST,HSTST)
+      CALL FUNCTN(PSTST,HSTST,bad)
       NEVAL=NEVAL+1
+
+        if (bad) then 
+           ifault = 99
+           return
+        end if
+
       IF(IPRINT.LE.0) GO TO 200
       IF(MOD(NEVAL,IPRINT).EQ.0) WRITE(LOUT,1010) NEVAL,HSTST,
      1  (PSTST(J),J=1,NOP)
@@ -1804,8 +827,14 @@ C     HSTST = FUNCTION VALUE AT PSTST.
 C
   260 DO 270 I=1,NOP
   270 PSTST(I)=B*G(IMAX,I) + (1.d0-B)*PBAR(I)
-      CALL FUNCTN(PSTST,HSTST)
+      CALL FUNCTN(PSTST,HSTST,bad)
       NEVAL=NEVAL+1
+
+        if (bad) then 
+           ifault = 99
+           return
+        end if
+
       IF(IPRINT.LE.0) GO TO 280
       IF(MOD(NEVAL,IPRINT).EQ.0) WRITE(LOUT,1010) NEVAL,HSTST,
      1  (PSTST(J),J=1,NOP)
@@ -1830,8 +859,14 @@ C
           IF(STEP(J).NE.ZERO) G(I,J)=(G(I,J)+G(IMIN,J))*HALF
           P(J)=G(I,J)
   310   CONTINUE
-        CALL FUNCTN(P,H(I))
+        CALL FUNCTN(P,H(I),bad)
         NEVAL=NEVAL+1
+
+        if (bad) then 
+           ifault = 99
+           return
+        end if
+
         IF(IPRINT.LE.0) GO TO 315
         IF(MOD(NEVAL,IPRINT).EQ.0) WRITE(LOUT,1010) NEVAL,H(I),
      1              (P(J),J=1,NOP)
@@ -1880,8 +915,13 @@ C
         FNP1 = NP1
         P(I)=P(I)/FNP1
   380 CONTINUE
-      CALL FUNCTN(P,FUNC)
+      CALL FUNCTN(P,FUNC,bad)
       NEVAL=NEVAL+1
+
+        if (bad) then 
+           ifault = 99
+           return
+        end if
       IF(IPRINT.LE.0) GO TO 390
       IF(MOD(NEVAL,IPRINT).EQ.0) WRITE(LOUT,1010) NEVAL,FUNC,
      1  (P(J),J=1,NOP)
@@ -2172,9 +1212,6 @@ c
       GO TO 890
       END
 
-
-
-
       SUBROUTINE SYMINV(A,N,C,W,NULLTY,IFAULT,RMAX)
 C
 C     ALGORITHM AS7, APPLIED STATISTICS, VOL.17, 1968.
@@ -2262,10 +1299,6 @@ c
       IF(IROW.NE.0) GO TO 10
   100 RETURN
       END
-
-
-
-
 
       SUBROUTINE CHOLA(A, N, U, NULLTY, IFAULT, RMAX, R)
 C
