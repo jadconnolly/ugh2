@@ -75,16 +75,24 @@ G0 =  -360.705e3 S0 = 50.330
 c1 = 45.544 c2 = 8.756d-3 c3 = -2.307d5 V0 = 1
 end
 
-ninL       EoS = 1  | Tm = 2125 C
+ninL       EoS = 1  | Tm = 2225 C
 MgS(1)
 G0 = -317931.4720 S0 = 47.907 V0 = 1
 c1 = 67.000
 end
 
-fnin       EoS = 1  | regression fit to all 4 brackets:
+fnin       EoS = 1  | full ternary model result 23/10/23
 FeS(1)
-G0 = -147248 | best est using 2 brackets => G0 = -151357
-S0 =  28.054 | best est using 2 brackets => S0 = 22
+| <- indicates a comment, remove/add | to use/remove data
+
+| full ternary model result 23/10/23
+| G0 = -121600  
+| S0 =  67.94
+
+| previous fm binary model result
+G0 = -147248
+S0 =  28.054
+
 c1 = 75.4 
 V0 = 1
 end

@@ -2,50 +2,60 @@
 
                       --------------------------------------------------------
 begin_model
-                       MgS-FeS  solid solution 
+                       CaS-MgS-FeS  solid solution 
 Nin                   
 abbreviation Nin
 full_name    niningerite
 
 2                                     model type: simplicial composition space
 
-2                                     endmembers
-nin fnin
-  0  0                     | endmember flags
+3                                     endmembers
+old nin fnin
+  0  0  0                   | endmember flags
+0  1  .1   0               | subdivision range, imod = 0 -> cartesian subdivision
 0  1  .1   0               | subdivision range, imod = 0 -> cartesian subdivision
 
 begin_excess_function
-W(nin fnin) 10499 | best est using 2 brackets => -4293
+W(nin fnin) 36980 
+W(fnin old) 43300 
+W(old nin) 29190 
+W(old nin fnin) 2708
 end_excess_function
 
 1                                     1 site configurational entropy model
 
-2 1                                   2 species (Fe, Mg), site multiplicity = 1.
+3 1                                   3 species (Ca, Mg, Fe), site multiplicity = 1.
 z(M,Mg) = 1 nin
+z(M,Fe) = 1 fnin
 
 end_of_model
                       --------------------------------------------------------
 
 begin_model
-                       MgS-FeS liquid
+                       CaS-MgS-FeS liquid
 melt                   
 abbreviation melt
 full_name    melt
 
 2                                     model type: simplicial composition space
 
-2                                     endmembers
-ninL troL 
-  0  0                     | endmember flags
+3                                     endmembers
+oldL ninL troL 
+  0  0  0                     | endmember flags
+0  1  .1   0               | subdivision range, imod = 0 -> cartesian subdivision
 0  1  .1   0               | subdivision range, imod = 0 -> cartesian subdivision
 
 begin_excess_function
-W(ninL troL) 18040 | best est using 2 brackets => 10672
+W(ninL troL) 28590 
+W(troL oldL) -189400 
+W(oldL ninL) -724500 
+W(oldL ninL troL)  584500
 end_excess_function
 
 1                                     1 site configurational entropy model
 
-2 1                                   2 species (Fe, Mg), site multiplicity = 1.
+3 1                                   3 species (Ca, Mg, Fe), site multiplicity = 1.
 z(M,Mg) = 1 ninL
+z(M,Fe) = 1 troL
 
 end_of_model
