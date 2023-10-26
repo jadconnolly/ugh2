@@ -3542,8 +3542,9 @@ c                               in the fractionation list
                      end if
 
                   end do
-
-                  if (quit) exit 
+c                                phase j is in the list so its 
+c                                file is alread open, cycle 
+                  if (quit) cycle
 c                                else open a new file
                   ifrct = ifrct + 1
 
