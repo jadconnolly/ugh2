@@ -190,9 +190,6 @@ c---------------------------------------------------------------------
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
 
-      integer make
-      common / cst335 /make(k10)
-
       integer eos
       common/ cst303 /eos(k10)
 
@@ -647,7 +644,7 @@ c----------------------------------------------------------------------
 
       end
 
-      subroutine loadit (id,make,nchk)
+      subroutine loadit (id,lmake,nchk)
 c---------------------------------------------------------------------
 c loadit loads descriptive data for phases and species (name,comp,
 c and therm) into the appropriate arrays (names,comps,thermo,vf,
@@ -662,7 +659,7 @@ c---------------------------------------------------------------------
 
       integer id,i,j,k
 
-      logical make, nchk
+      logical lmake, nchk
 
       double precision gzero
       external gzero
@@ -858,7 +855,7 @@ c                               and just mobile components
          vnumu(i,id) = comp(ic(i+jprct))
       end do
 
-      if (make) return
+      if (lmake) return
 c                               if aqueous solute species store name and
 c                               compositional data in special arrays (in
 c                               principle may need vnumu as well).
@@ -3689,7 +3686,7 @@ c                                 scan for blanks:
 
       end
 
-      subroutine sattst (ifer,make,good)
+      subroutine sattst (ifer,lmake,good)
 c----------------------------------------------------------------------
 c sorts phases into the appropriate saturated phase list called by
 c input2. returns good if data is valid
@@ -3700,7 +3697,7 @@ c----------------------------------------------------------------------
 
       integer j,ifer,idc
 
-      logical good, make
+      logical good, lmake
 
       character name*8
       common/ csta6 /name
@@ -3763,7 +3760,7 @@ c                               the saturated component idc:
                if (iphct.gt.k1) call error (72,1d0,k1,
      *                            'SATTST increase parameter k1')
                ids(j,isct(j)) = iphct
-               call loadit (iphct,make,.true.)
+               call loadit (iphct,lmake,.true.)
 c                                set ltemp1 if a GFSM endmember
                if (ieos.gt.100.and.ieos.lt.200) ltemp1 = .true.
                good = .true.
@@ -3795,13 +3792,7 @@ c-----------------------------------------------------------------------
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
 
-      integer mknum, mkind, meos
-      double precision mkcoef, mdqf
-      common / cst334 /mkcoef(k16,k17),mdqf(k16,k17),mkind(k16,k17),
-     *                 mknum(k16),meos(k16)
 
-      integer make
-      common / cst335 /make(k10)
 c-----------------------------------------------------------------------
 
       jd = make(id)
@@ -6800,6 +6791,7 @@ c                                 initialize autorefine arrays
       stable(im) = .false.
       limit(im) = .false.
       lorch(im) = modres
+      mcflag(im) = .false.
 c                                 initialize compositional distances
       do i = 1, icp
          dcp(i,im) = 0d0
@@ -13229,10 +13221,10 @@ c-----------------------------------------------------------------------
       double precision gval, dg, g0(m14)
 
       double precision gex, gfesi, gfesic, gerk, gproj, ghybrid, gzero,
-     *                 gfecr1, gcpd, gfes, gmech, gexces
+     *                 gfecr1, gcpd, gfes, gmech, gexces, omega, gdqf
 
       external gerk, gzero, gex, gfesi, gfesic, gproj, ghybrid, gexces,
-     *         gcpd, gfes, gmech
+     *         gcpd, gfes, gmech, omega, gdqf
 
       integer icomp,istct,iphct,icp
       common/ cst6 /icomp,istct,iphct,icp
@@ -13346,6 +13338,22 @@ c                                 are computed for the p0 mass, this is
 c                                 ok, because the g will be normalized by 
 c                                 the static ctot value.
                g(id) = gexces(id) + dg + gmech(i)
+
+               id = id + 1
+
+            end do
+
+         else if (mcflag(i)) then
+
+c                                 initialize margules, enthalpy of
+c                                 ordering, internal dqfs (last for minfxc)
+            call ingsol (i)
+
+            do j = 1, jend(i,2)
+
+               call setxyp (i,id,bad)
+
+               g(id) = gdqf(i) - t * omega(i,pa) + gex(i,pa) + gmech(i)
 
                id = id + 1
 
@@ -18574,20 +18582,6 @@ c----------------------------------------------------------------------
 
       integer imaf,idaf
       common/ cst33 /imaf(i6),idaf(i6)
-
-      double precision mcomp
-      character mknam*8
-      integer nmak
-      logical mksat
-      common / cst333 /mcomp(k16,k0),nmak,mksat(k16),mknam(k16,k17)
-
-      double precision mkcoef, mdqf
-      integer mknum, mkind, meos
-      common / cst334 /mkcoef(k16,k17),mdqf(k16,k17),mkind(k16,k17),
-     *                 mknum(k16),meos(k16)
-
-      integer make
-      common / cst335 /make(k10)
 
       integer eos
       common/ cst303 /eos(k10)

@@ -30,7 +30,7 @@ new_font               serif    | For PerplexPDF.  Choices are "serif"/"sans"/"m
                                 | Specific font names (e.g, "Times") may also work correctly, 
                                 | depending on your system and the choice of plot_output_type
 
-grid                     F      | superpose a grid on the axes
+grid                     T      | superpose a grid on the axes
 half_ticks               T      | draw half-interval ticks on axes                    
 line_width               1.     | default line width in points, 0 - use minimum width lines for everything
 

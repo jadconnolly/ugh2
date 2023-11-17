@@ -17,9 +17,9 @@ old nin fnin
 
 begin_excess_function
 W(nin fnin) 36980 
-W(fnin old) 43300 
-W(old nin) 29190 
-W(old nin fnin) 2708
+|W(fnin old) 43300 
+|W(old nin) 29190 
+|W(old nin fnin) 2708
 end_excess_function
 
 1                                     1 site configurational entropy model
@@ -47,9 +47,9 @@ oldL ninL troL
 
 begin_excess_function
 W(ninL troL) 28590 
-W(troL oldL) -189400 
-W(oldL ninL) -724500 
-W(oldL ninL troL)  584500
+|W(troL oldL) -189400 
+|W(oldL ninL) -724500 
+|W(oldL ninL troL)  584500
 end_excess_function
 
 1                                     1 site configurational entropy model

@@ -1,0 +1,121 @@
+
+ | for documentation of Perple_X thermodynamic data file structure and content refer to:
+
+ | www.perplex.ethz.ch/perplex_thermodynamic_data_file.html
+
+ | comments are indicated by the | character.
+ | check for warnings at the end of the header section.
+ | make definition formats used in this file can only be read by Perple_X 6.7.3+
+
+Stefan           |<= data base title
+
+begin_standard_variables |<= name (<9 characters), reference value, tolerance
+P(bar)      1.00   0.1E-3
+T(K)      298.15   0.1E-4
+Y(CO2)      0.00   0.1E-6
+mu(C1)      0.00   0.1E-2
+mu(C2)      0.00   0.1E-2
+end_standard_variables
+
+tolerance  -.1E-2  |<= DTOL for unconstrained minimization, energy units
+
+begin_components   | < 6 chars, molar weight (g), elemental entropy (R)
+MgS     56.3695
+CaS     72.1425
+FeS     87.9095
+end_components
+
+begin_makes
+fnin = 1 tro
+       DQF(J/mol) = 1  + 0.001 * T_K
+end makes
+
+end
+
+
+tro_bad       EoS = 1  
+FeS(1)
+G0 = -117.982091706325d3
+S0 = 60.3206558417578
+V0 = 1
+c1 =-273.270 c2 = 779.182d-3 c3 = 81.241d5
+transition = 1 type = 2 t1  = 411  t4  = 72.358
+transition = 2 type = 2 t1  = 598  t4  = 94.584 t5 = -83.667d-3 t6 = 1.410d5 t7 = 47.944d-6
+
+
+end
+
+tro       EoS = 8  HSC valid 598-1465K
+FeS(1)
+G0 = -116685.71
+S0 = 66.25118000
+c1  = 94.584 c2 = -83.667d-3 c3 = 1.410d5 c4 = 47.944d-6
+                           | troilite volumetric EoS
+V0 = 1.819
+b1 = .573E-4 b5 = 254.2065 b6 = 658000 b7 = -.63E-5 b8 = 4.17  
+end
+
+troL       EoS = 8
+FeS(1)
+G0 = -90343.6684 S0 = 91.8589 
+c1 = 62.551
+                           | troilite volumetric EoS
+V0 = 1.819
+b1 = .573E-4 b5 = 254.2065 b6 = 658000 b7 = -.63E-5 b8 = 4.17  
+end
+
+old       EoS = 8  | MP = 2798 K
+CaS(1)
+G0 = -499.260131402266d3
+S0 = 56.500
+c1 = 46.291 c2 = 8.369d-3 c3 = -1.188d5
+                           | troilite volumetric EoS
+V0 = 1.819
+b1 = .573E-4 b5 = 254.2065 b6 = 658000 b7 = -.63E-5 b8 = 4.17  
+end
+
+oldL       EoS = 8  | Tm = 2526 C
+CaS(1)
+G0 = -328.5994d3 S0 = 30.39390000 
+c1 = 67
+                           | troilite volumetric EoS
+V0 = 1.819
+b1 = .573E-4 b5 = 254.2065 b6 = 658000 b7 = -.63E-5 b8 = 4.17  
+end
+
+nin       EoS = 8  HSC
+MgS(1)
+G0 =  -360.705e3 S0 = 50.330 
+c1 = 45.544 c2 = 8.756d-3 c3 = -2.307d5 V0 = 1
+                           | troilite volumetric EoS
+V0 = 1.819
+b1 = .573E-4 b5 = 254.2065 b6 = 658000 b7 = -.63E-5 b8 = 4.17  
+end
+
+ninL       EoS = 8  | Tm = 2225 C
+MgS(1)
+G0 = -317931.4720 S0 = 47.907 V0 = 1
+c1 = 67.000
+                           | troilite volumetric EoS
+V0 = 1.819
+b1 = .573E-4 b5 = 254.2065 b6 = 658000 b7 = -.63E-5 b8 = 4.17  
+end
+
+|fnin       EoS = 1  | full ternary model result 23/10/23
+|FeS(1)
+
+| full ternary model result 23/10/23
+| G0 = -121600  
+| S0 =  67.94
+
+| previous fm binary model result
+|G0 = -147248
+|S0 =  28.054
+
+|c1 = 75.4 
+|V0 = 1
+|end
+
+
+
+

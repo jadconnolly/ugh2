@@ -885,7 +885,7 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical check, bad, quit, notaq, abort
+      logical check, quit, notaq, abort
 
       integer idsol(k19),ksol(k19,k19),ids,xidsol,xksol,irep,jlist(k5),
      *        i,j,jdsol(k19,k19),jd,k,l,nkp(k19),xjdsol(k19),kk
@@ -3358,7 +3358,7 @@ c----------------------------------------------------------------------
 
       integer itri(4),jtri(4),ijpt
 
-      double precision wt(3), cum
+      double precision wt(3)
 
       double precision v,tr,pr,r,ps
       common/ cst5  /v(l2),tr,pr,r,ps

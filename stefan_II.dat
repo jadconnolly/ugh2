@@ -20,9 +20,9 @@ end_standard_variables
 tolerance  -.1E-2  |<= DTOL for unconstrained minimization, energy units
 
 begin_components   | < 6 chars, molar weight (g), elemental entropy (R)
-MgS     56.3695     
-CaS     72.1425    
-FeS     87.9095     
+MgS     56.3695
+CaS     72.1425
+FeS     87.9095
 end_components
 
 end

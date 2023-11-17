@@ -1,0 +1,510 @@
+| comments are preceded by the "|" character
+
+|                                 endmembers and solutions with free properties
+begin_phases
+fnin
+Nin
+melt
+end_phases
+
+|                                 list of observations to be used for inversion
+
+begin_exp
+
+tronin_1210_11
+
+1.0    -1   | pressure (bar)
+1483.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.210356639 .005
+FeS 0.789643361 .005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.502332624 .01
+FeS 0.375544222 .01
+end_comp
+
+melt
+
+begin_comp
+MgS 0.497667477 .004
+FeS 0.018978318 .006
+end_comp
+
+end_exp
+
+
+
+
+begin_exp         |2
+
+tronin 1210_81
+
+1.0    -1   | pressure (bar)
+1483.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.302909 .005
+FeS 0.697091 .005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.364970325 0.016431354
+FeS 0.635029675 0.017477133
+end_comp
+
+melt
+
+begin_comp
+MgS 0.013757167 0.009761646
+FeS 0.986242833 0.011809821
+end_comp
+
+end_exp         |2
+
+
+
+
+begin_exp         |2-l
+
+tronin 1210_re 1
+
+1.0    -1   | pressure (bar)
+1483.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.019120066 .005
+FeS 0.980879934 .005
+end_bulk
+
+melt
+
+begin_comp
+MgS 0.014190933 0.001392377
+FeS 0.985809067 0.0033972
+end_comp
+
+end_exp         |2-l
+
+begin_exp         |2-s
+
+tronin 1210_9
+
+1.0    -1   | pressure (bar)
+1483.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.512414898 .005
+FeS 0.487585102 .005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.518238603 0.006009431
+FeS 0.481761397 0.006885689
+end_comp
+
+end_exp         |2-s
+
+
+
+
+begin_exp         |3
+
+tronin 1210_re 51
+
+1.0    -1   | pressure (bar)
+1483.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.339342949 .005
+FeS 0.660657051 .005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.408742307 0.00335274
+FeS 0.591257693 0.004456496
+end_comp
+
+melt
+
+begin_comp
+MgS 0.016361198 0.001879896
+FeS 0.983638802 0.003981357
+end_comp
+
+end_exp         |3
+
+
+
+
+begin_exp         |4
+
+tronin 1200 fall 71
+
+1.0    -1   | pressure (bar)
+1463.15   | temperature (K)
+
+begin_bulk
+MgS 0.31779661 .005
+FeS 0.68220339 .005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.377042286 0.008910783
+FeS 0.622957714 0.010138068
+end_comp
+
+melt
+
+begin_comp
+MgS 0.01470605 0.003403621
+FeS 0.98529395 0.006401888
+end_comp
+
+end_exp         |4
+
+
+
+
+begin_exp         |4l
+
+tronin 1200 fall 11
+
+1.0    -1   | pressure (bar)
+1463.15   | temperature (K)
+
+begin_bulk
+MgS 0.020651954 .005
+FeS 0.979348046 .005
+end_bulk
+
+melt
+
+begin_comp
+MgS 0.020651954 0.003173592
+FeS 0.979348046 0.00573686
+end_comp
+
+end_exp         |4s
+
+
+
+begin_exp         |4l
+
+tronin 1200 fall 101
+
+1.0    -1   | pressure (bar)
+1463.15   | temperature (K)
+
+begin_bulk
+MgS 0.496150385 .005
+FeS 0.503849615 .005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.511220002 0.011784887
+FeS 0.488779998 0.013006356
+end_comp
+
+end_exp         |4s
+
+
+
+begin_exp         |5
+
+tronin 1295 31
+
+1.0    -1   | pressure (bar)
+1568.15   | temperature (K)
+
+begin_bulk
+MgS 0.351297447 .005
+FeS 0.648702553 .005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.560985861 0.004743295
+FeS 0.439014139 0.005516504
+end_comp
+
+melt
+
+begin_comp
+MgS 0.011662886 0.003943164
+FeS 0.988337114 0.005516504
+end_comp
+
+end_exp         |5
+
+
+
+
+
+begin_exp         |5l
+
+tronin 1295 7
+
+1.0    -1   | pressure (bar)
+1568.15   | temperature (K)
+
+begin_bulk
+MgS 0.027710369 .005
+FeS 0.972289631 .005
+end_bulk
+
+melt
+
+begin_comp
+MgS 0.028340522 0.021583094
+FeS 0.971659478 0.023977762
+end_comp
+
+end_exp         |5l
+
+
+
+
+
+begin_exp         |6
+
+tronin 1300-fall 211
+
+1.0    -1   | pressure (bar)
+1573.15   | temperature (K)
+
+begin_bulk
+MgS 0.3052 .005
+FeS 0.6948 .005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.527649276 0.010367922
+FeS 0.472350724 0.010367922
+end_comp
+
+melt
+
+begin_comp
+MgS 0.012803416 0.002324288
+FeS 0.987196584 0.002324288
+end_comp
+
+end_exp         |6
+
+
+
+begin_exp         |7
+
+tronin 1300-fall 411
+
+1.0    -1   | pressure (bar)
+1573.15   | temperature (K)
+
+begin_bulk
+MgS 0.1278 .005
+FeS 0.8722 .005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.528719675 0.003921532
+FeS 0.471280324 0.003921532
+end_comp
+
+melt
+
+begin_comp
+MgS 0.016948346 0.001900638
+FeS 0.983051654 0.001900638
+end_comp
+
+end_exp         |7
+
+
+
+
+begin_exp         |7l
+
+Tronin 1300_fall 11
+
+1.0    -1   | pressure (bar)
+1573.15   | temperature (K)
+
+begin_bulk
+MgS 0.0248 .005
+FeS 0.9752 .005
+end_bulk
+
+melt
+
+begin_comp
+MgS 0.020775547 0.005507896
+FeS 0.979224453 0.005507896
+end_comp
+
+end_exp         |7l
+
+
+
+
+begin_exp         |8
+
+tronin_1400-321
+
+1.0    -1   | pressure (bar)
+1673.15   | temperature (K)
+
+begin_bulk
+MgS 0.114261352 .005
+FeS 0.885738648 .005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.648648919 0.003273175
+FeS 0.351351081 0.003273175
+end_comp
+
+melt
+
+begin_comp
+MgS 0.072061921 0.005016482
+FeS 0.927938079 0.005016482
+end_comp
+
+end_exp         |8
+
+
+
+
+
+begin_exp         |8l
+
+tronin_1400-211
+
+1.0    -1   | pressure (bar)
+1673.15   | temperature (K)
+
+begin_bulk
+MgS 0.065104707 .005
+FeS 0.934895293 .005
+end_bulk
+
+melt
+
+begin_comp
+MgS 0.066577338 0.011588085
+FeS 0.933422662 0.011588085
+end_comp
+
+end_exp         |8l
+
+
+
+
+begin_exp         |9
+
+tronin_1550_21
+
+1.0    -1   | pressure (bar)
+1823.15   | temperature (K)
+
+begin_bulk
+MgS 0.161728352 .005
+FeS 0.838271648 .005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.862461031 0.029883772
+FeS 0.137538969 0.03019253
+end_comp
+
+melt
+
+begin_comp
+MgS 0.110768895 0.060248419
+FeS 0.889231105 0.065738819
+end_comp
+
+end_exp         |9
+
+
+
+
+begin_exp         |10
+
+tronin_1550_31
+
+1.0    -1   | pressure (bar)
+1823.15   | temperature (K)
+
+begin_bulk
+MgS 0.203365978 .005
+FeS 0.796634022 .005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.823855813 0.017623499
+FeS 0.176144187 0.018245151
+end_comp
+
+melt
+
+begin_comp
+MgS 0.099015725 0.017183028
+FeS 0.900984275 0.0223621
+end_comp
+
+end_exp         |10
+
+
+
+
+begin_exp         |10l
+
+tronin_1550_11
+
+1.0    -1   | pressure (bar)
+1823.15   | temperature (K)
+
+begin_bulk
+MgS 0.1212 .005
+FeS 0.8788 .005
+end_bulk
+
+melt
+
+begin_comp
+MgS 0.157928098 0.014430414
+FeS 0.842071902 0.019297531
+end_comp
+
+end_exp         |10l
+
+
+
+
