@@ -232,8 +232,8 @@ c                                 wL, wS, dqf_fnin = a_fnin + b_fin*T
 
       x(1:n) = 0.5d0
 
-      tol = 1d-8
-      step(1:n) = 5d-2
+      tol = 1d-6
+      step(1:n) = .25
       conchk = 10
       iprint = -1
       iquad = 1
@@ -244,7 +244,7 @@ c                                 wL, wS, dqf_fnin = a_fnin + b_fin*T
 c                                 number of initial starting conditions
       ntry = 100
 c                                 max number of objf evaluations
-      kcount = 10000
+      kcount = 1000000
 c                                 initialize drand
       call random_seed
 
