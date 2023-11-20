@@ -3322,9 +3322,8 @@ c-----------------------------------------------------------------------
       common/ cst4 /iam
 
       integer npt,jdv
-      logical fulrnk
       double precision cptot,ctotal
-      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt,fulrnk
+      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt
 
       integer jnd
       double precision aqg,qq,rt

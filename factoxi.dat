@@ -1,0 +1,106 @@
+hp62ver.dat     thermodynamic data file                                                                                                    
+no_print    | no_print suppresses print output
+plot     | obsolete 6.8.4+
+solution_model.dat     | solution model file, blank = none                                                                                                                                                                                                     
+Title Text                                                                                                                                                                                                                                                     
+perplex_option.dat     | Perple_X option file                                                                                                                                                                                                                  
+   10 calculation type: 0- composition, 1- Schreinemakers, 3- Mixed, 4- swash, 5- gridded min, 7- 1d fract, 8- gwash, 9- 2d fract, 10- 7 w/file input, 11- 9 w/file input, 12- 0d infiltration
+coor.dat     | coordinate file                                                                                                                                                                                                                                 
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 number component transformations
+   21 number of components in the data base
+    1 component amounts, 0 - mole, 1 mass
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 05
+   14 ifug EoS for saturated phase
+    2 gridded minimization dimension (1 or 2)
+    0 special dependencies: 0 - P and T independent, 1 - P(T), 2 - T(P)
+ 0.00000      0.00000      0.00000      0.00000      0.00000     Geothermal gradient polynomial coeffs.
+
+begin thermodynamic component list
+Na2O  1  2.1842     0.00000      0.00000     mass amount
+MgO  1  7.045     0.00000      0.00000     mass amount
+Al2O3  1  15.9988     0.00000      0.00000     mass amount
+SiO2  1  48.9034     0.00000      0.00000     mass amount
+K2O  1  0.36436     0.00000      0.00000     mass amount
+CaO  1  10.7747     0.00000      0.00000     mass amount
+TiO2  1  1.4364     0.00000      0.00000     mass amount
+FeO  1  10.1841     0.00000      0.00000     mass amount
+O2   1   0.1041     0.00000      0.00000     mass amount
+H2O  1  2.9519     0.00000      0.00000     mass amount
+CO2  1  0.15716     0.00000      0.00000     mass amount
+end thermodynamic component list
+
+
+begin saturated component list
+end saturated component list
+
+
+begin saturated phase component list
+end saturated phase component list
+
+
+begin independent potential/fugacity/activity list
+end independent potential list
+
+
+begin excluded phase list
+lc
+vsv
+lrn
+merw
+k2o
+kcym
+fo8L
+h2oL
+tats
+pa
+east
+mgts
+nasGL
+ames
+afchl
+kals
+kalGL
+stlb
+end excluded phase list
+
+
+begin solution phase list
+F
+San
+feldspar
+Stlp(M)
+Atg(PN)
+cAmph(G)
+Omph(GHP)
+Mica(W)
+Pl(h)
+Ctd(W)
+hCrd
+Bi(W)
+Opx(W)
+Chl(HP)
+T
+oCcM(EF)
+Gt(W)
+Sp(HP)
+O(HP)
+A-phase
+Pu
+end solution phase list
+
+   5500.00        0.00000        0.00000        0.00000        0.00000     max p, t, xco2, mu_1, mu_2
+   5400.00        0.00000        0.00000        0.00000        0.00000     min p, t, xco2, mu_1, mu_2
+   0.00000        0.00000        0.00000        0.00000        0.00000     unused place holder post 06
+
+ 1  2  4  5  3   indices of 1st & 2nd independent & sectioning variables

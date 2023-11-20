@@ -317,9 +317,8 @@ c-----------------------------------------------------------------------
       external readyn
 
       integer npt,jdv
-      logical fulrnk
       double precision cptot,ctotal
-      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt,fulrnk
+      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt
 
       character cname*5
       common/ csta4 /cname(k5)
@@ -559,9 +558,8 @@ c-----------------------------------------------------------------------
       double precision iblk(k5), errr(k5)
 
       integer npt,jdv
-      logical fulrnk
       double precision cptot,ctotal
-      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt,fulrnk
+      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt
 
       integer icont
       double precision dblk,cx
@@ -711,9 +709,8 @@ c-----------------------------------------------------------------------
       common/ cxt46 /x, y
 
       integer npt,jdv
-      logical fulrnk
       double precision cptot,ctotal
-      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt,fulrnk
+      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp

@@ -5619,7 +5619,7 @@ c-----------------------------------------------------------------------
 
       integer id
 
-      logical order, bad
+      logical order
 
       double precision gg
 
@@ -15028,9 +15028,8 @@ c----------------------------------------------------------------------
       common/ cst313 /a(k5,k1),b(k5),c(k1),is(k1+k5)
 
       integer npt,jdv
-      logical fulrnk
       double precision cptot,ctotal
-      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt,fulrnk
+      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt
 c----------------------------------------------------------------------
       call getnam (name,ukp)
 

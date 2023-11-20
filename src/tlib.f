@@ -9888,9 +9888,8 @@ c-----------------------------------------------------------------------
       integer i,j
 
       integer npt,jdv
-      logical fulrnk
       double precision cptot,ctotal
-      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt,fulrnk
+      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt
 
       integer is
       double precision a,b,c

@@ -23,9 +23,8 @@ c----------------------------------------------------------------------
       external readyn, mcobjf, mcobj1
 
       integer npt,jdv
-      logical fulrnk
       double precision cptot,ctotal
-      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt,fulrnk
+      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt
 
       double precision atwt
       common/ cst45 /atwt(k0) 
@@ -182,9 +181,8 @@ c----------------------------------------------------------------------
       external readyn, mcobj2
 
       integer npt,jdv
-      logical fulrnk
       double precision cptot,ctotal
-      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt,fulrnk
+      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt
 
       double precision atwt
       common/ cst45 /atwt(k0) 
@@ -235,7 +233,7 @@ c                                 wL, wS, dqf_fnin = a_fnin + b_fin*T
       tol = 1d-6
       step(1:n) = .25
       conchk = 10
-      iprint = -1
+      iprint = 0
       iquad = 1
       ibest = 0
       igood = 0
@@ -244,12 +242,13 @@ c                                 wL, wS, dqf_fnin = a_fnin + b_fin*T
 c                                 number of initial starting conditions
       ntry = 100
 c                                 max number of objf evaluations
-      kcount = 1000000
+      kcount = 500
 c                                 initialize drand
       call random_seed
 
       do i = 1, ntry
 
+         write (*,'(80(''-''))')
          write (*,1080) i, x(1:n)
 
          call minim (x, step, n, objf, kcount, iprint, tol, 
@@ -257,7 +256,9 @@ c                                 initialize drand
 
          if (ifault.ne.0) then 
 
-            write (*,1020) ifault,igood,icount
+            write (*,'(80(''-''))')
+            write (*,1020) ifault,igood
+            write (*,'(80(''-''))')
 
          else
 
@@ -270,6 +271,7 @@ c                                 initialize drand
 
                write (*,1030) x(1:n)
                write (*,1050) icount, igood
+               write (*,1110) ibest, bstobj
 
             end if
 c                               new starting point
@@ -295,7 +297,7 @@ c                               new starting point
 1050  format ('Number of function evaluations: ',i5,
      *        ' igood = ',i3,' icount = ',i5)
 1100  format (i3,' Successes in ',i4,' tries.')
-1110  format ('Best result was search ',i3,' objf =',g12.6)
+1110  format (/,'Best result was search ',i3,' objf =',g12.6,/)
 1060  format (/,'Enter ',a,' amounts of the components:')
 1070  format (/,'Enter (zeroes to quit) ',7(a,1x))
 
@@ -667,9 +669,8 @@ c-----------------------------------------------------------------------
       integer i, j, k
 
       integer npt,jdv
-      logical fulrnk
       double precision cptot,ctotal
-      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt,fulrnk
+      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt
 
       integer is
       double precision a,b,c
@@ -724,9 +725,8 @@ c-----------------------------------------------------------------------
       integer i, id
 
       integer npt,jdv
-      logical fulrnk
       double precision cptot,ctotal
-      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt,fulrnk
+      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt
 
       integer is
       double precision a,b,c
@@ -1802,7 +1802,7 @@ c-----------------------------------------------------------------------
       double precision wgl, wkl, vlar
       common/ cxt2r /wgl(m3,m1,h9),wkl(m16,m17,m18,h9),vlar(m3,m4,h9)
 c-----------------------------------------------------------------------
-      write (*,'(5(f9.6,1x))') x(1:5)
+c     write (*,'(5(f14.6,1x))') x(1:4)
 c                                 set the cpd dqf's
       do i = 1, mccpd
          mdqf(make(mcid(i)),1) = -5d3 + x(1) * 1d4
@@ -1957,7 +1957,7 @@ c                                 missing phase residual
 c                                 accumulate scores
          obj = obj + lobj
 
-         write (*,'(i3,1x,2(g12.6,1x,a))') id, lobj, xptnam(id),obj
+c        write (*,'(i3,1x,2(g12.6,1x,a))') id, lobj, xptnam(id),obj
 
       end do
 
