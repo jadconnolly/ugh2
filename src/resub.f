@@ -3422,8 +3422,6 @@ c    *                                ,'----------------------------'
 c     end if 
 
       if (idead.eq.0) then
-
-         write (*,*) 'oink'
 c                                 compute derivative properties
          call getloc (itri,jtri,ijpt,wt,nodata)
 
