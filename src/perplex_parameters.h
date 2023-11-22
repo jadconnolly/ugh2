@@ -576,7 +576,7 @@ c                                 LP workspace into common
       common/ cst67 /pblk(k5,k5), eblk(k5,k5), pmode(k5), emode(k5),
      *               pids(k5), mphase
 
-      logical mcpert, mcflag
+      logical mcpert, mcflag, oprt
       integer mxpt, cxpt, xptids, xptptr, xptnph, mccpd, mcsol, mcid, 
      *        mcids, msloc, msolct
       character xptnam*18
@@ -589,7 +589,7 @@ c                                  integer
      *               mcid(l12), mcids(l13), msolct(l11,h9), 
      *               msloc(l11,k5),
 c                                  logical
-     *               mcpert, mcflag(h9),
+     *               mcpert, oprt, mcflag(h9),
 c                                  character
      *               xptnam(l11)
 
@@ -606,3 +606,11 @@ c                                  character
 
       integer make
       common / cst335 /make(k10)
+
+      double precision wgl, wkl, vlar
+      common/ cxt2r /wgl(m3,m1,h9),wkl(m16,m17,m18,h9),vlar(m3,m4,h9)
+
+
+      integer icont
+      double precision dblk,cx
+      common/ cst314 /dblk(3,k5),cx(2),icont

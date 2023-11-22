@@ -45,11 +45,12 @@ transition = 2 type = 2 t1  = 598  t4  = 94.584 t5 = -83.667d-3 t6 = 1.410d5 t7 
 
 end
 
-tro       EoS = 8  HSC valid 598-1465K
+tro       EoS = 8  HSC valid 598-1465K, >1465 constant Cp
 FeS(1)
 G0 = -116685.71
 S0 = 66.25118000
 c1  = 94.584 c2 = -83.667d-3 c3 = 1.410d5 c4 = 47.944d-6
+transition = 1 type = 2 t1  = 1465  t4  = 74.976
                            | troilite volumetric EoS
 V0 = 1.819
 b1 = .573E-4 b5 = 254.2065 b6 = 658000 b7 = -.63E-5 b8 = 4.17  

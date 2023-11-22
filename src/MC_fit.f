@@ -4,7 +4,7 @@ c Copyright (c) 1987-2023 by James A. D. Connolly, Institute for Mineralogy
 c & Petrography, Swiss Federal Insitute of Technology, CH-8092 Zurich,
 c SWITZERLAND. All rights reserved. 
 
-      program mc_inv
+      program MC_fit
 c----------------------------------------------------------------------
       implicit none
 

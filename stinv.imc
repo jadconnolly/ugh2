@@ -1,5 +1,21 @@
 | comments are preceded by the "|" character
 
+| MC_inverter, the mode and expected format of the *.imc file is 
+| determined by the following flag:
+
+T      | invxpt, T => invert experimental data, F => inverse thermobarometry
+
+| Nelder-Meade MINIM algorithm parameters
+
+10     | ntry, number of starting guesses
+1d-7   | tol, by trial and error
+1d-6   | simplx, trial and error
+0.4    | frac, fractional step size
+10     | conchk, how often to check for convergence
+0      | iprint, 0 => normal print, < 0 => silent, > 0 => verbose
+1      | iquad, 1 => fit surface tp minimum, 0 => don't fit 
+500    | kcount, max # of objective evaluations per try, recommended nparm*1024
+
 |                                 endmembers and solutions with free properties
 begin_phases
 fnin
@@ -8,6 +24,54 @@ melt
 end_phases
 
 |                                 list of observations to be used for inversion
+
+begin_exp
+            | this pseudo-experiment is assures that tro
+            | is stable in the FeS system below its melting point
+pseudo_experiment
+
+1.0    -1   | pressure (bar)
+1464 5      | temperature (K)
+
+begin_bulk
+FeS 1.0 .005
+end_bulk
+
+tro
+
+end_exp
+
+
+begin_exp
+
+rejection_test_case
+
+1.0    -1   | pressure (bar)
+1483.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.210356639 .005
+FeS 0.789643361 .005
+CaS 0.3333
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.375544 0.009984476
+FeS 0.624456 0.011055336
+end_comp
+
+melt
+
+begin_comp
+MgS 0.018978318 0.004121099
+FeS 0.981021682 0.006023739
+end_comp
+
+end_exp
+
+
 
 begin_exp
 
@@ -36,8 +100,6 @@ FeS 0.981021682 0.006023739
 end_comp
 
 end_exp
-
-
 
 
 begin_exp         |2

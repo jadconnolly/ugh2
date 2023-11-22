@@ -106,11 +106,8 @@ c-----------------------------------------------------------------------
       common/ cst43 /comp(k0),tot,icout(k0),ikind,icmpn,ieos
 
       integer ic
-      common/ cst42 /ic(k0)
 
-      integer icont
-      double precision dblk,cx
-      common/ cst314 /dblk(3,k5),cx(2),icont
+      common/ cst42 /ic(k0)
 
       integer cl
       character cmpnt*5, dname*80
@@ -1799,10 +1796,6 @@ c---------------------------------------------------------------------------
       integer ids,isct,icp1,isat,io2
       common/ cst40 /ids(h5,h6),isct(h5),icp1,isat,io2
 
-      integer icont
-      double precision dblk,cx
-      common/ cst314 /dblk(3,k5),cx(2),icont
-
       integer ipot,jv,iv
       common/ cst24 /ipot,jv(l2),iv(l2)
 
@@ -1956,7 +1949,7 @@ c                                 ======================================
 c                                 for 1d calculations get the independent
 c                                 variable, currently composition is not
 c                                 allowed. 
-         call getxvr (ivct,jvct,icont,jc,oned,'the independent')
+         call getxvr (ivct,jvct,jc,oned,'the independent')
 c                                 get sectioning variables values:
          do j = 1, ivct
             if (iv(j).eq.jc) cycle 
@@ -1979,8 +1972,7 @@ c                                  fractionation, also write the grid blurb
 c                                  1-d "gridded min" from a file, only allow p-t
          icont = 1
 
-         call getxvr (ivct,jvct,icont,jc,oned,
-     *                                'the independent path')
+         call getxvr (ivct,jvct,jc,oned,'the independent path')
 
       else if (icopt.eq.9.or.icopt.eq.11) then
 c                                  2-d fractionation, only allow p and t
@@ -1988,7 +1980,7 @@ c                                  2-d fractionation, only allow p and t
          jvct = 1
          icont = 0 
 c                                  choose the primary variable (IV(1)):
-         call getxvr (ivct,jvct,icont,jc,oned,
+         call getxvr (ivct,jvct,jc,oned,
      *                'the primary (usually pressure)')
 
       else if (icopt.eq.6) then 
@@ -2022,7 +2014,7 @@ c                                  gridded minimization:
             icont = 1
             icopt = 5
 c                                  Select the x variable
-            call getxvr (ivct,jvct,icont,jc,oned,'x-axis')
+            call getxvr (ivct,jvct,jc,oned,'x-axis')
 
             if (ivct.eq.2.and.icont.eq.1) then 
 c                                 there is no C variable and there 
@@ -2091,8 +2083,7 @@ c                                 getxvar
             icont = icp
             icp = 0
 c                                 get the independent potential
-            call getxvr (ivct,jvct,icont,jc,oned,
-     *                                          'independent potential')
+            call getxvr (ivct,jvct,jc,oned,'independent potential')
 c                                 reset icp, icont
             icp = icont
             icont = 3
@@ -2142,7 +2133,7 @@ c                                  convert to internal values
 
          if (icopt.eq.1) then
 c                                  Select the x variable (IV(1)):
-            call getxvr (ivct,jvct,icont,jc,oned,'x-axis')
+            call getxvr (ivct,jvct,jc,oned,'x-axis')
 c                                  select the y variable (iv(2)):
             if (ivct.gt.2) then
  
@@ -2186,7 +2177,7 @@ c                                  specify sectioning variables (iv(3)):
 
          else if (icopt.eq.3) then
 c                                  select the y variable (iv(1)):
-            call getxvr (ivct,jvct,icont,jc,oned,'y-axis')
+            call getxvr (ivct,jvct,jc,oned,'y-axis')
 c                                  specify sectioning variable (iv(2)):
             do j = 2, ivct
                call redvar (j,2) 
@@ -2438,7 +2429,7 @@ c                                 open c-space
       end 
 
 
-      subroutine getxvr (ivct,jvct,icont,jc,oned,text)
+      subroutine getxvr (ivct,jvct,jc,oned,text)
 c----------------------------------------------------------------------
 c read primary variable 
 c----------------------------------------------------------------------
@@ -2450,7 +2441,7 @@ c----------------------------------------------------------------------
 
       logical oned
 
-      integer j,ivct, ier, ix, jc, icont, jvct, jcont
+      integer j, ivct, ier, ix, jc, jvct, jcont
 
       integer ifct,idfl
       common/ cst208 /ifct,idfl

@@ -37,7 +37,7 @@ Project("{6989167D-11E4-40FE-8C1A-2192A86A7E90}") = "actcor", "actcor.vfproj", "
 EndProject
 Project("{6989167D-11E4-40FE-8C1A-2192A86A7E90}") = "hptover", "hptover.vfproj", "{9F30CF4B-A25A-4CB6-8796-212728F90CB2}"
 EndProject
-Project("{6989167D-11E4-40FE-8C1A-2192A86A7E90}") = "mcfitr", "mcfitr.vfproj", "{37D1579C-9E5D-4578-BF10-68BCCF2C8125}"
+Project("{6989167D-11E4-40FE-8C1A-2192A86A7E90}") = "MC_fit", "MC_fit.vfproj", "{37D1579C-9E5D-4578-BF10-68BCCF2C8125}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

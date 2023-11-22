@@ -369,10 +369,6 @@ c---------------------------------------------------------------------
       integer ipot,jv,iv1,iv2,iv3,iv4,iv5
       common / cst24 /ipot,jv(l2),iv1,iv2,iv3,iv4,iv5
 
-      integer icont
-      double precision dblk,cx
-      common/ cst314 /dblk(3,k5),cx(2),icont
-
       integer jvar
       double precision var,dvr,vmn,vmx
       common/ cxt18 /var(l3),dvr(l3),vmn(l3),vmx(l3),jvar

@@ -6439,9 +6439,6 @@ c                                 excess energy variables
       integer jterm, jord, extyp, rko, jsub
       common/ cxt2i /jterm(h9),jord(h9),extyp(h9),rko(m1,h9),
      *               jsub(m2,m1,h9)
-
-      double precision wgl, wkl, vlar
-      common/ cxt2r /wgl(m3,m1,h9),wkl(m16,m17,m18,h9),vlar(m3,m4,h9)
 c                                 working arrays
       double precision z, pa, p0a, x, w, y, wl, pp
       common/ cxt7 /y(m4),z(m4),pa(m4),p0a(m4),x(h4,mst,msp),w(m1),
@@ -6708,9 +6705,6 @@ c                                 excess energy variables
       integer jterm, jord, extyp, rko, jsub
       common/ cxt2i /jterm(h9),jord(h9),extyp(h9),rko(m1,h9),
      *               jsub(m2,m1,h9)
-
-      double precision wgl, wkl, vlar
-      common/ cxt2r /wgl(m3,m1,h9),wkl(m16,m17,m18,h9),vlar(m3,m4,h9)
 
       double precision dppp,d2gx,sdzdp
       common/ cxt28 /dppp(j3,j3,m1,h9),d2gx(j3,j3),sdzdp(j3,m11,m10,h9)
@@ -9871,9 +9865,6 @@ c--------------------------------------------------------------------------
       integer jterm, jord, extyp, rko, jsub
       common/ cxt2i /jterm(h9),jord(h9),extyp(h9),rko(m1,h9),
      *               jsub(m2,m1,h9)
-
-      double precision wgl, wkl, vlar
-      common/ cxt2r /wgl(m3,m1,h9),wkl(m16,m17,m18,h9),vlar(m3,m4,h9)
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
@@ -18532,10 +18523,6 @@ c----------------------------------------------------------------------
       character name*8
       common/ csta6 /name
 
-      integer icont
-      double precision dblk,cx
-      common/ cst314 /dblk(3,k5),cx(2),icont
-
       integer ifct,idfl
       common/ cst208 /ifct,idfl
 
@@ -19220,8 +19207,7 @@ c                                 got one
      *      /,'is a fluid. Possible courses of action are:',//,4x,
      *        '1) exclude ',a,' and restart.',/,4x,
      *        '2) remove the phase saturation constraint and restart.',/
-     *    ,4x,'3) ignore this warning and continue execution.',//,
-     *        'Continue (Y/N)?')
+     *    ,4x,'3) ignore this warning and continue execution.',//)
 1070  format (/,'**warning ver534** ',a,' is a molecular fluid species '
      *       ,'the presence of which is ',/,'inconsistent with existe',
      *        'nce of molecular fluid species in the saturated ',/,
@@ -19267,10 +19253,6 @@ c---------------------------------------------------------------------
       integer jvar
       double precision var,dvr,vmn,vmx
       common/ cxt18 /var(l3),dvr(l3),vmn(l3),vmx(l3),jvar
-
-      integer icont
-      double precision dblk,cx
-      common/ cst314 /dblk(3,k5),cx(2),icont
 c----------------------------------------------------------------------
 
       if (icont.eq.1) then 
@@ -19333,10 +19315,6 @@ c---------------------------------------------------------------------
       integer jvar
       double precision var,dvr,vmn,vmx
       common/ cxt18 /var(l3),dvr(l3),vmn(l3),vmx(l3),jvar
-
-      integer icont
-      double precision dblk,cx
-      common/ cst314 /dblk(3,k5),cx(2),icont
 
       logical fileio, flsh, anneal, verbos, siphon
       integer ncol, nrow
@@ -19421,10 +19399,6 @@ c---------------------------------------------------------------------
       include 'perplex_parameters.h'
 
       integer i
-
-      integer icont
-      double precision dblk,cx
-      common/ cst314 /dblk(3,k5),cx(2),icont
 c----------------------------------------------------------------------
 
       do i = 1, jbulk

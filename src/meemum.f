@@ -49,10 +49,6 @@ c----------------------------------------------------------------------
       double precision goodc, badc
       common/ cst20 /goodc(3),badc(3)
 
-      integer icont
-      double precision dblk,cx
-      common/ cst314 /dblk(3,k5),cx(2),icont
-
       integer iam
       common/ cst4 /iam
 c----------------------------------------------------------------------- 
