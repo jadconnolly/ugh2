@@ -19316,9 +19316,10 @@ c---------------------------------------------------------------------
       double precision var,dvr,vmn,vmx
       common/ cxt18 /var(l3),dvr(l3),vmn(l3),vmx(l3),jvar
 
-      logical fileio, flsh, anneal, verbos, siphon
+      logical fileio, flsh, anneal, verbos, siphon, colcmp, usecmp
       integer ncol, nrow
-      common/ cst226 /ncol,nrow,fileio,flsh,anneal,verbos,siphon
+      common/ cst226 /ncol,nrow,fileio,flsh,anneal,verbos,siphon,
+     *                usecmp, colcmp
 
       integer iam
       common/ cst4 /iam
