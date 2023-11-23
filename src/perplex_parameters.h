@@ -578,13 +578,13 @@ c                                 LP workspace into common
 
       logical mcpert, mcflag, oprt
       integer mxpt, cxpt, xptids, xptptr, xptnph, mccpd, mcsol, mcid, 
-     *        mcids, msloc, msolct
+     *        mcids, msloc, msolct, nparm
       character xptnam*18
       double precision xptpt, xptblk, xptc
 
       common/ cst68 /xptpt(l11,l2), xptblk(l11,k5), xptc(k5*l11),
 c                                  integer
-     *               mccpd, mcsol, mxpt, cxpt,
+     *               mccpd, mcsol, mxpt, cxpt, nparm,
      *               xptids(l11,k5), xptptr(l11,k5), xptnph(l11),
      *               mcid(l12), mcids(l13), msolct(l11,h9), 
      *               msloc(l11,k5),

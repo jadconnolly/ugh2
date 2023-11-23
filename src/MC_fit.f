@@ -12,41 +12,9 @@ c----------------------------------------------------------------------
 
       logical invprb
 
-      character key*22, val*3, nval1*12, nval2*12, nval3*12,
-     *          strg*40, strg1*40
-
-      integer conchk, kcount, iprint, iquad, ntry, ier
+      integer conchk, kcount, iprint, iquad, ntry
 
       double precision tol, simplx, frac
-
-      integer npt,jdv
-      double precision cptot,ctotal
-      common/ cst78 /cptot(k19),ctotal,jdv(k19),npt
-
-      double precision atwt
-      common/ cst45 /atwt(k0) 
-
-      double precision v,tr,pr,r,ps
-      common/ cst5  /v(l2),tr,pr,r,ps
-
-      integer ipot,jv,iv
-      common / cst24 /ipot,jv(l2),iv(l2)
-
-      character*5 cname
-      common/ csta4 /cname(k5)
-
-      integer is
-      double precision a,b,c
-      common/ cst313 /a(k5,k1),b(k5),c(k1),is(k1+k5)
-
-      integer icomp,istct,iphct,icp
-      common/ cst6  /icomp,istct,iphct,icp
-
-      integer io3,io4,io9
-      common / cst41 /io3,io4,io9
-
-      double precision goodc, badc
-      common/ cst20 /goodc(3),badc(3)
 
       integer iam
       common/ cst4 /iam
@@ -55,6 +23,38 @@ c                                 MC_inv uses the MEEMUM iam flag value
       iam = 2
 c                                 initialization, read files etc.
       call iniprp
+c                                 open inversion problem file
+      call opnimc (invprb,ntry,tol,simplx,frac,conchk,iprint,iquad,
+     *             kcount)
+
+      if (invprb) then
+
+         call invxpt (ntry,tol,simplx,frac,conchk,iprint,iquad,kcount)
+
+      else
+
+         call invptx (ntry,tol,simplx,frac,conchk,iprint,iquad,kcount)
+
+      end if
+
+      end
+
+      subroutine opnimc (invprb,ntry,tol,simplx,frac,conchk,iprint,
+     *                   iquad, kcount)
+c----------------------------------------------------------------------
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      logical invprb
+
+      character key*22, val*3, nval1*12, nval2*12, nval3*12,
+     *          strg*40, strg1*40
+
+      integer conchk, kcount, iprint, iquad, ntry, ier
+
+      double precision tol, simplx, frac
+c----------------------------------------------------------------------- 
 c                                 open inversion problem file
       call mertxt (tfname,prject,'.imc',0)
       open (n8,file=tfname,status='old',iostat=ier)
@@ -86,16 +86,6 @@ c                                 read Nelder-Meade parameters
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
       read (key,*) kcount
 
-      if (invprb) then
-
-         call invxpt (ntry,tol,simplx,frac,conchk,iprint,iquad,kcount)
-
-      else
-
-         call invptx (ntry,tol,simplx,frac,conchk,iprint,iquad,kcount)
-
-      end if
-
       end
 
       subroutine invptx (ntry,tol,simplx,frac,conchk,iprint,iquad,
@@ -108,7 +98,7 @@ c----------------------------------------------------------------------
       integer i, n, conchk, kcount, icount, ifault, iprint,
      *        iquad, j, igood, ntry, ibest
 
-      logical readyn, invp
+      logical readyn
 
       character amount*6
 
@@ -247,14 +237,105 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
+      integer i, conchk, kcount, iprint,
+     *        iquad, j, k, ntry
+
+      logical invprb
+
+      double precision tol, simplx, frac, bstx(l2+k5), 
+     *                 x(200,l2+k5), sx(l2+k5), ss(l2+k5)
+c----------------------------------------------------------------------- 
+c                                 best model statistics for error evaluation
+      call mertxt (tfname,prject,'.bst',0)
+      open (n7,file=tfname)
+c                                 initialize drand
+c     call random_seed
+
+      nparm = 4
+c                                 get best model, 1st argument sets 
+c                                 random perturbation off, 2nd sets 
+c                                 output of all sucessful 
+      call bstmod (.false.,.true.,ntry,tol,simplx,frac,conchk,iprint,
+     *             iquad, kcount, bstx)
+
+      x(1,1:nparm) = bstx(1:nparm)
+
+      oprt = .false.
+
+      do i = 1, 50
+
+         call opnimc (invprb,ntry,tol,simplx,frac,conchk,iprint,iquad,
+     *                kcount)
+
+         call bstmod (.true.,.false.,ntry,tol,simplx,frac,conchk,iprint,
+     *                iquad, kcount, bstx)
+
+         x(1+i,1:nparm) = bstx(1:nparm)
+
+         sx(1:nparm) = 0d0
+         ss(1:nparm) = 0d0
+
+         do j = 1, 1 + i
+
+            do k = 1, nparm
+c                                 sum x
+               sx(k) = sx(k) + x(j,k)
+            end do
+
+         end do
+
+         do j = 1, 1 + i
+
+            do k = 1, nparm
+c                                 sum of squares
+               ss(k) = ss(k) + (x(j,k) - sx(k)/(i+1d0))**2
+
+            end do
+
+         end do
+
+         do k = 1, nparm
+c                                 standard deviation
+            ss(k) = dsqrt(ss(k)/(i))
+
+         end do
+
+         write (n7,'(20(g12.6,1x))') ss(1:nparm)
+
+      end do
+
+      close (n7)
+
+      stop
+
+1010  format (/,'Try: ',i4,/)
+1020  format (/,'Minimization FAILED, ifault = ',i3,', icount = ',i3,/)
+1030  format ('Final coordinates: ',5(g12.6,1x))
+1050  format (/,'Number of function evaluations: ',i5,', igood = ',i3,/)
+1080  format ('Initial normalized coordinates: ',5(g12.6,1x))
+1085  format ('Initial coordinates: ',5(g12.6,1x))
+1100  format (i3,' Successes in ',i4,' tries.')
+1110  format (/,'Best result so far is try ',i3,', bstobj = ',g12.6,/)
+1120  format ('ntry = ',i3,', igood = ',i3,', icount = ',i3,
+     *        ', obj = ',g12.6,', ibest = ',i3,', bestobj = ',g12.6)
+
+      end 
+
+      subroutine bstmod (randm,n6out,ntry,tol,simplx,frac,conchk,iprint,
+     *                   iquad, kcount, bstx)
+c----------------------------------------------------------------------
+      implicit none
+
+      include 'perplex_parameters.h'
+
       integer i, n, conchk, kcount, icount, ifault, iprint,
      *        iquad, j, igood, ntry, ibest
 
-      logical readyn, bad
+      logical readyn, bad, randm, n6out
 
       double precision var(l2+k5), objf, x(l2+k5), sx(l2+k5), x0(l2+k5),
      *                 tol, step(l2+k5), simplx, bstobj, frac, 
-     *                 bstx(l2+k5), bstvar(l2+k5)
+     *                 bstx(*), bstvar(l2+k5)
 
       external readyn, mcobj2
 
@@ -269,16 +350,11 @@ c----------------------------------------------------------------------
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
 c----------------------------------------------------------------------- 
-c                                 set flag for parameter perturbation
-      mcpert = .true.
 c                                 read experimental data and inversion candidates
-      call mcxpt (ntry,tol,simplx,frac,conchk,iprint,iquad,kcount)
-c                                 output file
-      call mertxt (tfname,prject,'.out',0)
-      open (n6,file=tfname)
+      call mcxpt (randm)
 c                                 parameters for inversion
 c                                 wL, wS, dqf_fnin = a_fnin + b_fin*T
-      n = 4
+      n = nparm
 
       sx(1:n) = 0.5d0
       step(1:n) = .25
@@ -293,8 +369,14 @@ c                                 wL, wS, dqf_fnin = a_fnin + b_fin*T
       step(3) = frac*1d5
       step(4) = frac*1d5
 
-      write (n6,*) 'tol/frac/simplx',tol, frac, simplx
-      write (n6,'(80(''-''))')
+      if (n6out) then 
+c                                 output file
+         call mertxt (tfname,prject,'.out',0)
+         open (n6,file=tfname)
+
+         write (n6,*) 'tol/frac/simplx',tol, frac, simplx
+         write (n6,'(80(''-''))')
+      end if 
 c                                 initialize drand
 c     call random_seed
 
@@ -303,12 +385,10 @@ c     call random_seed
          write (*,1010) i
          write (*,1080) sx(1:n)
 c                                 unscale
-
-            mdqf(make(mcid(1)),1) = -5d3 + sx(1) * 1d4
-            x(1) = mdqf(make(mcid(1)),1)
-            mdqf(make(mcid(1)),2) = -5d1 + sx(2) * 1d2
-            x(2) = mdqf(make(mcid(1)),2)
-
+         mdqf(make(mcid(1)),1) = -5d3 + sx(1) * 1d4
+         x(1) = mdqf(make(mcid(1)),1)
+         mdqf(make(mcid(1)),2) = -5d1 + sx(2) * 1d2
+         x(2) = mdqf(make(mcid(1)),2)
 
          do j = 1, mcsol
             wgl(1,1,mcids(j)) = -5d4 + sx(2+j) * 1d5
@@ -316,6 +396,8 @@ c                                 unscale
          end do
 
          x0 = x
+c                                 initialize icount in case of failure
+         icount = 0
 
          write (*,1085) x(1:n)
 
@@ -333,14 +415,16 @@ c                                 unscale
             if (objf.lt.bstobj) then 
                ibest = i
                bstobj = objf
-               bstx = x
+               bstx(1:n) = x(1:n)
                bstvar = var
             end if
 
-            write (n6,1120) i, igood, icount, objf, ibest, bstobj
-            write (n6,1085) x0(1:n)
-            write (n6,1030) x(1:n)
-            write (n6,'(80(''-''))')
+            if (n6out) then
+               write (n6,1120) i, igood, icount, objf, ibest, bstobj
+               write (n6,1085) x0(1:n)
+               write (n6,1030) x(1:n)
+               write (n6,'(80(''-''))')
+            end if
 
             write (*,1030) x(1:n)
             write (*,1050) icount, igood
@@ -356,18 +440,17 @@ c                               new starting point
       end do
 
 c                               print residuals for best model
-      x = bstx
+      x(1:n) = bstx(1:n)
       oprt = .true.
+c                               write best model to *.bst
+      write (n7,'(20(g12.6,1x))') bstx(1:n), bstobj
 
       call mcobj2 (x,objf,bad)
 
       write (*,1100) igood, ntry
       write (*,1110) ibest, bstobj
 
-      close (n6)
-      close (n8)
-
-      stop
+      if (n6out) close (n6)
 
 1010  format (/,'Try: ',i4,/)
 1020  format (/,'Minimization FAILED, ifault = ',i3,', icount = ',i3,/)
@@ -381,6 +464,7 @@ c                               print residuals for best model
      *        ', obj = ',g12.6,', ibest = ',i3,', bestobj = ',g12.6)
 
       end 
+
 
       subroutine mccomp
 c-----------------------------------------------------------------------
@@ -479,7 +563,34 @@ c                                 normalize to the icomp (>= icp) components
 
       end
 
-      subroutine mcxpt (ntry,tol,simplx,frac,conchk,iprint,iquad,kcount)
+      double precision function pertrb (num,err)
+c-----------------------------------------------------------------------
+c a function to add random error to num
+c-----------------------------------------------------------------------
+      implicit none
+
+      double precision num, err, x
+c
+      call random_number (x)
+
+      if (err.le.0d0) then
+
+         pertrb = num
+
+      else 
+
+         pertrb = num + 2d0*err*(x - 0.5d0)
+
+         if (pertrb.lt.0d0) then
+            pertrb = 0d0
+            write (*,*) 'oinky poinky'
+         end if
+
+      end if
+
+      end 
+
+      subroutine mcxpt (randm)
 c-----------------------------------------------------------------------
 c a subprogram to read auxilliary input file for MC inversion of exptal
 c data.
@@ -488,14 +599,16 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical ok, bad
+      logical ok, bad, randm
 
-      integer i, nph, ier, ids, iprint, iquad, conchk, ntry,kcount
+      integer i, nph, ier, ids
 
-      double precision tol, simplx, frac
+      double precision err, pertrb
 
       character key*22, val*3, nval1*12, nval2*12, nval3*12,
      *          strg*40, strg1*40
+
+      external pertrb
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
@@ -514,7 +627,6 @@ c-----------------------------------------------------------------------
          write (*,*) 'resetting composition_phase option to mol'
          iopt(2) = 0d0
       end if
-
 c                                 read solutions and compounds to be perturbed
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
 
@@ -591,10 +703,16 @@ c                               read expt p,t
          call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
 
          read (key,*) xptpt(mxpt,1)
+         read (val,*) err
+
+         if (randm) xptpt(mxpt,1) = pertrb (xptpt(mxpt,1),err)
 
          call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
 
          read (key,*) xptpt(mxpt,2)
+         read (val,*) err
+
+         if (randm) xptpt(mxpt,2) = pertrb (xptpt(mxpt,2),err)
 c                               read bulk composition
          call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
 
@@ -619,7 +737,8 @@ c                               read bulk composition
 
             if (.not.ok) bad = .true.
 
-            read (strg,*) xptblk(mxpt,i)
+            read (strg1,*) xptblk(mxpt,i), err
+            if (randm) xptblk(mxpt,i) = pertrb (xptblk(mxpt,i),err)
 
          end do
 
@@ -665,9 +784,8 @@ c                                 first case
 c                                 get solution composition
             call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
 
-            if (key.ne.'begin_comp') then
-               call errdbg ('invalid data, last read '//key)
-            end if
+            if (key.ne.'begin_comp') 
+     *         call errdbg ('invalid data, last read '//key)
 
             do
 
@@ -686,7 +804,9 @@ c                                 get solution composition
 
                if (.not.ok) bad = .true.
 
-               read (strg,*) xptc(cxpt+i)
+               read (strg1,*) xptc(cxpt+i), err
+
+               if (randm) xptc(cxpt+i) = pertrb (xptc(cxpt+i),err)
 
             end do
 c                                 pointer to the composition of phase nph in expt mexpt 
@@ -704,6 +824,8 @@ c                                 increment composition pointer
          end if
 c                                 next experiment
       end do
+
+      close (n8)
 
 1000  format (/,'warning ver502** observation: ',a,/,'has been rejecte',
      *          'd because it includes a component not specified in: ',
@@ -1901,9 +2023,9 @@ c                                 set the cpd dqf's
          wgl(1,1,mcids(i)) = -5d4 + x(2+i) * 1d5
       end do
 
-      do i = 1, 4
+      do i = 1, nparm
          if (x(i).lt.-1d99.or.x(i).gt.1d99) then
-            write (*,*) 'woo',x(1:4)
+            write (*,*) 'woo',x(1:nparm)
          end if
       end do
 

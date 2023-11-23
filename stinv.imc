@@ -7,7 +7,7 @@ T      | invxpt, T => invert experimental data, F => inverse thermobarometry
 
 | Nelder-Meade MINIM algorithm parameters
 
-10     | ntry, number of starting guesses
+50     | ntry, number of starting guesses
 1d-7   | tol, by trial and error
 1d-6   | simplx, trial and error
 0.4    | frac, fractional step size
@@ -31,45 +31,16 @@ begin_exp
 pseudo_experiment
 
 1.0    -1   | pressure (bar)
-1464 5      | temperature (K)
+1464   -1   | temperature (K)
 
 begin_bulk
-FeS 1.0 .005
+FeS 1.0 .0
 end_bulk
 
 tro
 
 end_exp
 
-
-begin_exp
-
-rejection_test_case
-
-1.0    -1   | pressure (bar)
-1483.15 5   | temperature (K)
-
-begin_bulk
-MgS 0.210356639 .005
-FeS 0.789643361 .005
-CaS 0.3333
-end_bulk
-
-Nin
-
-begin_comp
-MgS 0.375544 0.009984476
-FeS 0.624456 0.011055336
-end_comp
-
-melt
-
-begin_comp
-MgS 0.018978318 0.004121099
-FeS 0.981021682 0.006023739
-end_comp
-
-end_exp
 
 
 
@@ -214,7 +185,7 @@ begin_exp         |4
 tronin 1200 fall 71
 
 1.0    -1   | pressure (bar)
-1463.15   | temperature (K)
+1463.15  5  | temperature (K)
 
 begin_bulk
 MgS 0.31779661 .005
@@ -245,7 +216,7 @@ begin_exp         |4l
 tronin 1200 fall 11
 
 1.0    -1   | pressure (bar)
-1463.15   | temperature (K)
+1463.15 5   | temperature (K)
 
 begin_bulk
 MgS 0.020651954 .005
@@ -268,7 +239,7 @@ begin_exp         |4l
 tronin 1200 fall 101
 
 1.0    -1   | pressure (bar)
-1463.15   | temperature (K)
+1463.15 5   | temperature (K)
 
 begin_bulk
 MgS 0.496150385 .005
@@ -291,7 +262,7 @@ begin_exp         |5
 tronin 1295 31
 
 1.0    -1   | pressure (bar)
-1568.15   | temperature (K)
+1568.15  5  | temperature (K)
 
 begin_bulk
 MgS 0.351297447 .005
@@ -323,7 +294,7 @@ begin_exp         |5l
 tronin 1295 7
 
 1.0    -1   | pressure (bar)
-1568.15   | temperature (K)
+1568.15  5  | temperature (K)
 
 begin_bulk
 MgS 0.027710369 .005
@@ -348,7 +319,7 @@ begin_exp         |6
 tronin 1300-fall 211
 
 1.0    -1   | pressure (bar)
-1573.15   | temperature (K)
+1573.15  5  | temperature (K)
 
 begin_bulk
 MgS 0.3052 .005
@@ -378,7 +349,7 @@ begin_exp         |7
 tronin 1300-fall 411
 
 1.0    -1   | pressure (bar)
-1573.15   | temperature (K)
+1573.15 5   | temperature (K)
 
 begin_bulk
 MgS 0.1278 .005
@@ -409,7 +380,7 @@ begin_exp         |7l
 Tronin 1300_fall 11
 
 1.0    -1   | pressure (bar)
-1573.15   | temperature (K)
+1573.15 5   | temperature (K)
 
 begin_bulk
 MgS 0.0248 .005
@@ -433,7 +404,7 @@ begin_exp         |8
 tronin_1400-321
 
 1.0    -1   | pressure (bar)
-1673.15   | temperature (K)
+1673.15 5   | temperature (K)
 
 begin_bulk
 MgS 0.114261352 .005
@@ -465,7 +436,7 @@ begin_exp         |8l
 tronin_1400-211
 
 1.0    -1   | pressure (bar)
-1673.15   | temperature (K)
+1673.15  5  | temperature (K)
 
 begin_bulk
 MgS 0.065104707 .005
@@ -489,7 +460,7 @@ begin_exp         |9
 tronin_1550_21
 
 1.0    -1   | pressure (bar)
-1823.15   | temperature (K)
+1823.15 5   | temperature (K)
 
 begin_bulk
 MgS 0.161728352 .005
@@ -520,7 +491,7 @@ begin_exp         |10
 tronin_1550_31
 
 1.0    -1   | pressure (bar)
-1823.15   | temperature (K)
+1823.15  5  | temperature (K)
 
 begin_bulk
 MgS 0.203365978 .005
@@ -551,7 +522,7 @@ begin_exp         |10l
 tronin_1550_11
 
 1.0    -1   | pressure (bar)
-1823.15   | temperature (K)
+1823.15  5  | temperature (K)
 
 begin_bulk
 MgS 0.1212 .005
