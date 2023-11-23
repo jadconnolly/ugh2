@@ -2066,6 +2066,8 @@ c                                 locate end of keyword
                   if (jend.ge.com) exit
 c                                 write keyword
                   write (key,'(22a)',iostat=ier) chars(ibeg:jend)
+c                                 skip if it is a comment
+                  if (key(1:1).eq.'|') exit
                   if (ier.ne.0) call error (23,wg(1,1),ier,key)
 c                                 locate data
                   ibeg = iscnlt (jend+2,com,' ')
