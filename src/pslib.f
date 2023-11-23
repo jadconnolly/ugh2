@@ -1139,7 +1139,7 @@ c psline - subroutine to output a line (absolute).
  
 1000  format ('Begin %I Line')
 1010  format ('%I p',/,'0 SetP')
-1020  format ('%I',/,4(I6,1x),' Line',/,'End',/)
+1020  format ('%I',1p,4g12.4,0p,/,4(I6,1x),' Line',/,'End',/)
  
       end
 c------------------------------------------------------------------
