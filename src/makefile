@@ -57,7 +57,9 @@ all: $(MYOBJ)
 
 LIBRARY = pscom.o pslib.o rlib.o tlib.o flib.o olib.o resub.o minime_blas.o blas2lib.o
 
-LIBRARY_PS = cont_lib.o pscom.o pslib.o tlib.o
+LIBRARY_CONT = cont_lib.o
+
+LIBRARY_PS = $(LIBRARY_CONT) pscom.o pslib.o tlib.o
 
 clean: 
 	rm -f *.o $(MYOBJ)
@@ -77,8 +79,8 @@ vertex: vertex.o $(LIBRARY)
 werami: werami.o $(LIBRARY)
 	$(COMP77) $(FFLAGS) $(FLINK) $@.o $(LIBRARY) -o $@$(EXT)
 
-pssect: psect.o $(LIBRARY)
-	$(COMP77) $(FFLAGS) $(FLINK) psect.o $(LIBRARY) -o $@$(EXT)
+pssect: psect.o $(LIBRARY) $(LIBRARY_CONT)
+	$(COMP77) $(FFLAGS) $(FLINK) psect.o $(LIBRARY) $(LIBRARY_CONT) -o $@$(EXT)
 
 pstable: pstable.o $(LIBRARY_PS)
 	$(COMP77) $(FFLAGS) $(FLINK) $@.o $(LIBRARY_PS) -o $@$(EXT)
