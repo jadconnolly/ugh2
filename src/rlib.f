@@ -2063,7 +2063,7 @@ c                                 locate end of keyword
                   if (ibeg.ge.com) exit
 
                   jend = iscan (ibeg,com,'=') - 1
-                  if (jend.ge.com) exit
+                  if (jend.ge.com .or. ibeg.gt.jend) exit
 c                                 write keyword
                   write (key,'(22a)',iostat=ier) chars(ibeg:jend)
 c                                 skip if it is a comment
