@@ -93,6 +93,12 @@ c                                 read Nelder-Meade parameters
       read (key,*) iquad
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
       read (key,*) kcount
+      call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+      read (key,*) wcomp
+      call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+      read (key,*) wextra
+      call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+      read (key,*) wmiss
 
       end
 
@@ -422,7 +428,7 @@ c                                 initialize icount in case of failure
          call minim (x, step, n, objf, kcount, iprint, tol, 
      *               conchk, iquad, simplx, var, mcobj2, icount, ifault)
 
-         if (ifault.ne.0) then 
+         if (ifault.gt.2.or.(ifault.gt.0.and.objf.gt.1d0)) then 
 
             write (*,1020) ifault, icount
 
@@ -471,14 +477,14 @@ c                               write best model to *.bst
       if (n6out) close (n6)
 
 1010  format (/,'Try: ',i4,/)
-1020  format (/,'Minimization FAILED, ifault = ',i3,', icount = ',i3,/)
+1020  format (/,'Minimization FAILED, ifault = ',i3,', icount = ',i4,/)
 1030  format ('Final coordinates: ',5(g12.6,1x))
 1050  format (/,'Number of function evaluations: ',i5,', igood = ',i3,/)
 1080  format ('Initial normalized coordinates: ',5(g12.6,1x))
 1085  format ('Initial coordinates: ',5(g12.6,1x))
 1100  format (i3,' Successes in ',i4,' tries.')
 1110  format (/,'Best result so far is try ',i3,', bstobj = ',g12.6,/)
-1120  format ('ntry = ',i3,', igood = ',i3,', icount = ',i3,
+1120  format ('ntry = ',i3,', igood = ',i3,', icount = ',i4,
      *        ', obj = ',g12.6,', ibest = ',i3,', bestobj = ',g12.6)
 
       end 
@@ -1221,7 +1227,7 @@ c-----------------------------------------------------------------------
 
       integer i, j, l, kct(k5), ksol(k5,k5)
 
-      double precision x(*), obj, wcomp, wextra, wmiss, total, mpred
+      double precision x(*), obj, total, mpred
 
       double precision v,tr,pr,r,ps
       common/ cst5  /v(l2),tr,pr,r,ps
@@ -1255,12 +1261,6 @@ c                                 and can be streamlined for specific applicatio
       call meemum (bad)
 c                                 compute the objective function
       kct(1:mphase) = 0
-c                                 compositional residual weight
-      wcomp  = 1d0
-c                                 extra phase amount residual weight
-      wextra = 1d1
-c                                 missing phase residual weight
-      wmiss  = 1d1
 
       ok = .false. 
 
@@ -2333,8 +2333,7 @@ c-----------------------------------------------------------------------
 
       integer id, jd, ids, i, j, kct(k5), ksol(k5,k5), ibest
 
-      double precision x(*), lobj, wcomp, wextra, wmiss, mpred, 
-     *                 obj, score, best, res
+      double precision x(*), lobj, mpred, obj, score, best, res
 
       external score
 
