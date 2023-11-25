@@ -3028,7 +3028,7 @@ c                                 accordingly:
 49    format (/,'**error ver049** the order of solution model ',a,
      *        ' is too high, increase parameter m2 (',i2,').',/)
 50    format (/,'**error ver050** requested resolution ',
-     *          '(',f6.0,') for a component in solution:',a,/,
+     *          '(',1pg8.0,') for a component in solution:',a,/,
      *          'exceeds 1/MRES (MRES=',i5,') ',
      *          'reduce requested resolution or inrease',/,
      *          'MRES in routine CARTES',/)
