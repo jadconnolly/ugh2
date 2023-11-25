@@ -576,20 +576,23 @@ c                                 LP workspace into common
       common/ cst67 /pblk(k5,k5), eblk(k5,k5), pmode(k5), emode(k5),
      *               pids(k5), mphase
 
-      logical mcpert, mcflag, oprt
+      logical mcpert, mcflag, oprt, random
       integer mxpt, cxpt, xptids, xptptr, xptnph, mccpd, mcsol, mcid, 
-     *        mcids, msloc, msolct, nparm
+     *        mcids, msloc, msolct, nparm, nunc, mcpct, mcpid, mctrm,
+     *        mccoef, mccoid
       character xptnam*18
-      double precision xptpt, xptblk, xptc
+      double precision xptpt, xptblk, xptc, cprng, sprng
 
-      common/ cst68 /xptpt(l11,l2), xptblk(l11,k5), xptc(k5*l11),
+      common/ cst68 /xptpt(l11,l2), xptblk(l11,k5), xptc(k5*l11), 
+     *               cprng(l12,3,2),sprng(l13,m1,m3,2),
 c                                  integer
-     *               mccpd, mcsol, mxpt, cxpt, nparm,
+     *               mccpd, mcsol, mxpt, cxpt, nparm, nunc, mctrm(l13),
      *               xptids(l11,k5), xptptr(l11,k5), xptnph(l11),
      *               mcid(l12), mcids(l13), msolct(l11,h9), 
-     *               msloc(l11,k5),
+     *               msloc(l11,k5), mcpct(l12), mcpid(l12,3),
+     *               mccoef(l12,m1), mccoid(l12,m1,m3),
 c                                  logical
-     *               mcpert, oprt, mcflag(h9),
+     *               mcpert, oprt, mcflag(h9), random,
 c                                  character
      *               xptnam(l11)
 

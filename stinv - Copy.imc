@@ -5,9 +5,16 @@
 
 T      | invxpt, T => invert experimental data, F => inverse thermobarometry
 
-| Nelder-Meade MINIM algorithm parameters
 
-50     | ntry, number of starting guesses
+| variable related to the evaluation of parameter uncertainties:
+
+50     | nunc, number of iteration to evaluate uncertainities, the time cost 
+       | is proportional to nunc + 1, set to zero for no uncertainty evaluation
+
+| Nelder-Meade MINIM algorithm variables
+
+
+100    | ntry, number of starting guesses
 1d-7   | tol, by trial and error
 1d-6   | simplx, trial and error
 0.4    | frac, fractional step size
@@ -16,18 +23,43 @@ T      | invxpt, T => invert experimental data, F => inverse thermobarometry
 1      | iquad, 1 => fit surface tp minimum, 0 => don't fit 
 500    | kcount, max # of objective evaluations per try, recommended nparm*1024
 
-|                                 endmembers and solutions with free properties
-begin_phases
-fnin
-Nin
-melt
-end_phases
 
-|                                 list of observations to be used for inversion
+                                 | endmembers and solutions with free parameters
+                                 | each endmemember or solution model is followed by 
+                                 | a parameters keyword and value indicating its 
+                                 | free parameters
+
+1234567890123456789012
+begin_phase_free_parameters
+
+
+fnin                             | compounds must be specified by a make definition from one or more real entities, the 
+                                 | parameters specified here define the DQF for the make definition
+parameter a                      | a is the constant term in the DQF = a + b*T + c*P
+range -1e5 1e5                   | allowed range for a
+parameter b                      | b is the temperature coefficient (as above)
+range -1e2 1e2                   | allowed range for b
+end_list
+
+Nin                              | for solution models the interaction terms of the model may be specified as free parameters
+parameter nin fnin               | nin fnin indicates the second order binary nin-fnin interaction term in solution model Nin is free.
+range -5e5 5e5                   | allowed range for W(nin fnin)
+end_list
+
+melt
+parameter ninL troL
+range -5e5 5e5
+end_list
+
+end_phase_free_parameters
+
+                                 | the remainder of the file lists the observations to be used for inversion
+                                 | all numerical quantities are followed by their uncertainties (<=0 indicates no uncertainty)
+
 
 begin_exp
-            | this pseudo-experiment is assures that tro
-            | is stable in the FeS system below its melting point
+                                 | this is pseudo-experiment included to assure that tro
+                                 | is stable in the FeS system below its melting point (1465 K)
 pseudo_experiment
 
 1.0    -1   | pressure (bar)
@@ -48,7 +80,7 @@ begin_exp
 
 tronin_1210_11
 
-1.0    -1   | pressure (bar)
+1.0     0   | pressure (bar)
 1483.15 5   | temperature (K)
 
 begin_bulk

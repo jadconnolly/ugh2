@@ -66,11 +66,19 @@ c                                 read problem type flag
 
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
       if (key.ne.'T'.and.key.ne.'t') invprb = .false.
-
-c                                 read Nelder-Meade parameters
+c                                 make new seed for random number generator
+      random = .true.
 
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+      if (key.ne.'T'.and.key.ne.'t') random = .false.
+c                                 number of starting guesses used for each
+c                                 Nelder-Meade inverse problem
+      call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
       read (key,*) ntry
+c                                 error evaluation loop counter
+      call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+      read (key,*) nunc
+c                                 read Nelder-Meade parameters
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
       read (key,*) tol
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
@@ -249,9 +257,7 @@ c                                 best model statistics for error evaluation
       call mertxt (tfname,prject,'.bst',0)
       open (n7,file=tfname)
 c                                 initialize drand
-c     call random_seed
-
-      nparm = 4
+      if (random) call random_seed
 c                                 get best model, 1st argument sets 
 c                                 random perturbation off, 2nd sets 
 c                                 output of all sucessful 
@@ -262,7 +268,7 @@ c                                 output of all sucessful
 
       oprt = .false.
 
-      do i = 1, 50
+      do i = 1, nunc
 
          call opnimc (invprb,ntry,tol,simplx,frac,conchk,iprint,iquad,
      *                kcount)
@@ -329,13 +335,13 @@ c----------------------------------------------------------------------
       include 'perplex_parameters.h'
 
       integer i, n, conchk, kcount, icount, ifault, iprint,
-     *        iquad, j, igood, ntry, ibest
+     *        iquad, j, k, igood, ntry, ibest
 
       logical readyn, bad, randm, n6out
 
       double precision var(l2+k5), objf, x(l2+k5), sx(l2+k5), x0(l2+k5),
-     *                 tol, step(l2+k5), simplx, bstobj, frac, 
-     *                 bstx(*), bstvar(l2+k5)
+     *                 tol, step(l2+k5), simplx, bstobj, frac, bstx(*), 
+     *                 bstvar(l2+k5), plow(l2+k5), pdelta(l2+k5)
 
       external readyn, mcobj2
 
@@ -351,23 +357,43 @@ c----------------------------------------------------------------------
       common/ cst6  /icomp,istct,iphct,icp
 c----------------------------------------------------------------------- 
 c                                 read experimental data and inversion candidates
+c                                 if randm, then experimental data is perturbed within
+c                                 its uncertainty.
       call mcxpt (randm)
-c                                 parameters for inversion
-c                                 wL, wS, dqf_fnin = a_fnin + b_fin*T
-      n = nparm
-
+c                                 parameter max - min
+      n = 0
+c                                 compounds
+      do i = 1, mccpd
+c                                 for each coefficient
+         do j = 1, mcpct(i)
+            n = n + 1
+            plow(n) = cprng(i,j,1)
+            pdelta(n) = cprng(i,j,2) - cprng(i,j,1)
+c           pcent(n) = (cprng(i,j,2) + cprng(i,j,1))/2d0
+         end do
+      end do
+c                                 solutions
+      do i = 1, mcsol
+c                                 for each term
+         do j = 1, mctrm(i)
+c                                 for each coefficient
+            do k = 1, mccoef(i,j) 
+               n = n + 1
+               plow(n) = sprng(i,j,k,1)
+               pdelta(n) = sprng(i,j,k,2) - sprng(i,j,k,1)
+c              pcent(n) = (sprng(i,j,k,2) + sprng(i,j,k,1))/2d0
+            end do
+         end do
+      end do
+c                                 unscaled step size for search
+      step(1:n) = frac*pdelta(1:n)
+c                                 initialize scaled coordinate
       sx(1:n) = 0.5d0
-      step(1:n) = .25
 
       ibest = 0
       igood = 0
       bstobj = 1d99
       oprt = .false.
-
-      step(1) = frac*1d4
-      step(2) = frac*1d2
-      step(3) = frac*1d5
-      step(4) = frac*1d5
 
       if (n6out) then 
 c                                 output file
@@ -377,23 +403,15 @@ c                                 output file
          write (n6,*) 'tol/frac/simplx',tol, frac, simplx
          write (n6,'(80(''-''))')
       end if 
-c                                 initialize drand
-c     call random_seed
 
       do i = 1, ntry
 
          write (*,1010) i
          write (*,1080) sx(1:n)
-c                                 unscale
-         mdqf(make(mcid(1)),1) = -5d3 + sx(1) * 1d4
-         x(1) = mdqf(make(mcid(1)),1)
-         mdqf(make(mcid(1)),2) = -5d1 + sx(2) * 1d2
-         x(2) = mdqf(make(mcid(1)),2)
-
-         do j = 1, mcsol
-            wgl(1,1,mcids(j)) = -5d4 + sx(2+j) * 1d5
-            x(2+j) = wgl(1,1,mcids(j))
-         end do
+c                                 unscale sx
+         do j = 1, n
+            x(j) = plow(j) + sx(j)*pdelta(j)
+         end do 
 
          x0 = x
 c                                 initialize icount in case of failure
@@ -464,7 +482,6 @@ c                               write best model to *.bst
      *        ', obj = ',g12.6,', ibest = ',i3,', bestobj = ',g12.6)
 
       end 
-
 
       subroutine mccomp
 c-----------------------------------------------------------------------
@@ -599,16 +616,22 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical ok, bad, randm
+      logical ok, bad, randm, done
 
-      integer i, nph, ier, ids
+      integer i, j, k, nph, ier, id, ids
 
       double precision err, pertrb
 
       character key*22, val*3, nval1*12, nval2*12, nval3*12,
-     *          strg*40, strg1*40
+     *          strg*40, strg1*40, char*1
 
       external pertrb
+
+      integer jspec
+      common/ cxt8 /jspec(h9,m4)
+
+      integer jend
+      common/ cxt23 /jend(h9,m14+2)
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
@@ -622,6 +645,20 @@ c-----------------------------------------------------------------------
       character tname*10
       logical refine, lresub
       common/ cxt26 /refine,lresub,tname
+
+      integer jterm, jord, extyp, rko, jsub
+      common/ cxt2i /jterm(h9),jord(h9),extyp(h9),rko(m1,h9),
+     *               jsub(m2,m1,h9)
+
+      integer iend,isub,insp,iterm,iord,istot,jstot,kstot,rkord
+      double precision wg,wk
+      common/ cst108 /wg(m1,m3),wk(m16,m17,m18),iend(m4),
+     *      isub(m1,m2),insp(m4),
+     *      rkord(m1),iterm,iord,istot,jstot,kstot
+
+      integer length,com
+      character chars*1
+      common/ cst51 /length,com,chars(lchar)
 c-----------------------------------------------------------------------
       if (iopt(2).eq.1) then
          write (*,*) 'resetting composition_phase option to mol'
@@ -630,44 +667,174 @@ c-----------------------------------------------------------------------
 c                                 read solutions and compounds to be perturbed
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
 
-      if (key.ne.'begin_phases') 
+      if (key.ne.'begin_phase_free_param') 
      *                     call errdbg ('invalid data, last read '//key)
 
       mccpd = 0
       mcsol = 0
 
       ok = .false.
+      bad = .false.
 c                                 loop to read inversion phases
       do
 
          call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
 
-         if (key.eq.'end_phases') exit
+         if (key.eq.'end_phase_free_paramet') exit
 c                                 phase name
          read (key,'(a)') tname
 c                                 check name
-         call matchj (tname,i)
+         call matchj (tname,id)
 
-         if (i.lt.0) then
+         if (id.lt.0) then
 
             ok = .true.
             mccpd = mccpd + 1
-            mcid(mccpd) = -i
+            mcid(mccpd) = -id
+            mcpct(mccpd) = 0
 
-         else if (i.gt.0) then
+            do
+c                                 read free parameters for compounds
+               call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+               if (key.eq.'end_list') exit
 
-            ok = .true.
-            mcsol = mcsol + 1
-            mcids(mcsol) = i
+               if (key.ne.'parameter') call errdbg ('expecting '//
+     *                    'parameter tag for '//tname//' found '//key)
+               mcpct(mccpd) = mcpct(mccpd) + 1
+
+               if (val.eq.'a') then 
+                  mcpid(mccpd,mcpct(mccpd)) = 1
+               else if (val.eq.'b') then 
+                  mcpid(mccpd,mcpct(mccpd)) = 2
+               else if (val.eq.'c') then 
+                  mcpid(mccpd,mcpct(mccpd)) = 3
+               else 
+                  call errdbg ('invalid parameter name for '//tname//
+     *                         ': '//val)
+               end if
+c                                 read parameter range
+               call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+
+               if (key.ne.'range') call errdbg ('expecting '//
+     *                    'range tag for '//tname//' found '//key)
+               read (strg1,*) cprng(mccpd,mcpct(mccpd),1),
+     *                        cprng(mccpd,mcpct(mccpd),2)
+
+            end do
+
+         else if (id.gt.0) then
+
+            if (.not.bad) mcsol = mcsol + 1
+            mcids(mcsol) = id
+            mctrm(mcsol) = 0
+            done = .false.
+
+            do
+c                                 read free excess terms for solutions
+               call readcd (n8,ier,.true.)
+
+c              if (chars(1).eq.'e') exit
+
+               if (chars(1).ne.'W') call errdbg ('invalid excess term'
+     *                                           //' for '//tname)
+               call redtrm (bad)
+
+               if (bad) then
+c                                 invalid endmember, read to end_list
+c                                 and cycle
+                  do
+                     call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,
+     *                            strg1)
+                     if (key.eq.'end_list') exit
+                  end do
+
+                  cycle
+
+               end if
+c                                 indices are now in isub(1,1:iord) look for 
+c                                 the term in the real model
+               ok = .true.
+
+               do i = 1, iord
+
+                  do j = 1, jterm(id)
+
+                     if (rko(j,id).ne.iord) cycle
+c                                 now check the endmembers match, assume same
+c                                 ordering as in the solution model
+                     do k = 1, iord
+                        if (isub(1,k).ne.jend(id,2+jsub(k,j,i))) then
+                           ok = .false.
+                           exit
+                        end if
+                     end do
+                  end do
+               end do
+              
+               if (.not.ok) then
+c                                term does not exist in solution model
+                  cycle 
+               end if
+c                                increment term counter
+               mctrm(mcsol) = mctrm(mcsol) + 1
+c                                initialize coefficient counter
+               mccoef(mcsol,mctrm(mcsol)) = 0
+c                                now find which coefficients of the
+c                                term are free
+               do 
+c                                 loop to read free coefficients in term
+                  call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,
+     *                         strg1)
+
+                  if (key.eq.'end_list') then
+                     if (mccoef(mcsol,mctrm(mcsol)).eq.0) call errdbg(
+     *                                 'a term with no coefficients?')
+                     done = .true.
+
+                     exit
+
+                  end if
+
+                  if (key.ne.'parameter') call errdbg ('invalid '//
+     *               'coefficient'//' range specification for '//tname)
+c                                 count the coefficient
+                  mccoef(mcsol,mctrm(mcsol)) = 
+     *                   mccoef(mcsol,mctrm(mcsol)) + 1
+c
+                  read (strg1,*) 
+     *           mccoid(mcsol,mctrm(mcsol),mccoef(mcsol,mctrm(mcsol))),
+     *           sprng(mcsol,mctrm(mcsol),mccoef(mcsol,mctrm(mcsol)),1),
+     *           sprng(mcsol,mctrm(mcsol),mccoef(mcsol,mctrm(mcsol)),2)
+
+               end do
 c                                 flag to make gall recalculate
-c                                 static compounds
-            mcflag(i) = .true.
+c                                 staticredt compounds
+               mcflag(id) = .true.
+
+               if (done) exit
+
+            end do
 
          end if
 
       end do
+c                                 holy schmoly! if you followed that mess
+c                                 you deserve a medal. count the parameters
+      nparm = 0 
+c                                 first for endmembers
+      do i = 1, mccpd
+c                                 not so bad
+         nparm = nparm + mcpct(i)
+      end do
+c                                 now solutions
+      do i = 1, mcsol
+c                                 for each term
+         do j = 1, mctrm(i) 
+            nparm = nparm +  mccoef(i,j)
+         end do
+      end do
 
-      if (.not.ok) call errdbg ('no legitimate inversion phases')
+      if (nparm.eq.0) call errdbg ('no free parameters! no free lunch!')
 c                                 number of xpts
       mxpt = 0
 c                                 number of phase compositions
@@ -832,6 +999,83 @@ c                                 next experiment
      *          a,//,80('-'))
 
       end
+
+      subroutine redtrm (bad)
+c----------------------------------------------------------------------
+c redtrm - read excess function term of the form 
+
+c        W(name-name-...)
+
+c end_of_data is either a "|" or the end of the record.
+c----------------------------------------------------------------------
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      logical bad
+
+      integer ibeg, jend, ier, iscan, imax, iscnlt, id
+
+      character name*8
+
+      external iscnlt, iscan
+
+      integer iend,isub,insp,iterm,iord,istot,jstot,kstot,rkord
+      double precision wg,wk
+      common/ cst108 /wg(m1,m3),wk(m16,m17,m18),iend(m4),
+     *      isub(m1,m2),insp(m4),
+     *      rkord(m1),iterm,iord,istot,jstot,kstot
+
+      integer length,com
+      character chars*1
+      common/ cst51 /length,com,chars(lchar)
+c----------------------------------------------------------------------
+      ier = 0
+      bad = .false.
+c                                 find expansion type
+      if (chars(2).eq.'k'.or.chars(2).eq.'K') then
+         xtyp = 1
+      else
+         xtyp = 0
+      end if
+c                                 find brackets
+      ibeg = iscan (1,com,'(') + 1
+      imax = iscan (1,com,')') - 1
+
+      if (ibeg.gt.com.or.imax.gt.com) then
+         bad = .true.
+         return 
+       end if 
+c                                 data found
+      iord = 0
+
+      do while (ibeg.lt.imax)
+
+         call readnm (ibeg,jend,imax,ier,name)
+         if (ier.ne.0) call errdbg ('wroink! excess term')
+
+         iord = iord + 1
+         if (iord.gt.m2) call error (49,wg(1,1),m2,name)
+
+         call matchj (name,id)
+
+         if (id.eq.0) then
+            write (*,1000) chars(1:com)
+            write (*,1010) name
+            bad = .true.
+            return
+         end if
+
+         isub(1,iord) = -id
+
+      end do
+
+1000  format (/,'Warning: term ',60a)
+1010  format ('includes an endmember (',a,') not currently in the ',
+     *        'term will be rejected',/)
+
+      end
+
 
       subroutine mcsetv (x)
 c-----------------------------------------------------------------------
@@ -1459,6 +1703,7 @@ c
         fnp1 = np1
         p(i)=p(i)/fnp1
   380 continue
+
       call functn(p,func,bad)
       neval=neval+1
 
@@ -1466,6 +1711,13 @@ c
            ifault = 99
            return
         end if
+
+        if (func.gt.10d0) then
+           write (*,'(a,1x,g12.6)') 'Aborting, bad objf: ',h(i)
+           ifault = 2
+           return
+        end if
+
       if(iprint.le.0) go to 390
       if(mod(neval,iprint).eq.0) write(lout,1010) neval,func,
      1  (p(j),j=1,nop)
@@ -1525,18 +1777,44 @@ c
         if(test.ge.simp) go to 490
 
         if (func.gt.10d0) then
-           write (*,'(a,1x,g12.6)') 'Aborting because bad objf ',func
+           write (*,'(a,1x,g12.6)') 'Aborting, bad objf: ',func
            ifault = 2
            return
         end if
 
         do 480 j=1,nop
-          if(step(j).ne.zero) g(i,j)=(g(i,j)-p(j))+g(i,j)
-          pstst(j)=g(i,j)
+
+           if(step(j).ne.zero) g(i,j)=(g(i,j)-p(j))+g(i,j)
+
+           pstst(j)=g(i,j)
+
+           if (isnan(g(i,j))) then
+
+              write (*,'(a,1x,g12.6)') 'Aborting, bad coord: ',g(i,j)
+              ifault = 2
+              return
+
+           end if
+
   480   continue
-        call functn(pstst,h(i))
+
+        call functn(pstst,h(i),bad)
+
+        if (bad) then 
+           ifault = 99
+           return
+        end if
+
+        if (h(i).gt.10d0) then
+           write (*,'(a,1x,g12.6)') 'Aborting, bad objf: ',h(i)
+           ifault = 2
+           return
+        end if
+
         neval=neval+1
+
         go to 470
+
   490 continue
 c
 c     function values are calculated at an additional nap points.
@@ -1545,8 +1823,21 @@ c
         i1=i+1
         do 500 j=1,nop
   500   pstar(j)=(g(1,j)+g(i1,j))*half
-        call functn(pstar,aval(i))
+        call functn(pstar,aval(i),bad)
+
+        if (bad) then 
+           ifault = 99
+           return
+        end if
+
+        if (aval(i).gt.10d0) then
+           write (*,'(a,1x,g12.6)') 'Aborting, bad objf: ',h(i)
+           ifault = 2
+           return
+        end if
+
         neval=neval+1
+
   510 continue
 c
 c     the matrix of estimated second derivatives is calculated and its
@@ -1561,7 +1852,19 @@ c
           j1=j+1
           do 520 k=1,nop
   520     pstst(k)=(g(i2,k)+g(j1,k))*half
-          call functn(pstst,hstst)
+          call functn(pstst,hstst,bad)
+
+        if (bad) then 
+           ifault = 99
+           return
+        end if
+
+        if (hstst.gt.10d0) then
+           write (*,'(a,1x,g12.6)') 'Aborting, bad objf: ',h(i)
+           ifault = 2
+           return
+        end if
+
           neval=neval+1
           l=i*(i-1)/2+j
           bmat(l)=two*(hstst+a0-aval(i)-aval(j))
@@ -1648,7 +1951,12 @@ c
 c     calculate true function value at the minimum of the quadratic.
 c
   682 neval = neval + 1
-      call functn(pmin, hstar)
+      call functn(pmin, hstar,bad)
+
+        if (bad) then 
+           ifault = 99
+           return
+        end if
 c
 c     if hstar < func, replace search minimum with quadratic minimum.
 c
@@ -1976,6 +2284,43 @@ c                                 residual
 
       end
 
+      subroutine x2ther (x)
+c-----------------------------------------------------------------------
+c a to map the MC search coordinates into thermodynamic arrays
+c-----------------------------------------------------------------------
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      integer i, j, k, n
+
+      double precision x(*)
+c-----------------------------------------------------------------------
+      n = 0
+c                                 compounds
+      do i = 1, mccpd
+c                                 for each coefficient
+         do j = 1, mcpct(i)
+            n = n + 1
+            mdqf(make(mcid(i)),mcpid(i,j)) = x(n)
+         end do
+      end do
+c                                 solutions, this is only for margules
+c                                 for rk (extyp(mcids(i)).eq.1), the 
+c                                 coefficients are in wkl(m16,m17,m18,h9)
+      do i = 1, mcsol
+c                                 for each term
+         do j = 1, mctrm(i)
+c                                 for each coefficient
+            do k = 1, mccoef(i,j) 
+               n = n + 1
+               wgl(mccoef(i,k),j,mcids(i)) = x(n)
+            end do
+         end do
+      end do
+
+      end
+
       subroutine mcobj2 (x,obj,bad)
 c-----------------------------------------------------------------------
 c a subprogram to evaluate objective function for MC data inversion
@@ -2012,36 +2357,28 @@ c-----------------------------------------------------------------------
       double precision props,psys,psys1,pgeo,pgeo1
       common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),pgeo1(i8)
 c-----------------------------------------------------------------------
-c     write (*,'(5(f14.6,1x))') x(1:4)
-c                                 set the cpd dqf's
-      do i = 1, mccpd
-         mdqf(make(mcid(i)),1) = -5d3 + x(1) * 1d4
-         mdqf(make(mcid(i)),2) = -5d1 + x(2) * 1d2
-      end do
-
-      do i = 1, mcsol
-         wgl(1,1,mcids(i)) = -5d4 + x(2+i) * 1d5
-      end do
-
       do i = 1, nparm
          if (x(i).lt.-1d99.or.x(i).gt.1d99) then
             write (*,*) 'woo',x(1:nparm)
+            bad = .true.
+            return
          end if
       end do
-
-
-         mdqf(make(mcid(1)),1) = x(1)
-         mdqf(make(mcid(1)),2) = x(2)
-
-         wgl(1,1,mcids(1)) = x(3)
-         wgl(1,1,mcids(2)) = x(4)
+c                                map the search coordinates to thermodynamic
+c                                parameters
+      call x2ther (x)
+c                                 compositional residual weight
+      wcomp  = 1d0
+c                                 extra phase amount residual weight
+      wextra = 1d1
+c                                 missing phase residual weight
+      wmiss  = 1d1
 
       obj = 0d0
 c                                 loop through observations
       do id = 1, mxpt
 c                                 set p, t, bulk
          call mcstb2 (id)
-
 c                                 do the optimization and via getloc compute system
 c                                 and derivative properties, these computations are costly 
 c                                 and can be streamlined for specific applications.
@@ -2054,12 +2391,6 @@ c                                 and can be streamlined for specific applicatio
 c        call calpr0 (6)
 c                                 compute the observation objective function
          kct(1:xptnph(id)) = 0
-c                                 compositional residual weight
-         wcomp  = 1d0
-c                                 extra phase amount residual weight
-         wextra = 1d1
-c                                 missing phase residual weight
-         wmiss  = 1d1
 
          ok = .false. 
 
@@ -2184,5 +2515,7 @@ c                                 accumulate scores
      *                                      id, lobj, xptnam(id),obj
 
       end do
+
+c     write (*,'(5(g12.6,1x))') obj, x(1:4)
 
       end
