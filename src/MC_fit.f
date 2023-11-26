@@ -1772,8 +1772,10 @@ c     expand the final simplex, if necessary, to overcome rounding
 c     errors.
 c
       neval=0
+
       do 490 i=1,np1
   470   test=abs(h(i)-func)
+
         if(test.ge.simp) go to 490
 
         if (func.gt.10d0) then
@@ -1812,6 +1814,13 @@ c
         end if
 
         neval=neval+1
+c                                 quick fix: this segment goes into an 
+c                                 infinite loop if g(i,j) doesn't change
+        if (neval.gt.max) then
+           write (*,*) 'Aborting, infinite loop during surface fitting'
+           ifault = 2
+           return
+        end if 
 
         go to 470
 
