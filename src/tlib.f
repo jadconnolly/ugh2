@@ -36,7 +36,7 @@ c----------------------------------------------------------------------
       integer n
 
       write (n,'(/,a,//,a)') 
-     *     'Perple_X release 7.1.5, Nov 22, 2023.',
+     *     'Perple_X release 7.1.5, Nov 29, 2023.',
 
      *     'Copyright (C) 1986-2023 James A D Connolly '//
      *     '<www.perplex.ethz.ch/copyright.html>.'
@@ -7669,7 +7669,23 @@ c                                 use nodal coordinates:
 
          do i = 2, jvar
             vnm(i) = vname(jv(i-1))
-         end do  
+         end do
+
+      else if (icopt.eq.7.and.idep.ne.0) then
+c                                 1d calculation, assume if a 
+c                                 potential is dependent on another
+c                                 that this other potential is the
+c                                 independent variable
+         oned = .true.
+
+         jvar = ipot
+
+         do i = 1, jvar
+            vnm(i) = vname(jv(i))
+            vmx(i) = vmax(jv(i))
+            vmn(i) = vmin(jv(i))
+            var(i) = vmin(jv(i))
+         end do
 
       else if (icopt.lt.9) then 
 
@@ -10470,9 +10486,9 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i, nv(2), nvar, ivar, n
+      integer i, nv(*), nvar, ivar, n
 
-      double precision vmn(2), dv(2)
+      double precision vmn(*), dv(*)
 
       character*100 n6name, n5name, colnam(l3)*14
 
