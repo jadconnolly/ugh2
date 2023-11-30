@@ -141,7 +141,7 @@ c----------------------------------------------------------------------
 !                                nsp - max number of species in fluid speciation routines 
 
       parameter (l2=5,l3=l2+2,l5=1000,l6=500,l7=2048,l8=10,l9=150,
-     *           nsp=18,l10=nsp+l9+4,l11=100,l12=5,l13=5)
+     *           nsp=18,l10=nsp+l9+4,l11=400,l12=5,l13=5)
 !                                 m0 - max number of terms for a species site fraction?
 !                                 m1 - max number of terms in excess function
 !                                 m2 - max order of term in excess function

@@ -428,7 +428,7 @@ c                                 initialize icount in case of failure
          call minim (x, step, n, objf, kcount, iprint, tol, 
      *               conchk, iquad, simplx, var, mcobj2, icount, ifault)
 
-         if (ifault.gt.2.or.(ifault.gt.0.and.objf.gt.1d0)) then 
+         if (ifault.gt.2.or.(ifault.gt.0.and.objf.gt.1d2)) then 
 
             write (*,1020) ifault, icount
 
@@ -862,6 +862,8 @@ c                                an experiment, only increment
 c                                counter if previous result 
 c                                was ok
          if (.not.bad) mxpt = mxpt + 1
+
+         if (mxpt.gt.l11) call errdbg ('too many expts, increase l11')
 c
          bad = .false.
 c                                initialize bulk
@@ -2518,6 +2520,8 @@ c                                 missing phase residual
          end if
 c                                 accumulate scores
          obj = obj + lobj
+
+c        write (*,'(i3,1x,2(g12.6,1x,a))') id, lobj, xptnam(id),obj
 
          if (oprt) write (n6,'(i3,1x,2(g12.6,1x,a))') 
      *                                      id, lobj, xptnam(id),obj
