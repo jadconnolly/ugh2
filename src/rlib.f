@@ -9111,7 +9111,7 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i,k,i1,i2,id
+      integer i, k, i1, i2, i3, id
 
       double precision g,dg,d2g,t,s,ds,d2s
 c                                 working arrays
