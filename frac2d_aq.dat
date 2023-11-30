@@ -133,10 +133,10 @@ end excluded phase list
 
 
 begin solution phase list
-COH-Fluid+
-melt(H)
+COH-Fluid
+melt(HGPH)
 Bio(TCC)  
-Cpx(H)
+Cpx(HGP)
 Omph(GHP) 
 Opx(W)    
 Chl(HP)   
