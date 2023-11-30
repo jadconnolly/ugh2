@@ -7932,7 +7932,8 @@ c                                 order cases are considered here:
      *                                   + pa(i2)*pa(i3)*dydy(i1,k,id) )
 
                   do l = k, norder
-
+c                                 the inner terms can probably be replaced
+c                                 by dppp()...
                      d2g(l,k) = d2g(l,k) + w(i) * (
      *                            pa(i1)*(dydy(i2,l,id)*dydy(i3,k,id) +
      *                                    dydy(i2,k,id)*dydy(i3,l,id))
@@ -9138,20 +9139,51 @@ c                                 initialize, d2gx has been set in setw
       g = 0d0
 
       dg = g
-      d2g = d2gx(k,k)
+      d2g = 0d0
 
       if (lexces(id)) then
 
          do i = 1, jterm(id)
-c                                 assuming regular terms
-           i1 = jsub(1,i,id)
-           i2 = jsub(2,i,id)
 
-           g = g + w(i) * pa(i1) * pa(i2)
-           dg = dg + w(i) * (pa(i1)*dydy(i2,k,id)
-     *                     + pa(i2)*dydy(i1,k,id))
+            if (rko(i,id).eq.2) then
+c                                regular models
+               i1 = jsub(1,i,id)
+               i2 = jsub(2,i,id)
+
+               g = g + w(i) * pa(i1) * pa(i2)
+
+               dg = dg + w(i) * (pa(i1)*dydy(i2,k,id)
+     *                         + pa(i2)*dydy(i1,k,id))
+
+               d2g = d2gx(k,k)
+
+            else if (rko(i,id).eq.3) then
+c                                3rd order subregular
+               i1 = jsub(1,i,id)
+               i2 = jsub(2,i,id)
+               i3 = jsub(3,i,id)
+
+               g = g + w(i) * pa(i1) * pa(i2) * pa(i3)
+
+               dg = dg + w(i) * (
+     *                           pa(i1)*pa(i2)*dydy(i3,k,id)
+     *                         + pa(i1)*pa(i3)*dydy(i2,k,id)
+     *                         + pa(i2)*pa(i3)*dydy(i1,k,id) )
+c                                 the inner terms can probably be replaced
+c                                 by dppp()...
+               d2g = d2g + w(i) * (
+     *                        pa(i1)*2d0*dydy(i2,k,id)*dydy(i3,k,id)
+     *                      + pa(i2)*2d0*dydy(i1,k,id)*dydy(i3,k,id)
+     *                      + pa(i3)*2d0*dydy(i1,k,id)*dydy(i2,k,id) )
+
+            else 
+
+               call errdbg ('o > 3 gderi1')
+
+            end if
 
          end do
+
 c                                 get derivative of excess function
          if (llaar(id)) then
 c                                 for h&p van laar, this is unnecessary because

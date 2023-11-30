@@ -4,8 +4,7 @@ plot     | obsolete 6.8.4+
                                              | solution model file, blank = none                                                                                                                                                                                
 title                                                                                                                                                                                                                                                           
 perplex_option.dat     | Perple_X option file                                                                                                                                                                                                                   
-   10 calculation type: 0- composition, 1- Schreinemakers, 2 - liquidus/solidus, 3- Mixed, 5- gridded min, 7- 1d fract, 8- gwash, 9- 2d fract, 10- 7 w/file input, 11- 9 w/file input, 12- 0d infiltration
-coor.dat     | coordinate file                                                                                                                                                                                                                                  
+    7 calculation type: 0- composition, 1- Schreinemakers, 2 - liquidus/solidus, 3- Mixed, 5- gridded min, 7- 1d fract, 8- gwash, 9- 2d fract, 10- 7 w/file input, 11- 9 w/file input, 12- 0d infiltration
     0 unused place holder, post 06
     0 unused place holder, post 06
     0 unused place holder, post 06
@@ -53,9 +52,9 @@ end excluded phase list
 begin solution phase list
 end solution phase list
 
-   0.00000        0.00000        0.00000        0.00000        0.00000     max p, t, xco2, mu_1, mu_2
-   0.00000        0.00000        0.00000        0.00000        0.00000     min p, t, xco2, mu_1, mu_2
+   5000.00        0.00000        0.00000        0.00000        0.00000     max p, t, xco2, mu_1, mu_2
+   5000.00        0.00000        0.00000        0.00000        0.00000     min p, t, xco2, mu_1, mu_2
    0.00000        0.00000        0.00000        0.00000        0.00000     unused place holder post 06
 
- 1  2  4  5  3   index of the independent & sectioning variables
+ 2  1  4  5  3   index of the independent & sectioning variables
 
