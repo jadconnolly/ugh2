@@ -46,6 +46,11 @@ c   18 - Delany/HSMRK/MRK hybrid, for P > 10 kb
 c   19 - X(O)-X(S) GCOHS Connolly & Cesare 1993
 c   20 - X(O)-X(C) GCOHS Connolly & Cesare 1993
 c   24 - f(O2)-N/C graphite saturated COHN MRK fluid
+c   25 - X(CO2)-X(NaCl) H2O-CO2-NaCl Aranovich et al 10
+c   26 - X(O) O-Si MRK Connolly 16
+c   27 - X(O)-X(C) C-O-H MRK hybrid-EoS*
+c   28 - X(O/(O+H))-X(C) C-O-H Zhang & Duan 05
+c   29 - X(O/(O+H))-X(C) C-O-H Zhang & Duan 09
 
 c Routines 0-3, 5-6, and 18 are for conventional P-T-X(CO2) 
 c calculations, where X(CO2) is the mole fraction of CO2 in 
@@ -104,6 +109,8 @@ c Routine 24 calculates C-O-H-N graphite saturated fluid properties
 c as a function of f(O2) and the fluid N/C ratio using a modified
 c Redlich-Kwong EoS. The routine will fail in the limits x(H2O)->0
 c and N/C->0.
+
+c Nothing for 25-29 yet, unless JADC fills in some words of wisdom.
 
 c COHSRK is primarily intended to provide an example of how the
 c various speciation routines in PERPLEX can be called. If you
@@ -363,6 +370,19 @@ c                                 configure EoS
          elag = 0d0
 c                                 get the users choice of EoS:   
          call rfluid (1)
+
+         if (ifug.eq.28) then
+c           Override perplex_options.dat hybrid_EoS_XXX
+            iopt(25) = 6
+            iopt(26) = 6
+            iopt(27) = 1
+         end if
+         if (ifug.eq.29) then
+c           Override perplex_options.dat hybrid_EoS_XXX
+            iopt(25) = 7
+            iopt(26) = 7
+            iopt(27) = 7
+         end if
 c                                 for multispecies fluids set
 c                                 up species indices and name
 c                                 of independent variable
@@ -420,7 +440,9 @@ c                                X(O)-X(S) COHS
                ipot = 4    
                vname(4) = 'X(S)    '
 
-            else if (ifug.eq.20) then 
+            else if (ifug.eq.20 .or.
+     *               ifug.eq.28 .or.
+     *               ifug.eq.29) then 
 c                                X(O)-X(C) COH
                ipot = 4
                vname(4) = 'X(C)    '
@@ -446,7 +468,7 @@ c                                fo2-aC-N/C COHN
 
                ipot = 3
 
-            else if (ifug.eq.27) then 
+            else if (ifug.eq.27.or.ifug.eq.28.or.ifug.eq.29) then 
 c                                X(O)-X(C) COH
                ipot = 4
                vname(4) = 'X(C)    '
@@ -496,11 +518,13 @@ c                                 special file output
                iv(i) = 0
             end do 
 
-            do 
+            do i = 1,3
                read (*,*,iostat=ier) iv(1)
                if (ier.eq.0.and.iv(1).gt.0.and.iv(1).le.ipot) exit
                call rerr
             end do 
+
+            if (ier.ne.0) call errpau 
 
             if (jpot.eq.2) then 
 
@@ -511,12 +535,14 @@ c                                 special file output
                   write (*,'(3x,i1,a,a)') i,' - ',vname(i)
                end do 
 
-               do 
+               do i = 1,3
                   read (*,*,iostat=ier) iv(2)
                   if (ier.eq.0.and.iv(2).ne.iv(1).and.
      *                iv(2).gt.0.and.iv(2).le.ipot) exit
                   call rerr
                end do 
+
+               if (ier.ne.0) call errpau 
 
             end if 
 
@@ -546,7 +572,7 @@ c                                 get sectioning values for the remainder
                j = j + 1
                iv(j) = i
 
-               do 
+               do k = 1, 3
 
                   write (*,'(a,a)') 'Enter the value for: ',
      *                               vname(i)
@@ -556,6 +582,8 @@ c                                 get sectioning values for the remainder
                   call rerr
 
                end do 
+
+               if (ier.ne.0) call errpau 
                               
             end do
 
@@ -696,7 +724,7 @@ c                                X(O)-X(S) COHS
                xo = var(3)
                gz = var(4)  
 
-            else if (ifug.eq.20) then 
+            else if (ifug.eq.20) then
 c                                X(O)-X(C) COH
                xo = var(3)
                gz = var(4)  
@@ -712,7 +740,7 @@ c                                fo2-aC-N/C COHN
                   gz = var(4) 
                end if 
 
-            else if (ifug.eq.27) then 
+            else if (ifug.eq.27.or.ifug.eq.28.or.ifug.eq.29) then 
 c                                 C-O-H XO-YC
                xo  = var(3)
                fs2 = var(4) 
@@ -780,7 +808,9 @@ c                                 assign values to local variables
                               gz = var(iv(k)) 
                            end if 
 
-                        else if (ifug.eq.27) then 
+                        else if (ifug.eq.27 .or.
+     *                           ifug.eq.28 .or.
+     *                           ifug.eq.29) then 
 
                            fs2 = var(iv(k)) 
 
@@ -900,7 +930,9 @@ c
                   prop(kount-3) = fo2/tentoe
                   prop(kount-2) = fs2/tentoe
 
-                  if (ifug.eq.27) then 
+                  if (ifug.eq.27 .or.
+     *                ifug.eq.28 .or.
+     *                ifug.eq.29) then 
 c                                   ac, fo2, fh2 computed from major
 c                                   species
                      prop(kount-3) = fhc(2)/tentoe
@@ -990,30 +1022,36 @@ c                                 get P-T conditions:
                   xo = 1d0
                   igo = 1
 
-                  do 
+                  do k = 1,3
                      read (*,*,iostat=ier) p, t
                      if (ier.eq.0) exit
                      call rerr
                   end do
+
+                  if (ier.ne.0) call errpau 
         
                else if (ifug.eq.19) then
 
                   write (*,'(/,a)') 'Enter p(bar), T(K), X(O), X(S):'
 
-                  do 
+                  do k = 1, 3
                      read (*,*,iostat=ier) p, t, xo, elag
                      if (ier.eq.0) exit
                      call rerr
                   end do
+
+                  if (ier.ne.0) call errpau 
 
                else if (ifug.eq.20) then
 
                   write (*,'(/,a)') 'Enter p(bar), T(K), X(O), X(C):'
-                  do 
+                  do k = 1, 3
                      read (*,*,iostat=ier) p, t, xo, elag
                      if (ier.eq.0) exit
                      call rerr
                   end do
+
+                  if (ier.ne.0) call errpau 
 
                else if (ifug.eq.24) then 
          
@@ -1021,22 +1059,26 @@ c                                 get P-T conditions:
  
                      write (*,'(/,a)') 'Enter p(bar), T(K), molar N/C:'
 
-                     do 
+                     do k = 1, 3
                         read (*,*,iostat=ier) p, t, gz
                         if (ier.eq.0) exit
                         call rerr
                      end do
+
+                     if (ier.ne.0) call errpau 
 
                   else 
 
                      write (*,'(/,a)') 
      *                    'Enter p(bar), T(K), log10[f(O2)], molar N/C:'
 
-                     do 
+                     do k = 1, 3
                         read (*,*,iostat=ier) p, t, dlnfo2, gz
                         if (ier.eq.0) exit
                         call rerr
                      end do
+
+                     if (ier.ne.0) call errpau 
 
                      dlnfo2 = tentoe*dlnfo2
 
@@ -1048,35 +1090,43 @@ c                                 get P-T conditions:
  
                      write (*,'(/,a)') 'Enter log10[a(gph/dia)]:'
 
-                     do 
+                     do k = 1, 3
                         read (*,*,iostat=ier) elag
                         if (ier.eq.0) exit
                         call rerr
                      end do
 
+                     if (ier.ne.0) call errpau 
+
                   end if 
 
-               else if (ifug.eq.27) then 
+               else if (ifug.eq.27 .or.
+     *                  ifug.eq.28 .or.
+     *                  ifug.eq.29) then 
          
                      write (*,'(/,a)') 
      *                    'Enter p(bar), T(K), XO, YC:'
 
-                    do 
+                     do i = 1, 3
                         read (*,*,iostat=ier) p, t, xo, fs2
                         if (ier.eq.0) exit
                         call rerr
                      end do
+
+                     if (ier.ne.0) call errpau 
 
                else 
 c                                  or get P-T-X/f conditions:
                   write (*,'(/,a,a,a)') 
      *                   'Enter p(bar), T(K), ',vname(3),':'
 
-                  do 
+                  do k = 1, 3
                      read (*,*,iostat=ier) p, t, xo
                      if (ier.eq.0) exit
                      call rerr
                   end do
+
+                  if (ier.ne.0) call errpau 
 
                   if (ifug.eq.7.or.ifug.eq.8.or.ifug.eq.24) 
      *               dlnfo2 = tentoe * xo
@@ -1092,11 +1142,13 @@ c                                  a buffer:
 
                   write (*,'(/,a)') 'Enter log10[f(S2)]:'
 
-                  do 
+                  do  k = 1, 3
                      read (*,*,iostat=ier) dlnfo2
                      if (ier.eq.0) exit
                      call rerr
                   end do 
+
+                  if (ier.ne.0) call errpau 
 
                   dlnfo2 = tentoe * dlnfo2
 
@@ -1109,7 +1161,7 @@ c                                  call fluid routine:
 c                                  output results:
                igo = 1
 
-               if (ifug.ne.27) then 
+               if (.not.(ifug.eq.27.or.ifug.eq.28.or.ifug.eq.29)) then 
                   fhc(1) = dexp(fhc(1)) 
                   fhc(2) = dexp(fhc(2)) 
                   fo2 = fo2 / tentoe
@@ -1152,7 +1204,7 @@ c                                 primitive output for Leonya's EoS
 c                                  routine cfluid returns ln(fs2)/2
                   if (ifug.eq.26) then
                      write (*,1120) fhc(1)/tentoe,fhc(2)/tentoe
-                  else if (ifug.eq.27) then 
+                  else if (ifug.eq.27.or.ifug.eq.28.or.ifug.eq.29) then 
 c                                   ac, fo2, fh2 computed from major
 c                                   species, and direct values:
                      if (xs(7).eq.0d0.or.xs(4).eq.0d0.or.

@@ -18,7 +18,7 @@ c-----------------------------------------------------------------------
  
       include 'perplex_parameters.h'
 
-      double precision fo2,fs2,yo2,yc,dg
+      double precision fo2,fs2,yo2,yc,dg,yo,yh
 
       double precision f
       common/ cst11 /f(3)
@@ -68,12 +68,18 @@ c-----------------------------------------------------------------------
       else if (ifug.eq.26) then 
 c         call rkboth
          call idsi5 
-      else if (ifug.eq.27) then 
+      else if (ifug.eq.27.or.ifug.eq.28.or.ifug.eq.29) then 
 c                                 coming in from fluids xco2 is no/(no+nh)
 c                                 fs2 = nc/(no+nh+nc), convert to c-o2-h2
 c                                 bulk coordinates
-         yo2 = xco2 * (1d0 - fs2) / (1d0 + fs2)
-         yc  = 2d0 * fs2 / (1d0 + fs2)
+c        yo2 = xco2 * (1d0 - fs2) / (1d0 + fs2)
+c        yc  = 2d0 * fs2 / (1d0 + fs2)
+         yo = xco2 * (1d0 - fs2)
+         yh = 1d0 - yo - fs2
+         yo2 = 0.5d0 * yo / (fs2 + 0.5d0*yo + 0.5d0*yh)
+         yc = fs2 / (fs2 + 0.5d0*yo + 0.5d0*yh)
+c        print*,'yo,yh,yc:',yo,yh,fs2
+c        print*,'yo2,yc,yh2:',yo2,yc,1d0-yo2-yc
          call rkcoh6 (yo2,yc,dg)
       else 
          call error (11,xco2,ifug,'EoS (routine CFLUID)') 
@@ -93,7 +99,7 @@ c---------------------------------------------------------------------
 
       integer nrk,i,irk,ier
 
-      parameter (nrk=27)
+      parameter (nrk=29)
 
       logical readyn
 
@@ -168,8 +174,14 @@ c 24
      *'f(O2/CO2)-N/C C-buffered COHN MRK hybrid-EoS*',
 c 25
      *'X(CO2)-X(NaCl) H2O-CO2-NaCl Aranovich et al 10',
+c 26
      *'X(O) O-Si MRK Connolly 16',
-     *'X(O)-X(C) C-O-H MRK hybrid-EoS*'/
+c 27
+     *'X(O/(O+H))-X(C) C-O-H MRK hybrid-EoS*',
+c 28
+     *'X(O/(O+H))-X(C) C-O-H Zhang & Duan 05',
+c 29
+     *'X(O/(O+H))-X(C) C-O-H Zhang & Duan 09'/
 c---------------------------------------------------------------------
       if (irk.eq.2) then
 
@@ -218,6 +230,7 @@ c                                 routines
          if (ifug.eq.5.or.ifug.eq.14) then
             write (*,1191)
          else if (ifug.eq.26.or.ifug.eq.27.or.
+     *          ifug.eq.28.or.ifug.eq.29.or.
      *          ifug.eq.8.or.ifug.eq.10.or.ifug.eq.11.or.
      *          ifug.eq.12.or.ifug.eq.16.or.ifug.eq.17.or.ifug.eq.19.or.
      *          ifug.eq.20.or.ifug.eq.24) then 
@@ -544,7 +557,8 @@ c                                 xco2 EoS's
             ins(2) = 2
 
       else if (jfug.ge.8.and.jfug.le.12.or.jfug.eq.19.or.
-     *         jfug.eq.20.or.jfug.eq.24.or.jfug.eq.27) then
+     *         jfug.eq.20.or.jfug.eq.24.or.jfug.eq.27.or.
+     *         jfug.eq.28.or.jfug.eq.29) then
 c                                 standard COHS species  
          if (jfug.eq.8.or.jfug.eq.24) then
             vname(3) = 'log(fO2)'
@@ -582,7 +596,7 @@ c                                 standard COHS species
             ins(6) = 10
             ins(7) = 11
 
-         else if (jfug.eq.27) then
+         else if (jfug.eq.27.or.jfug.eq.28.or.jfug.eq.29) then
 c                                 C-O-H with no constraints, 
 c                                 if FLUIDS rename v(4)
             if (iam.eq.11) vname(4) = 'Y(C)    '
