@@ -7920,7 +7920,7 @@ c                                 order cases are considered here:
                i2 = jsub(2,i,id)
                i3 = jsub(3,i,id)
 
-               g = g + w(i) * pa(i1) * pa(i2) * pa(i2)
+               g = g + w(i) * pa(i1) * pa(i2) * pa(i3)
 
                do k = 1, norder
 

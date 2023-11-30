@@ -26,7 +26,7 @@ perplex_option.dat     | Perple_X option file
  0.00000      0.00000      0.00000      0.00000      0.00000     Geothermal gradient polynomial coeffs.
 
 begin thermodynamic component list
-MgS   1  0.00000      1.00000      0.00000     molar amount
+CaS   1  0.00000      1.00000      0.00000     molar amount
 FeS   1  1.00000      0.00000      0.00000     molar amount
 end thermodynamic component list
 
