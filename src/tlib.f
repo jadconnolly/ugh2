@@ -7742,13 +7742,6 @@ c                                 independent variable
 
          end if 
 
-         if (oned) then 
-c                                 make a fake y-axis for 1-d plots
-            vmx(2) = 1d0
-            vmn(2) = 0d0
-
-         end if
-
       else if (icopt.eq.9) then 
 c                                using non-thermodynamic coordinate frame
          vmn(1) = vz(4)
@@ -7812,7 +7805,14 @@ c                                  set y = 0 ti be the top
             var(i) = vmin(jv(i-2))
          end do
 
-      end if 
+      end if
+
+      if (oned) then 
+c                                 make a fake y-axis for 1-d plots
+         vmx(2) = 1d0
+         vmn(2) = 0d0
+
+      end if
 
       end
 
