@@ -39,7 +39,7 @@
 |                         optimizations.
 
 dynamic_LP_start          default | [hot] hot, cold, warm. 
-GFSM                      default | [F] allow GFSM/disable saturated-phase constraints
+GFSM                      T default | [F] allow GFSM/disable saturated-phase constraints
 intermediate_savrpc       default | [F] save intermediate compositions during dynamic optiomization
 intermediate_savdyn       default | [F] save intermediate dynamic compositions as auto-refine static compositions
 logarithmic_X             default | [F] VERTEX/MEEMUM only, replace saturated phase compositional variable X with log10(X)
