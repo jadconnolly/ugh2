@@ -2,7 +2,7 @@ hp02ver.dat     thermodynamic data file
 no_print | print generates print output
 plot     | obsolete 6.8.4+
                                              | solution model file, blank = none                                                                                                                                                                                
-title                                                                                                                                                                                                                                                           
+title     P(bar) = 5000.00 + 1.00000 * T(K) ^1                                                                                                                                                                                                                  
 perplex_option.dat     | Perple_X option file                                                                                                                                                                                                                   
     7 calculation type: 0- composition, 1- Schreinemakers, 2 - liquidus/solidus, 3- Mixed, 5- gridded min, 7- 1d fract, 8- gwash, 9- 2d fract, 10- 7 w/file input, 11- 9 w/file input, 12- 0d infiltration
     0 unused place holder, post 06
@@ -22,8 +22,8 @@ perplex_option.dat     | Perple_X option file
     0 unused place holder, post 05
     5 ifug EoS for saturated phase
     1 gridded minimization dimension (1 or 2)
-    0 special dependencies: 0 - P and T independent, 1 - P(T), 2 - T(P)
- 0.00000      0.00000      0.00000      0.00000      0.00000     Geothermal gradient polynomial coeffs.
+    1 special dependencies: 0 - P and T independent, 1 - P(T), 2 - T(P)
+ 5000.00      1.00000      0.00000      0.00000      0.00000     Geothermal gradient polynomial coeffs.
 
 begin thermodynamic component list
 MGO   1 0.500000      0.00000      0.00000     molar amount
@@ -52,8 +52,8 @@ end excluded phase list
 begin solution phase list
 end solution phase list
 
-   5000.00        0.00000        0.00000        0.00000        0.00000     max p, t, xco2, mu_1, mu_2
-   5000.00        0.00000        0.00000        0.00000        0.00000     min p, t, xco2, mu_1, mu_2
+   0.00000        1000.00        0.00000        0.00000        0.00000     max p, t, xco2, mu_1, mu_2
+   0.00000        500.000        0.00000        0.00000        0.00000     min p, t, xco2, mu_1, mu_2
    0.00000        0.00000        0.00000        0.00000        0.00000     unused place holder post 06
 
  2  1  4  5  3   index of the independent & sectioning variables
