@@ -387,6 +387,9 @@ c           Override perplex_options.dat hybrid_EoS_XXX
             iopt(26) = 7
             iopt(27) = 7
          end if
+
+c                                 report what hybrid models will be used
+         call hybout (-1,6)
 c                                 for multispecies fluids set
 c                                 up species indices and name
 c                                 of independent variable

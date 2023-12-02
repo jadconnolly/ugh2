@@ -211,7 +211,8 @@ c---------------------------------------------------------------------
 
       end do 
 c                                 write hybrid eos blurb
-      call hybout (-1,6)
+c                                 if not fluids - it will print it out later
+      if (iam.ne.11) call hybout (-1,6)
 
       read (*,*,iostat=ier) ifug
       if (ifug.gt.nrk.or.ifug.eq.4.or.ifug.eq.6.or.ifug.eq.7.or.
