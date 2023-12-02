@@ -321,6 +321,7 @@ c-----------------------------------------------------------------------
       common/ cst24 /ipot,jv(l2),iv(l2)
 
       double precision p,t,xo,u
+c     common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xo,u(6)
 
       double precision xs,g,v
@@ -350,6 +351,9 @@ c                                 iam is a flag indicating the Perple_X program
       iam = 11
       vname(1) = 'P(bar)'
       vname(2) = 'T(K)'
+c                                 set tr, pr for use by some fluid eoss
+      u(3) = 298.15d0
+      u(4) = 1d0
 c                                 max number of indendent potentials, may be
 c                                 increased depending on EoS choices. 
       ipot = 2
