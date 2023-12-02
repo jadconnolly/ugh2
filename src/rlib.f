@@ -9130,7 +9130,7 @@ c                                regular models
                dg = dg + w(i) * (pa(i1)*dydy(i2,k,id)
      *                         + pa(i2)*dydy(i1,k,id))
 
-              d2g = d2g + w(i) * dppp(k,k,i,id)
+               d2g = d2g + w(i) * dppp(k,k,i,id)
 
             else if (rko(i,id).eq.3) then
 c                                3rd order subregular
