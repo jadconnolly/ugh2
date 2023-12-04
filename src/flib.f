@@ -23,6 +23,10 @@ c-----------------------------------------------------------------------
       double precision f
       common/ cst11 /f(3)
 
+      character specie*4
+      integer isp,ins
+      common/ cxt33 /isp,ins(nsp),specie(nsp)
+
       double precision y,g,v
       common/ cstcoh /y(nsp),g(nsp),v(nsp)
 
@@ -81,6 +85,9 @@ c        yc  = 2d0 * fs2 / (1d0 + fs2)
 c        print*,'yo,yh,yc:',yo,yh,fs2
 c        print*,'yo2,yc,yh2:',yo2,yc,1d0-yo2-yc
          call rkcoh6 (yo2,yc,dg)
+      else if (ifug.eq.30) then 
+         y(ins(1)) = 1d0
+         call mrkpur(ins,isp)
       else 
          call error (11,xco2,ifug,'EoS (routine CFLUID)') 
       end if 
@@ -99,7 +106,7 @@ c---------------------------------------------------------------------
 
       integer nrk,i,irk,ier
 
-      parameter (nrk=29)
+      parameter (nrk=30)
 
       logical readyn
 
@@ -181,7 +188,9 @@ c 27
 c 28
      *'X(O/(O+H))-X(C) C-O-H Zhang & Duan 05',
 c 29
-     *'X(O/(O+H))-X(C) C-O-H Zhang & Duan 09'/
+     *'X(O/(O+H))-X(C) C-O-H Zhang & Duan 09',
+c 30
+     *'(ID) HSMRK for pure (single component) fluid'/
 c---------------------------------------------------------------------
       if (irk.eq.2) then
 
@@ -557,6 +566,8 @@ c                                 xco2 EoS's
             ins(1) = 1
             ins(2) = 2
 
+      else if (jfug.eq.30) then
+c                                 nothing to do in this case
       else if (jfug.ge.8.and.jfug.le.12.or.jfug.eq.19.or.
      *         jfug.eq.20.or.jfug.eq.24.or.jfug.eq.27.or.
      *         jfug.eq.28.or.jfug.eq.29) then

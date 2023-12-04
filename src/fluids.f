@@ -51,6 +51,7 @@ c   26 - X(O) O-Si MRK Connolly 16
 c   27 - X(O)-X(C) C-O-H MRK hybrid-EoS*
 c   28 - X(O/(O+H))-X(C) C-O-H Zhang & Duan 05
 c   29 - X(O/(O+H))-X(C) C-O-H Zhang & Duan 09
+c   30 - (species index) HSMRK for pure fluids
 
 c Routines 0-3, 5-6, and 18 are for conventional P-T-X(CO2) 
 c calculations, where X(CO2) is the mole fraction of CO2 in 
@@ -111,6 +112,24 @@ c Redlich-Kwong EoS. The routine will fail in the limits x(H2O)->0
 c and N/C->0.
 
 c Nothing for 25-29 yet, unless JADC fills in some words of wisdom.
+
+c Routine 30 uses the HSMRK to calculate the volume & fugacity of
+c pure (single component) fluids. Species indices are (see crk.f):
+c 
+c         1 = H2O
+c         2 = CO2
+c         3 = CO
+c         4 = CH4 
+c         5 = H2
+c         6 = H2S
+c         7 = O2
+c         8 = SO2
+c         9 = COS
+c        10 = N2
+c        11 = NH3
+c        12 = O
+c        13 = SiO
+c        14 = SiO2
 
 c COHSRK is primarily intended to provide an example of how the
 c various speciation routines in PERPLEX can be called. If you
@@ -447,9 +466,7 @@ c                                X(O)-X(S) COHS
                ipot = 4    
                vname(4) = 'X(S)    '
 
-            else if (ifug.eq.20 .or.
-     *               ifug.eq.28 .or.
-     *               ifug.eq.29) then 
+            else if (ifug.eq.20) then
 c                                X(O)-X(C) COH
                ipot = 4
                vname(4) = 'X(C)    '
@@ -479,6 +496,11 @@ c                                fo2-aC-N/C COHN
 c                                X(O)-X(C) COH
                ipot = 4
                vname(4) = 'X(C)    '
+
+            else if (ifug.eq.30) then
+c                                pure fluid HSMRK
+               ipot = 3
+               vname(3) = 'fluid ID'
 
             end if 
 
@@ -603,6 +625,7 @@ c                                 get sectioning values for the remainder
                inc(iv(i)) = 1
                dv(iv(i)) = 1
             end do 
+
 c                                 query output file name
             write (*,'(/,a,a)') 'Enter a name for the output file ',
      *                          '[without the .tab suffix]:'
@@ -635,6 +658,12 @@ c                                 write version flag
                write (n4,*) inc(iv(i))
             end do 
 c                                 create column tags
+            if (ifug.eq.30) then
+               i = int(vmin(3))
+               write(vname(3),'(a,a,a)') 'ID(',specie(i),')'
+               call unblnk(vname(3))
+            end if
+
             do i = 1, ipot
                tags(i) = vname(iv(i))
             end do 
@@ -751,6 +780,11 @@ c                                fo2-aC-N/C COHN
 c                                 C-O-H XO-YC
                xo  = var(3)
                fs2 = var(4) 
+
+            else if (ifug.eq.30) then
+c                                 load pure fluid species info now we know it
+               isp = 1
+               ins(1) = int(vmin(3))
 
             end if 
 
@@ -923,19 +957,23 @@ c                                 atomic fractions
 
                   tot = ns + no + nh + nc + nn + nsi
 
-                  prop(ipot+isp+2) = nc/tot
-                  prop(ipot+isp+3) = no/tot
-                  prop(ipot+isp+4) = nh/tot
-c                                 ternary coordinates (XC = Y, XO = X)
-c                 prop(ipot+isp+2) = nc/tot * 0.866025d0
-c                 prop(ipot+isp+3) = (no + nc/2d0)/tot
-c
-                  prop(ipot+isp+5) = nn/tot
-                  prop(ipot+isp+6) = ns/tot
-                  prop(ipot+isp+7) = nsi/tot
+c                                 adjust prop() index for 30 with phantom ipot
+                  if (ifug.eq.30) then
+                     k = -1
+                  else
+                     k = 0
+                  end if
 
-                  prop(kount-3) = fo2/tentoe
-                  prop(kount-2) = fs2/tentoe
+                  prop(ipot+isp+2+k) = nc/tot
+                  prop(ipot+isp+3+k) = no/tot
+                  prop(ipot+isp+4+k) = nh/tot
+c                                 ternary coordinates (XC = Y, XO = X)
+c                 prop(ipot+isp+2+k) = nc/tot * 0.866025d0
+c                 prop(ipot+isp+3+k) = (no + nc/2d0)/tot
+c
+                  prop(ipot+isp+5+k) = nn/tot
+                  prop(ipot+isp+6+k) = ns/tot
+                  prop(ipot+isp+7+k) = nsi/tot
 
                   if (ifug.eq.27 .or.
      *                ifug.eq.28 .or.
@@ -947,6 +985,14 @@ c                                   species
                      prop(kount-1) = fhc(3)/tentoe
                      prop(kount)   = fhc(1)/tentoe
 
+                  else if (ifug.eq.30) then
+c                                   load fugacity if species O2, S2, H2
+                     f = dlog(p) + fhc(1)
+                     prop(kount-3:kount) = nopt(7)
+                     if (no/tot.eq.1d0) prop(kount-3) = f
+                     if (ns/tot.eq.1d0) prop(kount-2) = f
+                     if (nh/tot.eq.1d0) prop(kount-1) = f
+
                   else 
 
                      prop(kount-3) = fo2/tentoe
@@ -956,7 +1002,8 @@ c                                   species
 
                   end if 
 
-                  if (ifug.le.2.or.ifug.eq.13.or.ifug.eq.15) then
+                  if (ifug.le.2.or.ifug.eq.13.or.ifug.eq.15
+     *                .or.ifug.eq.30) then
 c                                 use analytic vol
                   else 
 c                                 compute volume by finite difference
@@ -1122,6 +1169,20 @@ c                                 get P-T conditions:
 
                      if (ier.ne.0) call errpau 
 
+               else if (ifug.eq.30) then
+                     write (*,'(/,a)') 
+     *                    'Enter p(bar), T(K), species index:'
+
+                     do i = 1, 3
+                        read (*,*,iostat=ier) p, t, ins(1)
+                        if (ier.eq.0) exit
+                        call rerr
+                     end do
+
+                     if (ier.ne.0) call errpau 
+
+                     isp = 1
+
                else 
 c                                  or get P-T-X/f conditions:
                   write (*,'(/,a,a,a)') 
@@ -1168,7 +1229,9 @@ c                                  call fluid routine:
 c                                  output results:
                igo = 1
 
-               if (.not.(ifug.eq.27.or.ifug.eq.28.or.ifug.eq.29)) then 
+               if (.not.(
+     *            ifug.eq.27.or.ifug.eq.28.or.ifug.eq.29.or.ifug.eq.30
+     *         )) then 
                   fhc(1) = dexp(fhc(1)) 
                   fhc(2) = dexp(fhc(2)) 
                   fo2 = fo2 / tentoe
@@ -1198,6 +1261,10 @@ c                                  finite difference estimate of volume:
                else if (ifug.eq.25) then 
 c                                 primitive output for Leonya's EoS
                   write (*,1130) fhc(1), fhc(2)
+
+               else if (ifug.eq.30) then 
+c                                 pure fluid output
+                  write (*,1320) specie(ins(1)),vol,dexp(fhc(1))
 
                else 
 
@@ -1344,6 +1411,8 @@ c                                  output bulk properties and V:
 1290  format (5x,'S/H = ',g12.5,/)
 1300  format (10x,'V(cm3/mol) = ',g12.5,/)
 1310  format (5x,'Back-calculated X(S) = ',g16.9)
+1320  format (4x,a,2x,'V(cm3/mol) = ',1pg12.5,/,
+     *            10x,'fugacity   = ',1pg12.5)
 1330  format (/,5x,'COMPOSITION IS SUPERSATURATED WITH ',
      *           'RESPECT TO CARBON!!',/)
 1350  format (5x,'Back-calculated X(C) = ',g16.9)
