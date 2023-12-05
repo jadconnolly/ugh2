@@ -190,7 +190,7 @@ c 28
 c 29
      *'X(O/(O+H))-X(C) C-O-H Zhang & Duan 09',
 c 30
-     *'(ID) HSMRK for pure (single component) fluid'/
+     *'(ID) MRK for pure (single component) fluid'/
 c---------------------------------------------------------------------
       if (irk.eq.2) then
 
