@@ -73,6 +73,7 @@ c-----------------------------------------------------------------------
          call cohngr (fo2)
       else if (ifug.eq.25) then 
          call waddah
+         g(1:2) = f(1:2)
       else if (ifug.eq.26) then 
 c         call rkboth
          call idsi5 
