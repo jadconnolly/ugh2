@@ -582,11 +582,11 @@ c                                 LP workspace into common
      *        mccoef, mccoid
       character xptnam*18
       double precision xptpt, xptblk, xptc, cprng, sprng, wcomp, 
-     *                 wextra, wmiss
+     *                 wextra, wmiss, oktol, scores
 
       common/ cst68 /xptpt(l11,l2), xptblk(l11,k5), xptc(k5*l11), 
      *               cprng(l12,3,2),sprng(l13,m1,m3,2), wcomp, wextra,
-     *               wmiss,
+     *               wmiss, oktol, scores(l11), 
 c                                  integer
      *               mccpd, mcsol, mxpt, cxpt, nparm, nunc, mctrm(l13),
      *               xptids(l11,k5), xptptr(l11,k5), xptnph(l11),

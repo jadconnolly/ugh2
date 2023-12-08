@@ -25,6 +25,7 @@ F      | random, T => generate a new seed for random number generation each time
 
 | Nelder-Meade MINIM algorithm variables
 
+1d3    | oktol
 1d-7   | tol, by trial and error
 1d-6   | simplx, trial and error
 0.4    | frac, fractional step size
@@ -48,7 +49,7 @@ fnin                             | compounds must be specified by a make definit
 parameter a                      
 range        -5e3 5e3
 parameter b
-range        -5e1 0
+range        -5e1 5e1
                                  | if a coefficient (e.g., c here) is unspecified, its value is as given by the
                                  | make definition in the thermodynamic data file.
 

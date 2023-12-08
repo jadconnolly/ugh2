@@ -27,7 +27,7 @@ end_components
 
 begin_makes
 fnin = 1 tro
-       DQF(J/mol) = 1  + 0.001 * T_K
+       DQF(J/mol) = -46886.6  + 36.8262 * T_K
 end makes
 
 end

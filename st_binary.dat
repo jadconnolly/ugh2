@@ -1,4 +1,4 @@
-stefan_II.dat     thermodynamic data file                                                                                                      
+stefan_III.dat     thermodynamic data file                                                                                                      
 no_print | print generates print output
 plot     | obsolete 6.8.4+
 stefan_solution.dat     | solution model file, blank = none                                                                                                                                                                                                     
