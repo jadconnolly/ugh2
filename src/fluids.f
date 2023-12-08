@@ -401,7 +401,7 @@ c                                 get the users choice of EoS:
          if (ifug.eq.28) then
 c           Override perplex_options.dat hybrid_EoS_XXX
             iopt(25) = 6
-            iopt(26) = 6
+            iopt(26) = 1
             iopt(27) = 1
          end if
          if (ifug.eq.29) then
@@ -422,7 +422,7 @@ c                                 of independent variable
 
          if (readyn()) then 
 c                                 tabulated properties
-            if (ifug.le.3.or.ifug.eq.13..or.ifug.eq.14.or.
+            if (ifug.le.5.or.ifug.eq.13..or.ifug.eq.14.or.
      *               ifug.eq.17.or.ifug.eq.25) then 
 c                                 binary x EoS's
                ipot = 3
@@ -501,7 +501,7 @@ c                                X(O)-X(C) COH
                ipot = 4
                vname(4) = 'X(C)    '
 
-            else if (ifug.eq.30 .or. ifug.eq.31) then
+            else if (ifug.eq.30.or.ifug.eq.31) then
 c                                pure fluid MRK / HSMRK
                isp = 1
                ipot = 3
@@ -969,9 +969,6 @@ c                                 atomic fractions
 
                   tot = ns + no + nh + nc + nn + nsi
 
-c                                 adjust prop() index for 30 with phantom ipot
-c                 if (ifug.eq.30.or.ifug.eq.31) then
-
                   prop(ipot+isp+2) = nc/tot
                   prop(ipot+isp+3) = no/tot
                   prop(ipot+isp+4) = nh/tot
@@ -1044,7 +1041,7 @@ c                                 compute volume by finite difference
 
                      p = var(1)
 c                                 use finite difference total volume only if non-hybrid EoS
-                    if (ifug.eq.5.or.ifug.eq.14.or.ifug.eq.25) 
+                    if (ifug.eq.5.or.ifug.eq.14.or.ifug.eq.25)
      *                 vol = 83.14d0*t*vdif
 
                      write (39,'(12(g14.6,1x))') p, t, (vpar(k),k=1,isp)

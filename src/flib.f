@@ -50,6 +50,7 @@ c-----------------------------------------------------------------------
          call qrkmrk
       else if (ifug.eq.5) then 
          call hprk
+         g(1:2) = f(1:2)
       else if (ifug.eq.8) then  
          call cohfo2 (fo2)
       else if (ifug.eq.10) then
