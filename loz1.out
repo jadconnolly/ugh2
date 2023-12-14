@@ -1,0 +1,17 @@
+ tol/frac/simplx  1.000000000000000E-007  0.400000000000000     
+  1.000000000000000E-006
+--------------------------------------------------------------------------------
+
+Try   1, successes so far =   1
+Objective function evaluations this try =   14
+Last objective function value this try  = 0.882037E-02
+Best result so far = 0.882037E-02 was obtained on try   1
+
+Initial coordinates:  0.00000      0.00000      0.00000    
+Final coordinates: -14612.9      68286.0      64022.4    
+
+Scores for try =   1 follow:
+
+  1 loz1               score = 1.25866    
+
+--------------------------------------------------------------------------------

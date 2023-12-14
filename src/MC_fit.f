@@ -636,7 +636,7 @@ c-----------------------------------------------------------------------
 
       integer i, j, k, nph, ier, id, ids
 
-      double precision err, pertrb
+      double precision err, pertrb, tot
 
       character key*22, val*3, nval1*12, nval2*12, nval3*12,
      *          strg*40, strg1*40, char*1
@@ -1013,6 +1013,16 @@ c                                 get solution composition
 
                if (randm) xptc(cxpt+i) = pertrb (xptc(cxpt+i),err)
 
+            end do
+c                                 normalize bulk
+            tot = 0d0
+
+            do i = 1, icp
+               tot = tot + xptc(cxpt+i)
+            end do
+
+            do i = 1, icp
+               xptc(cxpt+i) = xptc(cxpt+i)/tot
             end do
 c                                 pointer to the composition of phase nph in expt mexpt 
             xptptr(mxpt,nph) = cxpt
@@ -2546,13 +2556,13 @@ c                                 accumulate scores
 
          scores(id) = lobj
 
-c        write (*,'(i3,1x,2(g12.6,1x,a))') id, lobj, xptnam(id),obj
+c        write (*,'(i3,1x,2(g12.6,1x,a))') id, lobj, xptnam(id)
 
 c        if (oprt) write (n6,'(i3,1x,a,g12.6,1x)') 
 c    *                   id, xptnam(id)\\' score =', lobj
 
       end do
 
-c     write (*,'(8(g12.6,1x))') obj, x(1:nparm)
+      write (*,'(8(g12.6,1x))') obj, x(1:nparm)
 
       end

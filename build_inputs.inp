@@ -136,8 +136,7 @@ Gt(W)
 title
 
 #####################################################################################
-#4 padova 1 normal pt   Volume229 Issue4 Page827-828.
-
+#5 padova TX
 pad2
 y
 HP622ver.dat
@@ -214,3 +213,176 @@ Gt(W)
 
 title
 
+#####################################################################################
+#5 Gloss 1d path from file with fractionation
+
+pad1
+y
+DEW17HP622ver_oxides.dat
+
+
+
+
+
+Na2O
+MgO
+Al2O3
+K2O
+CaO
+TiO2
+FeO
+SiO2
+H2O
+CO2
+
+
+2 T on X
+673 1473
+30d3 80d3
+
+n
+0.328 1.623 1.497 0.058 2.258  0.138  1.370 7.490 1.460  0.659 
+n
+n
+y
+
+Chl(W)
+Mica(CHA)
+feldspar
+Omph(GHP)
+COH-Fluid
+T
+Do(HP)
+M(HP)
+Gt(W) 
+
+title
+
+#####################################################################################
+#5 padova gloss 1d from path
+pad5
+y
+DEW19HP622ver_elements.dat
+perplex_option.dat
+n
+5
+n
+n
+H2    1 0.979633 1.0
+C     1 0.706762 0.0
+Si    1 10.4566  0.0
+Al    1 2.52531  0.0
+Fe    1 0.787815 0.0
+Mg    1 0.668982 0.0
+Ca    1 1.1374   0.0
+Na    1 0.786221 0.0
+K     1 0.460642 0.0
+O2    1 15.1269  0.5
+S2    1 0.107889 0.0
+
+y - coordinates from a file
+subduction_PT_path.dat
+n - wt
+0.405  0.068 0.975 0.234 0.073 0.062  0.106 0.078 0.044 1.567 0.01 
+n - print
+n - exclude 
+y - solution models
+solution_model.dat
+COH-Fluid
+Omph(GHP)
+T    
+Mica(CF) 
+Do(HP)    
+M(HP)     
+Grt(JH)      
+
+
+
+
+Na2O
+MgO
+Al2O3
+K2O
+CaO
+TiO2
+FeO
+SiO2
+H2O
+CO2
+
+14
+y
+1 P(T)
+1 n
+1e4
+1
+2 - select x
+1 - select T
+673 1073 range on T
+n
+0.328 1.623 1.497 0.058 2.258  0.138  1.370 7.490 1.460  0.659 
+0.328 1.623 1.497 0.058 2.258  0.138  1.370 7.490 0 0 
+n
+y
+n
+h2oL
+
+y
+
+Chl(W)
+Mica(CHA)
+feldspar
+Omph(GHP)
+COH-Fluid
+T
+Do(HP)
+M(HP)
+Gt(W) 
+
+title
+
+•	Thermodynamic data file: 	DEW19HP622ver.dat
+•	Option file: 	perplex_option.dat [default]
+•	Computational mode: 	5 [1d Phase fractionation]
+•	Subduction_PT_path.dat
+•	Thermodynamic components: [list can be pasted into BUILD]
+H2    1 0.979633 1.0
+C     1 0.706762 0.0
+Si    1 10.4566  0.0
+Al    1 2.52531  0.0
+Fe    1 0.787815 0.0
+Mg    1 0.668982 0.0
+Ca    1 1.1374   0.0
+Na    1 0.786221 0.0
+K     1 0.460642 0.0
+O2    1 15.1269  0.5
+S2    1 0.107889 0.0
+
+•	Enter path coordinates from file: 	subduction_PT_path.dat
+•	
+
+
+
+
+
+2 T on X
+673 1473
+30d3 80d3
+
+n
+0.328 1.623 1.497 0.058 2.258  0.138  1.370 7.490 1.460  0.659 
+n
+n
+y
+
+Chl(W)
+Mica(CHA)
+feldspar
+Omph(GHP)
+COH-Fluid
+T
+Do(HP)
+M(HP)
+Gt(W) 
+
+title
