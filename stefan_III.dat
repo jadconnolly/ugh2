@@ -77,7 +77,7 @@ end
 
 oldL       EoS = 8  | Tm = 2526 C
 CaS(1)
-G0 = -328.5994d3 S0 = 30.39390000 
+G0 = -448661.4 S0 = 55.394
 c1 = 67
                            | troilite volumetric EoS
 V0 = 1.819

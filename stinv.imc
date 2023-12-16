@@ -9,7 +9,7 @@ F      | random, T => generate a new seed for random number generation each time
 
 | Monte-Carlo logistical variables:
 
-200    | ntry, number of starting guesses used to find a best fit model
+400    | ntry, number of starting guesses used to find a best fit model
 00     | nunc, number of iteration to evaluate uncertainities. set nunc = 0 
        | to suppress uncertainty evaluation.
 
@@ -26,9 +26,9 @@ F      | random, T => generate a new seed for random number generation each time
 | Nelder-Meade MINIM algorithm variables
 
 5d3    | oktol, threshold at which a failed minim result will be considered a legitimate result
-1d-7   | tol, by trial and error
+1d-5   | tol, by trial and error
 1d-6   | simplx, trial and error
-0.4    | frac, fractional step size
+0.2    | frac, fractional step size
 10     | conchk, how often to check for convergence
 0      | iprint, 0 => normal print, < 0 => silent, > 0 => verbose
 1      | iquad, 1 => fit surface to minimum, 0 => don't fit 

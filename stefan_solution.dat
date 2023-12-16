@@ -16,8 +16,8 @@ old nin fnin
 0  1  .1   0               | subdivision range, imod = 0 -> cartesian subdivision
 
 begin_excess_function
-W(nin fnin) 12090.7 | model 9 36980 
-W(fnin old) 43300
+W(nin fnin) 12090.7 | model 9 stinv
+W(fnin old) 223734. | model 24 stinv_no_mf
 W(nin old)  43300 
 |W(old nin) 29190 
 |W(old nin fnin) 2708
@@ -47,8 +47,9 @@ oldL ninL troL
 0  1  .1   0               | subdivision range, imod = 0 -> cartesian subdivision
 
 begin_excess_function
-W(ninL troL) 15311.9 | model 9 28590 
-W(troL oldL) -189400 
+W(ninL troL) 15311.9  |model 9  stinv
+W(troL oldL) -191314. |model 24 stinv_no_mf 
+
 W(ninL oldL) 15311.9 
 |W(oldL ninL troL)  584500
 end_excess_function

@@ -2563,6 +2563,6 @@ c    *                   id, xptnam(id)\\' score =', lobj
 
       end do
 
-      write (*,'(8(g12.6,1x))') obj, x(1:nparm)
+c     write (*,'(8(g12.6,1x))') obj, x(1:nparm)
 
       end
