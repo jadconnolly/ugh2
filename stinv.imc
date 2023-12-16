@@ -69,6 +69,9 @@ parameter 1 -5e4 5e4             | allowed range for coefficient 1 of W(nin fnin
 W(nin old)
 parameter 1 -5e4 5e4
 
+W(old nin fnin)
+parameter 1 -2e5 2e5
+
 end_list
 
 melt
@@ -81,6 +84,9 @@ parameter 1 -5e4 5e4
 
 W(ninL oldL)
 parameter 1 -5e4 5e4
+
+W(oldL ninL troL)
+parameter 1 -2e5 2e5
 
 end_list
 

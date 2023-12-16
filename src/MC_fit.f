@@ -776,13 +776,13 @@ c                                 now check that it exists in the model:
 c                                 ------------------------------------------
 c                                 indices are now in isub(1,1:iord) look for 
 c                                 the term in the real model
-               do i = 1, iord
+               do j = 1, jterm(id)
 
-                  do j = 1, jterm(id)
+                  if (rko(j,id).ne.iord) cycle
+
+                  do i = 1, iord
 
                      ok = .true.
-
-                     if (rko(j,id).ne.iord) cycle
 c                                 now check the endmembers match, assume same
 c                                 ordering as in the solution model
                      do k = 1, iord
@@ -795,6 +795,9 @@ c                                 if ok, match on jth term
                      if (ok) exit
 
                   end do
+
+                  if (ok) exit
+
                end do
               
                if (.not.ok) then
