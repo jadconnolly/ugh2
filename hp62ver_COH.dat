@@ -119,13 +119,22 @@ musp   = 1 usp + 2 sp - 2 herc
 DQF = 0
 
 hcrd = 1 hcrd0 
-DQF = -14070
+DQF = 0
 
 crd = 1 crd0 
-DQF = -14070
+DQF = 0
 
 fcrd = 1 fcrd0 
-DQF = -14070
+DQF = 0
+
+phl = 1 phl0 
+DQF = 0
+
+ann = 1 ann0 
+DQF = 0
+
+east = 1 east0 
+DQF = 0
                                 | Fe endmembers for ultramafic mineral solution
                                 | models, based on the talc Fe-Mg exchange.
 fbr = 1 br - 1/3 ta + 1/3 fta
@@ -1412,7 +1421,7 @@ b1 = .233E-4  b5 = 558.0552  b6 = 1000000.  b7 = -.41E-5  b8 = 4.08
 end
 
  
-phl       EoS = 8  
+phl0       EoS = 8  
 MgO(3)Al2O3(.5)SiO2(3)K2O(.5)O2(.5)H2(1)
 GH = -6312077.  S0 = 326  V0 = 14.964  
 c1 = 770.3  c2 = -.36939E-1  c3 = -2328900.  c5 = -6531.6  
@@ -1420,7 +1429,7 @@ b1 = .38E-4  b5 = 500.325  b6 = 513000  b7 = -.143E-4  b8 = 7.33
 end
 
  
-ann       EoS = 8  
+ann0       EoS = 8  
 Al2O3(.5)SiO2(3)K2O(.5)FeO(3)O2(.5)H2(1)
 GH = -5268943.  S0 = 420  V0 = 15.432  
 c1 = 815.7  c2 = -.34861E-1  c3 = 19800  c5 = -7466.7  
@@ -1436,7 +1445,7 @@ b1 = .38E-4  b5 = 407.1692  b6 = 530000  b7 = -.143E-4  b8 = 7.33
 end
 
  
-east      EoS = 8  
+east0      EoS = 8  
 MgO(2)Al2O3(1.5)SiO2(2)K2O(.5)O2(.5)H2(1)
 GH = -6425192.  S0 = 318  V0 = 14.738  
 c1 = 785.5  c2 = -.38031E-1  c3 = -2130300.  c5 = -6893.7  

@@ -26,9 +26,9 @@ F      | random, T => generate a new seed for random number generation each time
 | Nelder-Meade MINIM algorithm variables
 
 1d3    | oktol
-1d-7   | tol, by trial and error
+1d-5   | tol, by trial and error
 1d-6   | simplx, trial and error
-0.4    | frac, fractional step size
+0.1    | frac, fractional step size
 10     | conchk, how often to check for convergence
 0      | iprint, 0 => normal print, < 0 => silent, > 0 => verbose
 1      | iquad, 1 => fit surface to minimum, 0 => don't fit 

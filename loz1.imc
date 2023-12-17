@@ -9,7 +9,7 @@ F      | random, T => generate a new seed for random number generation each time
 
 | Monte-Carlo logistical variables:
 
-10     | ntry, number of starting guesses used to find a best fit model
+200    | ntry, number of starting guesses used to find a best fit model
 00     | nunc, number of iteration to evaluate uncertainities. set nunc = 0 
        | to suppress uncertainty evaluation.
 
@@ -28,7 +28,7 @@ F      | random, T => generate a new seed for random number generation each time
 5d3    | oktol, threshold at which a failed minim result will be considered a legitimate result
 1d-7   | tol, by trial and error
 1d-6   | simplx, trial and error
-0.4    | frac, fractional step size
+0.1    | frac, fractional step size
 10     | conchk, how often to check for convergence
 0      | iprint, 0 => normal print, < 0 => silent, > 0 => verbose
 1      | iquad, 1 => fit surface to minimum, 0 => don't fit 
@@ -65,6 +65,26 @@ parameter a
 range        -1e5  1e5
 end_list
 
+
+|phl                              | compounds must be specified by a make definition from one or more real entities;
+                                 | the free parameters define the DQF = a + b*T + c*P for the make definition
+|parameter a                      
+|range        -1e5  1e5
+|end_list
+
+
+|ann                              | compounds must be specified by a make definition from one or more real entities;
+                                 | the free parameters define the DQF = a + b*T + c*P for the make definition
+|parameter a                      
+|range        -1e5  1e5
+|end_list
+
+|east                             | compounds must be specified by a make definition from one or more real entities;
+                                 | the free parameters define the DQF = a + b*T + c*P for the make definition
+|parameter a                      
+|range        -1e5  1e5
+|end_list
+
 end_phase_free_parameters
 
 
@@ -72,8 +92,8 @@ begin_exp
 
 loz1
 
-3500    200   | pressure (bar)
-853      20   | temperature (K)
+3800    200   | pressure (bar)
+913      20   | temperature (K)
 
 begin_bulk
 
@@ -159,7 +179,7 @@ end_comp
 
 q
 
-|sill
+sill
 
 gph
 

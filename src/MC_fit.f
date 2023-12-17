@@ -427,6 +427,8 @@ c                                 initialize icount in case of failure
      *               conchk, iquad, simplx, var, mcobj2, icount, 
      *               ifault, oktol)
 
+         call mcobj2 (x,objf,bad)
+
          if (ifault.gt.2.or.(ifault.gt.0.and.objf.gt.oktol)) then
 
             write (*,1020) ifault, icount
