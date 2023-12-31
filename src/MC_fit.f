@@ -33,7 +33,7 @@ c                                 open inversion problem file
 
       else
 
-         call invptx (ntry,tol,simplx,frac,conchk,iprint,iquad,kcount)
+         call invptx (ntry,tol,simplx,conchk,iprint,iquad,kcount)
 
       end if
 
@@ -104,8 +104,7 @@ c                                 read Nelder-Meade parameters
 
       end
 
-      subroutine invptx (ntry,tol,simplx,frac,conchk,iprint,iquad,
-     *                   kcount)
+      subroutine invptx (ntry,tol,simplx,conchk,iprint,iquad,kcount)
 c----------------------------------------------------------------------
       implicit none
 
@@ -119,7 +118,7 @@ c----------------------------------------------------------------------
       character amount*6
 
       double precision var(l2+k5), objf, mcobjf, x(l2+k5), 
-     *                 tol, step(l2+k5), simplx, bstobj, frac
+     *                 tol, step(l2+k5), simplx, bstobj
 
       external readyn, mcobjf, mcobj1
 
@@ -215,14 +214,7 @@ c                               new starting point
                call random_number (x(j))
             end do
 
-c           if (i.eq.5) then 
-c              x(1:n) = 0.5
-c           end if
-
          end do
-
-         write (*,1100) igood, ntry
-         write (*,1110) ibest, bstobj
 
       stop
 
@@ -235,8 +227,6 @@ c           end if
 1040  format ('Final potentials: ',5(g12.6,1x))
 1050  format ('Number of function evaluations: ',i5,
      *        ' igood = ',i3,' icount = ',i5)
-1100  format (i3,' Successes in ',i4,' tries.')
-1110  format ('Best result was search ',i3,' objf =',g12.6)
 1000  format (/,'Interactively enter bulk compositions (y/n)?',/,
      *          'If you answer no, MEEMUM uses the bulk composition',
      *         ' specified in the input file.',/)
@@ -329,7 +319,6 @@ c                                 standard deviation
 1080  format ('Initial normalized coordinates: ',5(g12.6,1x))
 1085  format ('Initial coordinates: ',5(g12.6,1x))
 1100  format (i3,' Successes in ',i4,' tries.')
-1110  format (/,'Best result so far is try ',i3,', bstobj = ',g12.6,/)
 1120  format ('ntry = ',i3,', igood = ',i3,', icount = ',i3,
      *        ', obj = ',g12.6,', ibest = ',i3,', bestobj = ',g12.6)
 
@@ -343,13 +332,14 @@ c----------------------------------------------------------------------
       include 'perplex_parameters.h'
 
       integer i, n, conchk, kcount, icount, ifault, iprint,
-     *        iquad, j, k, igood, ntry, ibest, id
+     *        iquad, j, k, igood, ntry, ibest, id, jbest
 
       logical readyn, bad, randm, n6out
 
       double precision var(l2+k5), objf, x(l2+k5), sx(l2+k5), x0(l2+k5),
      *                 tol, step(l2+k5), simplx, bstobj, frac, bstx(*), 
-     *                 bstvar(l2+k5), plow(l2+k5), pdelta(l2+k5)
+     *                 bstvar(l2+k5), plow(l2+k5), pdelta(l2+k5), ssp,
+     *                 bay, bstbx(l2+k5), bstbay
 
       external readyn, mcobj2
 
@@ -402,6 +392,8 @@ c                                 initialize scaled coordinate
       igood = 0
       bstobj = 1d99
       oprt = .false.
+      bstbay = 1d99
+      jbest = 0
 
       if (n6out) then 
 c                                 output file
@@ -431,14 +423,27 @@ c                                 initialize icount in case of failure
 
          if (ifault.gt.2.or.(ifault.gt.0.and.objf.gt.oktol)) then
 
-            write (*,1020) ifault, icount
-            write (*,1100) igood, ntry
-            write (*,1110) ibest, bstobj
+            write (*,1020) ifault, icount, igood, ntry
 
          else
 
             igood = igood + 1
+c                                 compute ss of parameter deviations
+            ssp = 0d0
 
+            do j = 1, n
+               ssp = ssp + ((x(j) - plow(j))/pdelta(j))**2
+            end do 
+c                                 best "bayesian" score
+            bay = ssp * objf
+
+            if (bay.lt.bstbay) then 
+               jbest = i
+               bstbay = bay
+               bstbx(1:n) = x(1:n)
+            end if 
+
+c                                 save max likelihood result
             if (objf.lt.bstobj) then 
                ibest = i
                bstobj = objf
@@ -447,6 +452,7 @@ c                                 initialize icount in case of failure
             end if
 
             write (*,1120) i, igood, icount, objf, bstobj, ibest
+            write (*,1130) ssp, bay, bstbay, jbest
             write (*,1080) sx(1:n)
             write (*,1085) x0(1:n)
             write (*,1030) x(1:n)
@@ -454,6 +460,7 @@ c                                 initialize icount in case of failure
             if (n6out) then
 
                write (n6,1120) i, igood, icount, objf, bstobj, ibest
+               write (n6,1130) ssp, bay, bstbay, jbest
                write (n6,1085) x0(1:n)
                write (n6,1030) x(1:n)
                write (n6,'(/,a,i3,a,/)') 'Scores for try = ',i,
@@ -486,18 +493,21 @@ c                               write best model to *.bst
 
       if (n6out) close (n6)
 
-1020  format (/,'Minimization FAILED, ifault = ',i3,', icount = ',i4,/)
+1020  format (/,'Minimization FAILED, ifault = ',i3,', icount = ',i4,
+     *          ', ntry = ',i4,', igood = ',i4,/)
 1030  format ('Final coordinates: ',20(g12.6,1x))
 1050  format (/,'Number of function evaluations: ',i5,', igood = ',i3,/)
 1080  format ('Initial normalized coordinates: ',20(g12.6,1x))
 1085  format ('Initial coordinates: ',20(g12.6,1x))
-1100  format (i3,' Successes in ',i4,' tries.')
-1110  format (/,'Best result so far is try ',i3,', bstobj = ',g12.6,/)
 1120  format (/,'Try ',i3,', successes so far = ',i3,/,
      *          'Objective function evaluations this try = ',i4,/,
-     *          'Last objective function value this try  = ',g12.6,/,
-     *          'Best result so far = ',g12.6,
-     *          ' was obtained on try ',i3,/)
+     *          'Last objective function value this try OBJ = ',g12.6,/,
+     *          'Best OBJ so far = ',g12.6,
+     *          ' obtained on try ',i3,/)
+1130  format (/,'Scaled parameter SSP = ',g12.6,/,
+     *          'Bayes score SSP * OBJF = ',g12.6,/,
+     *          'Best Bayes score so far = ',g12.6,
+     *          ' obtained on try ',i3,/)
 
       end 
 
@@ -782,19 +792,17 @@ c                                 the term in the real model
 
                   if (rko(j,id).ne.iord) cycle
 
-                  do i = 1, iord
+                  ok = .true.
 
-                     ok = .true.
+                  do i = 1, iord
 c                                 now check the endmembers match, assume same
 c                                 ordering as in the solution model
-                     do k = 1, iord
-                        if (isub(1,k).ne.jend(id,2+jsub(k,j,i))) then
-                           ok = .false.
-                           exit
-                        end if
-                     end do
-c                                 if ok, match on jth term
-                     if (ok) exit
+                     if (isub(1,i).ne.jend(id,2+jsub(i,j,id))) then
+c                                 if .not.ok, no match on jth term
+                        ok = .false.
+                        exit
+
+                     end if
 
                   end do
 
@@ -809,6 +817,8 @@ c                                term does not exist in solution model
 c                                the term exists:
 c                                increment term counter
                mctrm(mcsol) = mctrm(mcsol) + 1
+c                                save the term pointer
+               mcj(mcsol,mctrm(mcsol)) = j
 c                                now find which coefficients of the
 c                                term are free
                do 
@@ -2080,11 +2090,13 @@ c
       ij=0
       do 840 i=1,nop
         ii=ii+i
+
         if(vc(ii).gt.zero) then
           vc(ii)=one/sqrt(vc(ii))
         else 
           vc(ii)=zero
-	end if
+        end if
+
         jj=0
         do 830 j=1,i-1
           jj=jj+j
@@ -2348,7 +2360,7 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i, j, k, n
+      integer i, j, k, n, ids, jt
 
       double precision x(*)
 c-----------------------------------------------------------------------
@@ -2365,13 +2377,18 @@ c                                 solutions, this is only for margules
 c                                 for rk (extyp(mcids(i)).eq.1), the 
 c                                 coefficients are in wkl(m16,m17,m18,h9)
       do i = 1, mcsol
+c                                 solution id:
+         ids = mcids(i)
 c                                 for each term
          do j = 1, mctrm(i)
+c                                 term id
+            jt = mcj(i,j)
 c                                 for each coefficient
-            do k = 1, mccoef(i,j) 
+            do k = 1, mccoef(i,j)
                n = n + 1
-               wgl(mccoef(i,k),j,mcids(i)) = x(n)
+               wgl(mccoid(ids,j,k),jt,ids) = x(n)
             end do
+
          end do
       end do
 
@@ -2385,7 +2402,7 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical bad, ok, imout(k5), imin(k5), used(k5,k5)
+      logical bad, ok, imout(k5), imin(k5), used(k5)
 
       integer id, jd, ids, i, j, kct(k5), ksol(k5,k5), ibest
 
@@ -2514,9 +2531,11 @@ c                                 compute and add residual
 
                do i = 1, kct(j)
 
-                  if (used(j,i)) cycle
+                  jd = ksol(j,i)
 
-                  res = score (ksol(j,i),id,j)
+                  if (used(jd)) cycle
+
+                  res = score (jd,id,j)
 
                   if (res.lt.best) then
                      best = res
@@ -2528,7 +2547,7 @@ c                                 compute and add residual
 
                if (ok) then
 
-                  used(j,ibest) = .true.
+                  used(ibest) = .true.
                   mpred = mpred + 1d0
                   lobj = lobj + wcomp * best
 
@@ -2544,9 +2563,11 @@ c                                 score remaining extraneous phaes
 
             do i = 1, kct(j)
 
-               if (used(j,i)) cycle
-
                jd = ksol(j,i)
+
+               if (used(jd)) cycle
+c                                 set used to avoid double counting
+               used(jd) = .true.
 c                                 residual is wextra * mass_fraction^2
                lobj = lobj + wextra * 
      *                      (props(17,jd)*props(16,jd)/psys(17))**2
