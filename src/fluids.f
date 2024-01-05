@@ -1026,12 +1026,19 @@ c                                 compute volume by finite difference
 
                         call cfluid (fo2,fs2)
 
+c                                 code here used to assume fugacity coeff
+c                                 was returned, but it seems that log(fugacity)
+c                                 returned.  commented-out code shows former
+c                                 behavior.  this produces tabulated output that
+c                                 agrees with individual PTX point output.
                         do k = 1, isp
                            if (g(ins(k))*p*xxs(ins(k)).eq.0d0) cycle
                            vpar(k) = vpar(k) +  
-     *                         83.14d0*t*f*dlog(g(ins(k))*p*xxs(ins(k)))
+c    *                         83.14d0*t*f*dlog(g(ins(k))*p*xxs(ins(k)))
+     *                         83.14d0*t*f*xxs(ins(k))*g(ins(k))
                            vdif = vdif + 
-     *                       f*xxs(ins(k))*dlog(g(ins(k))*p*xxs(ins(k)))
+c    *                       f*xxs(ins(k))*dlog(g(ins(k))*p*xxs(ins(k)))
+     *                         f*xxs(ins(k))*g(ins(k))
                         end do 
 
                         f = -1d0
@@ -1041,8 +1048,8 @@ c                                 compute volume by finite difference
 
                      p = var(1)
 c                                 use finite difference total volume only if non-hybrid EoS
-                    if (ifug.eq.5.or.ifug.eq.14.or.ifug.eq.25)
-     *                 vol = 83.14d0*t*vdif
+                     if (ifug.eq.5.or.ifug.eq.14.or.ifug.eq.25)
+     *                  vol = 83.14d0*t*vdif
 
                      write (39,'(12(g14.6,1x))') p, t, (vpar(k),k=1,isp)
 
