@@ -1,0 +1,2803 @@
+ tol/frac/simplx  1.000000000000000E-007  0.100000000000000     
+  1.000000000000000E-006
+--------------------------------------------------------------------------------
+
+Try   1, successes so far =   1
+Objective function evaluations this try =   24
+Last objective function value this try  = 0.633186E-02
+Best result so far = 0.633186E-02 was obtained on try   1
+
+Initial coordinates:  0.00000      0.00000      0.00000    
+Final coordinates: -1070.57      1590.55     -3715.72    
+
+Scores for try =   1 follow:
+
+  1 loz1               score =0.633186E-02
+
+--------------------------------------------------------------------------------
+
+Try   2, successes so far =   2
+Objective function evaluations this try =   46
+Last objective function value this try  =  2.58788    
+Best result so far = 0.633186E-02 was obtained on try   1
+
+Initial coordinates: -99999.9     -94903.9     -29496.8    
+Final coordinates: -110013.     -56533.8     -64902.7    
+
+Scores for try =   2 follow:
+
+  1 loz1               score = 2.58788    
+
+--------------------------------------------------------------------------------
+
+Try   3, successes so far =   3
+Objective function evaluations this try =   35
+Last objective function value this try  =  2.52577    
+Best result so far = 0.633186E-02 was obtained on try   1
+
+Initial coordinates:  33382.9      92611.1      67657.6    
+Final coordinates:  40049.6      99277.8      74324.3    
+
+Scores for try =   3 follow:
+
+  1 loz1               score = 2.52577    
+
+--------------------------------------------------------------------------------
+
+Try   4, successes so far =   4
+Objective function evaluations this try =   23
+Last objective function value this try  = 0.754779E-02
+Best result so far = 0.633186E-02 was obtained on try   1
+
+Initial coordinates: -32929.0      83065.4      59172.7    
+Final coordinates: -3271.07      88356.8      82533.0    
+
+Scores for try =   4 follow:
+
+  1 loz1               score =0.754779E-02
+
+--------------------------------------------------------------------------------
+
+Try   5, successes so far =   5
+Objective function evaluations this try =   16
+Last objective function value this try  = 0.192201E-01
+Best result so far = 0.633186E-02 was obtained on try   1
+
+Initial coordinates:  66538.6     -30991.5      74236.8    
+Final coordinates:  411.660     -12486.4      51385.9    
+
+Scores for try =   5 follow:
+
+  1 loz1               score =0.192201E-01
+
+--------------------------------------------------------------------------------
+
+Try   6, successes so far =   6
+Objective function evaluations this try =   21
+Last objective function value this try  = 0.127228E-01
+Best result so far = 0.633186E-02 was obtained on try   1
+
+Initial coordinates: -82016.3      77656.8      40195.8    
+Final coordinates: -6878.14     -702.658      112680.    
+
+Scores for try =   6 follow:
+
+  1 loz1               score =0.127228E-01
+
+--------------------------------------------------------------------------------
+
+Try   7, successes so far =   7
+Objective function evaluations this try =   19
+Last objective function value this try  = 0.636628E-02
+Best result so far = 0.633186E-02 was obtained on try   1
+
+Initial coordinates:  46910.5     -39964.8     -90056.5    
+Final coordinates: -700.160      158.090     -4630.14    
+
+Scores for try =   7 follow:
+
+  1 loz1               score =0.636628E-02
+
+--------------------------------------------------------------------------------
+
+Try   8, successes so far =   8
+Objective function evaluations this try =   27
+Last objective function value this try  = 0.640010E-02
+Best result so far = 0.633186E-02 was obtained on try   1
+
+Initial coordinates:  81637.9     -80468.3     -91937.3    
+Final coordinates: -1212.74      268.500     -3339.06    
+
+Scores for try =   8 follow:
+
+  1 loz1               score =0.640010E-02
+
+--------------------------------------------------------------------------------
+
+Try   9, successes so far =   9
+Objective function evaluations this try =   51
+Last objective function value this try  = 0.722262E-02
+Best result so far = 0.633186E-02 was obtained on try   1
+
+Initial coordinates: -82995.0      11764.2      85290.3    
+Final coordinates: -3141.95      15681.1      10518.5    
+
+Scores for try =   9 follow:
+
+  1 loz1               score =0.722262E-02
+
+--------------------------------------------------------------------------------
+
+Try  10, successes so far =  10
+Objective function evaluations this try =   31
+Last objective function value this try  = 0.645814E-02
+Best result so far = 0.633186E-02 was obtained on try   1
+
+Initial coordinates: -84871.8      82357.9     -81635.6    
+Final coordinates: -1615.91      4204.91     -1702.68    
+
+Scores for try =  10 follow:
+
+  1 loz1               score =0.645814E-02
+
+--------------------------------------------------------------------------------
+
+Try  11, successes so far =  11
+Objective function evaluations this try =   42
+Last objective function value this try  = 0.170363E-01
+Best result so far = 0.633186E-02 was obtained on try   1
+
+Initial coordinates:  27553.3      70458.4     -75784.5    
+Final coordinates:  98394.0     -8163.03     -14395.8    
+
+Scores for try =  11 follow:
+
+  1 loz1               score =0.170363E-01
+
+--------------------------------------------------------------------------------
+
+Try  12, successes so far =  12
+Objective function evaluations this try =    6
+Last objective function value this try  =  1.28314    
+Best result so far = 0.633186E-02 was obtained on try   1
+
+Initial coordinates:  98914.9      55650.1     -96067.0    
+Final coordinates:  14554.6      35154.7     -5493.67    
+
+Scores for try =  12 follow:
+
+  1 loz1               score = 1.28314    
+
+--------------------------------------------------------------------------------
+
+Try  13, successes so far =  13
+Objective function evaluations this try =   24
+Last objective function value this try  = 0.676400E-02
+Best result so far = 0.633186E-02 was obtained on try   1
+
+Initial coordinates: -66027.3      98948.7      50738.5    
+Final coordinates: -2968.33      3614.83      2244.45    
+
+Scores for try =  13 follow:
+
+  1 loz1               score =0.676400E-02
+
+--------------------------------------------------------------------------------
+
+Try  14, successes so far =  14
+Objective function evaluations this try =   40
+Last objective function value this try  = 0.632957E-02
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates: -56405.2      31858.5      7803.68    
+Final coordinates: -989.841      1337.52     -3937.75    
+
+Scores for try =  14 follow:
+
+  1 loz1               score =0.632957E-02
+
+--------------------------------------------------------------------------------
+
+Try  15, successes so far =  15
+Objective function evaluations this try = 1021
+Last objective function value this try  =  1.28079    
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates: -3987.33      67845.3     -94916.0    
+Final coordinates:  90199.1      808.804     -25798.0    
+
+Scores for try =  15 follow:
+
+  1 loz1               score = 1.28079    
+
+--------------------------------------------------------------------------------
+
+Try  16, successes so far =  16
+Objective function evaluations this try =   38
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates:  97876.6      17154.1      53413.6    
+Final coordinates:  104543.      23820.8      60080.2    
+
+Scores for try =  16 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try  17, successes so far =  17
+Objective function evaluations this try =   32
+Last objective function value this try  = 0.753197E-02
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates: -11036.6      41901.0      58905.2    
+Final coordinates: -3491.78      42273.5      37246.2    
+
+Scores for try =  17 follow:
+
+  1 loz1               score =0.753197E-02
+
+--------------------------------------------------------------------------------
+
+Try  18, successes so far =  18
+Objective function evaluations this try =   32
+Last objective function value this try  = 0.127192E-01
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates: -12259.7     -58249.3      46222.4    
+Final coordinates: -6908.40     -555.562      105283.    
+
+Scores for try =  18 follow:
+
+  1 loz1               score =0.127192E-01
+
+--------------------------------------------------------------------------------
+
+Try  19, successes so far =  19
+Objective function evaluations this try =   63
+Last objective function value this try  = 0.656876E-02
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates:  33146.2      44414.8     -57705.8    
+Final coordinates: -2293.93      5081.07      567.344    
+
+Scores for try =  19 follow:
+
+  1 loz1               score =0.656876E-02
+
+--------------------------------------------------------------------------------
+
+Try  20, successes so far =  20
+Objective function evaluations this try =   42
+Last objective function value this try  = 0.705516E-02
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates: -38349.7     -47402.2      50459.2    
+Final coordinates: -2988.27      12086.6      7079.10    
+
+Scores for try =  20 follow:
+
+  1 loz1               score =0.705516E-02
+
+--------------------------------------------------------------------------------
+
+Try  21, successes so far =  21
+Objective function evaluations this try =   34
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates:  9958.91      27344.8      26202.1    
+Final coordinates:  16625.6      34011.5      32868.7    
+
+Scores for try =  21 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try  22, successes so far =  22
+Objective function evaluations this try =   26
+Last objective function value this try  = 0.687061E-02
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates: -1043.18     -5860.99     -75497.0    
+Final coordinates: 0.186298     -2749.26     -5182.19    
+
+Scores for try =  22 follow:
+
+  1 loz1               score =0.687061E-02
+
+--------------------------------------------------------------------------------
+
+Try  23, successes so far =  23
+Objective function evaluations this try =   23
+Last objective function value this try  = 0.212331E-01
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates:  6979.34     -61168.6      93581.1    
+Final coordinates:  2799.60     -13284.9      70941.0    
+
+Scores for try =  23 follow:
+
+  1 loz1               score =0.212331E-01
+
+--------------------------------------------------------------------------------
+
+Try  24, successes so far =  24
+Objective function evaluations this try =   33
+Last objective function value this try  = 0.644835E-02
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates:  17846.0     -96475.3     -37131.5    
+Final coordinates: -1967.70      3256.14     -1009.01    
+
+Scores for try =  24 follow:
+
+  1 loz1               score =0.644835E-02
+
+--------------------------------------------------------------------------------
+
+Try  25, successes so far =  25
+Objective function evaluations this try =   28
+Last objective function value this try  =  1.25675    
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates:  10660.6      35256.7     -96623.3    
+Final coordinates: -2807.50     -709.751     -4598.83    
+
+Scores for try =  25 follow:
+
+  1 loz1               score = 1.25675    
+
+--------------------------------------------------------------------------------
+
+Try  26, successes so far =  26
+Objective function evaluations this try =   30
+Last objective function value this try  = 0.745533E-02
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates: -46868.8     -7823.99      67490.0    
+Final coordinates: -3572.20      24902.9      20457.3    
+
+Scores for try =  26 follow:
+
+  1 loz1               score =0.745533E-02
+
+--------------------------------------------------------------------------------
+
+Try  27, successes so far =  27
+Objective function evaluations this try =   22
+Last objective function value this try  = 0.651811E-02
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates: -54209.4      24703.1     -90908.7    
+Final coordinates: -1688.50      181.367     -2024.48    
+
+Scores for try =  27 follow:
+
+  1 loz1               score =0.651811E-02
+
+--------------------------------------------------------------------------------
+
+Try  28, successes so far =  28
+Objective function evaluations this try = 1004
+Last objective function value this try  =  1.26308    
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates:  4644.50      61936.8     -33643.0    
+Final coordinates:  1949.47      40152.5      20768.1    
+
+Scores for try =  28 follow:
+
+  1 loz1               score = 1.26308    
+
+--------------------------------------------------------------------------------
+
+Try  29, successes so far =  29
+Objective function evaluations this try =   33
+Last objective function value this try  =  2.52577    
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates:  78385.6      40563.0      49206.5    
+Final coordinates:  85052.3      47229.7      55873.2    
+
+Scores for try =  29 follow:
+
+  1 loz1               score = 2.52577    
+
+--------------------------------------------------------------------------------
+
+Try  30, successes so far =  30
+Objective function evaluations this try =   61
+Last objective function value this try  = 0.751131E-02
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates: -48185.6      34260.0      30994.9    
+Final coordinates: -3450.50      33779.8      28674.9    
+
+Scores for try =  30 follow:
+
+  1 loz1               score =0.751131E-02
+
+--------------------------------------------------------------------------------
+
+Try  31, successes so far =  31
+Objective function evaluations this try = 1005
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates:  87089.0      94251.5      190.451    
+Final coordinates:  93755.7      100918.      6857.12    
+
+Scores for try =  31 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try  32, successes so far =  32
+Objective function evaluations this try =   30
+Last objective function value this try  =  1.25675    
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates: -14039.8     -36576.9      20736.9    
+Final coordinates: -2812.10     -695.784     -4585.22    
+
+Scores for try =  32 follow:
+
+  1 loz1               score = 1.25675    
+
+--------------------------------------------------------------------------------
+
+Try  33, successes so far =  33
+Objective function evaluations this try =   28
+Last objective function value this try  = 0.126053E-01
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates: -66258.3      85291.2      7113.08    
+Final coordinates: -6921.82     -225.051      66285.0    
+
+Scores for try =  33 follow:
+
+  1 loz1               score =0.126053E-01
+
+--------------------------------------------------------------------------------
+
+Try  34, successes so far =  34
+Objective function evaluations this try =   38
+Last objective function value this try  = 0.634375E-02
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates:  7558.18      12974.2     -26056.7    
+Final coordinates: -606.515      376.211     -4863.55    
+
+Scores for try =  34 follow:
+
+  1 loz1               score =0.634375E-02
+
+--------------------------------------------------------------------------------
+
+Try  35, successes so far =  35
+Objective function evaluations this try =   24
+Last objective function value this try  = 0.635646E-02
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates: -2381.72     -61474.3      20557.3    
+Final coordinates: -1233.89      962.605     -3322.48    
+
+Scores for try =  35 follow:
+
+  1 loz1               score =0.635646E-02
+
+--------------------------------------------------------------------------------
+
+Try  36, successes so far =  36
+Objective function evaluations this try =   33
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates:  27812.6     -4443.81      49319.3    
+Final coordinates:  34479.3      2222.86      55986.0    
+
+Scores for try =  36 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try  37, successes so far =  37
+Objective function evaluations this try =   37
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates:  32162.6      94974.4      77852.6    
+Final coordinates:  38829.3      101641.      84519.3    
+
+Scores for try =  37 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try  38, successes so far =  38
+Objective function evaluations this try = 1005
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates:  56779.1      95554.9      28808.9    
+Final coordinates:  63445.8      102222.      35475.6    
+
+Scores for try =  38 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try  39, successes so far =  39
+Objective function evaluations this try =   29
+Last objective function value this try  =  1.25675    
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates: -38505.2     -52461.3     -43303.7    
+Final coordinates: -2800.51     -740.766     -4619.19    
+
+Scores for try =  39 follow:
+
+  1 loz1               score = 1.25675    
+
+--------------------------------------------------------------------------------
+
+Try  40, successes so far =  40
+Objective function evaluations this try =   19
+Last objective function value this try  = 0.265559E-01
+Best result so far = 0.632957E-02 was obtained on try  14
+
+Initial coordinates:  87875.9     -55975.8      35268.6    
+Final coordinates:  76534.9     -13682.2      62538.7    
+
+Scores for try =  40 follow:
+
+  1 loz1               score =0.265559E-01
+
+--------------------------------------------------------------------------------
+
+Try  41, successes so far =  41
+Objective function evaluations this try =   43
+Last objective function value this try  = 0.632768E-02
+Best result so far = 0.632768E-02 was obtained on try  41
+
+Initial coordinates:  9618.94     -48693.2     -65566.1    
+Final coordinates: -921.955      1444.60     -4098.94    
+
+Scores for try =  41 follow:
+
+  1 loz1               score =0.632768E-02
+
+--------------------------------------------------------------------------------
+
+Try  42, successes so far =  42
+Objective function evaluations this try =   12
+Last objective function value this try  = 0.148457E-01
+Best result so far = 0.632768E-02 was obtained on try  41
+
+Initial coordinates:  68769.4      73364.1     -8801.49    
+Final coordinates:  2973.59      47276.3      25725.1    
+
+Scores for try =  42 follow:
+
+  1 loz1               score =0.148457E-01
+
+--------------------------------------------------------------------------------
+
+Try  43, successes so far =  43
+Objective function evaluations this try =   21
+Last objective function value this try  = 0.634333E-02
+Best result so far = 0.632768E-02 was obtained on try  41
+
+Initial coordinates:  21573.8      26006.5     -61985.1    
+Final coordinates: -434.141      527.799     -5273.50    
+
+Scores for try =  43 follow:
+
+  1 loz1               score =0.634333E-02
+
+--------------------------------------------------------------------------------
+
+Try  44, successes so far =  44
+Objective function evaluations this try =   49
+Last objective function value this try  = 0.632760E-02
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates: -81889.3      41345.5     -48665.6    
+Final coordinates: -889.325      1226.70     -4191.90    
+
+Scores for try =  44 follow:
+
+  1 loz1               score =0.632760E-02
+
+--------------------------------------------------------------------------------
+
+Try  45, successes so far =  45
+Objective function evaluations this try =    6
+Last objective function value this try  =  1.25609    
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates: -41060.9     -24218.6     -69037.9    
+Final coordinates: -993.073      1615.38     -3908.82    
+
+Scores for try =  45 follow:
+
+  1 loz1               score = 1.25609    
+
+--------------------------------------------------------------------------------
+
+Try  46, successes so far =  46
+Objective function evaluations this try =   20
+Last objective function value this try  = 0.366447E-01
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  73680.0      92485.1     -62188.6    
+Final coordinates:  17869.4      29284.7     -15157.1    
+
+Scores for try =  46 follow:
+
+  1 loz1               score =0.366447E-01
+
+--------------------------------------------------------------------------------
+
+Try  47, successes so far =  47
+Objective function evaluations this try =   23
+Last objective function value this try  = 0.110089E-01
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  34429.2     -59701.3      92039.6    
+Final coordinates: -7113.46      1051.86      21990.9    
+
+Scores for try =  47 follow:
+
+  1 loz1               score =0.110089E-01
+
+--------------------------------------------------------------------------------
+
+Try  48, successes so far =  48
+Objective function evaluations this try =   35
+Last objective function value this try  =  2.52577    
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  20326.9      47328.4      84667.4    
+Final coordinates:  26993.5      53995.1      91334.0    
+
+Scores for try =  48 follow:
+
+  1 loz1               score = 2.52577    
+
+--------------------------------------------------------------------------------
+
+Try  49, successes so far =  49
+Objective function evaluations this try =   21
+Last objective function value this try  = 0.754361E-02
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates: -29379.7      95582.2      54691.6    
+Final coordinates: -3545.95      70463.7      65600.0    
+
+Scores for try =  49 follow:
+
+  1 loz1               score =0.754361E-02
+
+--------------------------------------------------------------------------------
+
+Try  50, successes so far =  50
+Objective function evaluations this try =   28
+Last objective function value this try  = 0.728026E-02
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  13853.5     -63593.5      26533.8    
+Final coordinates: -3157.67      17348.4      12021.3    
+
+Scores for try =  50 follow:
+
+  1 loz1               score =0.728026E-02
+
+--------------------------------------------------------------------------------
+
+Try  51, successes so far =  51
+Objective function evaluations this try =    6
+Last objective function value this try  =  1.27121    
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  61859.8     -69052.8      19782.4    
+Final coordinates:  102132.     -12516.2     -543.052    
+
+Scores for try =  51 follow:
+
+  1 loz1               score = 1.27121    
+
+--------------------------------------------------------------------------------
+
+Try  52, successes so far =  52
+Objective function evaluations this try = 1019
+Last objective function value this try  =  1.26719    
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  31739.4     -24614.5      63501.3    
+Final coordinates:  2246.39     -11794.4      13263.2    
+
+Scores for try =  52 follow:
+
+  1 loz1               score = 1.26719    
+
+--------------------------------------------------------------------------------
+
+Try  53, successes so far =  53
+Objective function evaluations this try = 1005
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  8965.86      96444.3      85803.2    
+Final coordinates:  15632.5      103111.      92469.9    
+
+Scores for try =  53 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try  54, successes so far =  54
+Objective function evaluations this try =   34
+Last objective function value this try  = 0.634767E-02
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  62426.5     -89189.3     -59752.0    
+Final coordinates: -905.065      651.247     -4161.87    
+
+Scores for try =  54 follow:
+
+  1 loz1               score =0.634767E-02
+
+--------------------------------------------------------------------------------
+
+Try  55, successes so far =  55
+Objective function evaluations this try =   20
+Last objective function value this try  = 0.634828E-02
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  26261.8     -79001.2     -67253.3    
+Final coordinates: -1197.74      1743.47     -3392.31    
+
+Scores for try =  55 follow:
+
+  1 loz1               score =0.634828E-02
+
+--------------------------------------------------------------------------------
+
+Try  56, successes so far =  56
+Objective function evaluations this try =   20
+Last objective function value this try  = 0.637328E-02
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  3713.51     -58166.3     -46526.5    
+Final coordinates: -1471.33      1368.95     -2684.87    
+
+Scores for try =  56 follow:
+
+  1 loz1               score =0.637328E-02
+
+--------------------------------------------------------------------------------
+
+Try  57, successes so far =  57
+Objective function evaluations this try =   24
+Last objective function value this try  = 0.633780E-02
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates: -86107.9     -95929.9      61069.3    
+Final coordinates: -974.196      824.790     -3984.98    
+
+Scores for try =  57 follow:
+
+  1 loz1               score =0.633780E-02
+
+--------------------------------------------------------------------------------
+
+Try  58, successes so far =  58
+Objective function evaluations this try =   27
+Last objective function value this try  = 0.754091E-02
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  8281.25      88210.9      43867.2    
+Final coordinates: -3398.35      61012.8      55627.7    
+
+Scores for try =  58 follow:
+
+  1 loz1               score =0.754091E-02
+
+--------------------------------------------------------------------------------
+
+Try  59, successes so far =  59
+Objective function evaluations this try =   38
+Last objective function value this try  = 0.167116E-01
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  8091.02      55022.4     -91379.7    
+Final coordinates:  31972.6     -7880.88     -14757.4    
+
+Scores for try =  59 follow:
+
+  1 loz1               score =0.167116E-01
+
+--------------------------------------------------------------------------------
+
+Try  60, successes so far =  60
+Objective function evaluations this try =   31
+Last objective function value this try  =  1.25675    
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates: -49706.6      22978.7     -28497.7    
+Final coordinates: -2815.75     -708.695     -4580.04    
+
+Scores for try =  60 follow:
+
+  1 loz1               score = 1.25675    
+
+--------------------------------------------------------------------------------
+
+Try  61, successes so far =  61
+Objective function evaluations this try =   27
+Last objective function value this try  = 0.170364E-01
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates: -55629.6      82206.0     -59283.8    
+Final coordinates:  122382.     -8171.32     -14377.8    
+
+Scores for try =  61 follow:
+
+  1 loz1               score =0.170364E-01
+
+--------------------------------------------------------------------------------
+
+Try  62, successes so far =  62
+Objective function evaluations this try =   36
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  91047.6      73168.9      38681.4    
+Final coordinates:  97714.3      79835.6      45348.0    
+
+Scores for try =  62 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try  63, successes so far =  63
+Objective function evaluations this try =   28
+Last objective function value this try  = 0.734857E-02
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates: -52289.1     -24259.2      81206.6    
+Final coordinates: -3281.48      18184.3      13139.9    
+
+Scores for try =  63 follow:
+
+  1 loz1               score =0.734857E-02
+
+--------------------------------------------------------------------------------
+
+Try  64, successes so far =  64
+Objective function evaluations this try =   25
+Last objective function value this try  = 0.730184E-02
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates: -22110.2      8623.50      45206.2    
+Final coordinates: -3329.83      17735.2      12948.4    
+
+Scores for try =  64 follow:
+
+  1 loz1               score =0.730184E-02
+
+--------------------------------------------------------------------------------
+
+Try  65, successes so far =  65
+Objective function evaluations this try =   46
+Last objective function value this try  = 0.170463E-01
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  80574.9     -33902.7     -69237.6    
+Final coordinates:  99506.7     -8323.97     -14039.0    
+
+Scores for try =  65 follow:
+
+  1 loz1               score =0.170463E-01
+
+--------------------------------------------------------------------------------
+
+Try  66, successes so far =  66
+Objective function evaluations this try =   39
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  66059.2      23624.6      58899.2    
+Final coordinates:  72725.9      30291.2      65565.9    
+
+Scores for try =  66 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try  67, successes so far =  67
+Objective function evaluations this try =   26
+Last objective function value this try  = 0.127259E-01
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates: -89834.3      47817.7      20360.1    
+Final coordinates: -6898.69     -615.070      124231.    
+
+Scores for try =  67 follow:
+
+  1 loz1               score =0.127259E-01
+
+--------------------------------------------------------------------------------
+
+Try  68, successes so far =  68
+Objective function evaluations this try = 1008
+Last objective function value this try  =  1.26740    
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  89239.6     -58385.1      78004.4    
+Final coordinates:  23405.8     -10109.8     -9443.68    
+
+Scores for try =  68 follow:
+
+  1 loz1               score = 1.26740    
+
+--------------------------------------------------------------------------------
+
+Try  69, successes so far =  69
+Objective function evaluations this try =   32
+Last objective function value this try  =  1.25675    
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates: -4290.37     -32174.0      76148.3    
+Final coordinates: -2817.10     -711.628     -4575.71    
+
+Scores for try =  69 follow:
+
+  1 loz1               score = 1.25675    
+
+--------------------------------------------------------------------------------
+
+Try  70, successes so far =  70
+Objective function evaluations this try =   33
+Last objective function value this try  =  2.52577    
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  29022.9      755.933      23189.8    
+Final coordinates:  35689.5      7422.60      29856.5    
+
+Scores for try =  70 follow:
+
+  1 loz1               score = 2.52577    
+
+--------------------------------------------------------------------------------
+
+Try  71, successes so far =  71
+Objective function evaluations this try =   35
+Last objective function value this try  = 0.718101E-02
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  11954.9     -36962.7      74112.0    
+Final coordinates: -2941.97      14776.1      9091.86    
+
+Scores for try =  71 follow:
+
+  1 loz1               score =0.718101E-02
+
+--------------------------------------------------------------------------------
+
+Try  72, successes so far =  72
+Objective function evaluations this try =   35
+Last objective function value this try  = 0.644202E-02
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates: -58078.5     -73611.1     -48117.3    
+Final coordinates: -1962.59      2840.79     -1120.41    
+
+Scores for try =  72 follow:
+
+  1 loz1               score =0.644202E-02
+
+--------------------------------------------------------------------------------
+
+Try  73, successes so far =  73
+Objective function evaluations this try =   28
+Last objective function value this try  = 0.633881E-02
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  37409.9     -51864.4      69778.2    
+Final coordinates: -501.184      599.616     -5122.10    
+
+Scores for try =  73 follow:
+
+  1 loz1               score =0.633881E-02
+
+--------------------------------------------------------------------------------
+
+Try  74, successes so far =  74
+Objective function evaluations this try =   35
+Last objective function value this try  = 0.633351E-02
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  35057.1     -68306.9     -30371.9    
+Final coordinates: -871.380      812.925     -4240.49    
+
+Scores for try =  74 follow:
+
+  1 loz1               score =0.633351E-02
+
+--------------------------------------------------------------------------------
+
+Try  75, successes so far =  75
+Objective function evaluations this try =   28
+Last objective function value this try  = 0.127285E-01
+Best result so far = 0.632760E-02 was obtained on try  44
+
+Initial coordinates:  22836.3     -16629.6      59044.0    
+Final coordinates: -6881.21     -701.784      220815.    
+
+Scores for try =  75 follow:
+
+  1 loz1               score =0.127285E-01
+
+--------------------------------------------------------------------------------
+
+Try  76, successes so far =  76
+Objective function evaluations this try =   35
+Last objective function value this try  = 0.632658E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -19718.7      8922.66     -31509.2    
+Final coordinates: -825.834      1165.98     -4349.24    
+
+Scores for try =  76 follow:
+
+  1 loz1               score =0.632658E-02
+
+--------------------------------------------------------------------------------
+
+Try  77, successes so far =  77
+Objective function evaluations this try =   11
+Last objective function value this try  = 0.183190E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  53577.4     -59432.1      52277.1    
+Final coordinates: -1024.38     -11997.5      91230.6    
+
+Scores for try =  77 follow:
+
+  1 loz1               score =0.183190E-01
+
+--------------------------------------------------------------------------------
+
+Try  78, successes so far =  78
+Objective function evaluations this try =   49
+Last objective function value this try  = 0.633447E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  7091.30     -9154.15     -60206.0    
+Final coordinates: -1107.71      1754.60     -3607.79    
+
+Scores for try =  78 follow:
+
+  1 loz1               score =0.633447E-02
+
+--------------------------------------------------------------------------------
+
+Try  79, successes so far =  79
+Objective function evaluations this try =   37
+Last objective function value this try  = 0.633049E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  50513.7     -41418.5     -59518.8    
+Final coordinates: -980.097      1278.28     -3965.24    
+
+Scores for try =  79 follow:
+
+  1 loz1               score =0.633049E-02
+
+--------------------------------------------------------------------------------
+
+Try  80, successes so far =  80
+Objective function evaluations this try =    6
+Last objective function value this try  =  1.26577    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  26813.3     -34045.1      52942.9    
+Final coordinates:  23056.4     -7310.56     -15339.1    
+
+Scores for try =  80 follow:
+
+  1 loz1               score = 1.26577    
+
+--------------------------------------------------------------------------------
+
+Try  81, successes so far =  81
+Objective function evaluations this try =   20
+Last objective function value this try  = 0.635671E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -14626.5     -85441.0      36728.0    
+Final coordinates: -492.460      105.706     -5103.75    
+
+Scores for try =  81 follow:
+
+  1 loz1               score =0.635671E-02
+
+--------------------------------------------------------------------------------
+
+Try  82, successes so far =  82
+Objective function evaluations this try =    6
+Last objective function value this try  =  1.29649    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  94148.3      62414.0     -68155.8    
+Final coordinates:  63927.3      74374.6     -15758.5    
+
+Scores for try =  82 follow:
+
+  1 loz1               score = 1.29649    
+
+--------------------------------------------------------------------------------
+
+Try  83, successes so far =  83
+Objective function evaluations this try =   15
+Last objective function value this try  = 0.103225E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -59934.5     -11520.3      78417.0    
+Final coordinates: -6490.54      101.845      17099.7    
+
+Scores for try =  83 follow:
+
+  1 loz1               score =0.103225E-01
+
+--------------------------------------------------------------------------------
+
+Try  84, successes so far =  84
+Objective function evaluations this try =   42
+Last objective function value this try  = 0.170368E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  58507.9      86736.4     -91717.7    
+Final coordinates:  116882.     -8095.79     -14541.6    
+
+Scores for try =  84 follow:
+
+  1 loz1               score =0.170368E-01
+
+--------------------------------------------------------------------------------
+
+Try  85, successes so far =  85
+Objective function evaluations this try =   20
+Last objective function value this try  = 0.633199E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -53743.7     -7375.39     -39805.1    
+Final coordinates: -655.478      767.055     -4764.45    
+
+Scores for try =  85 follow:
+
+  1 loz1               score =0.633199E-02
+
+--------------------------------------------------------------------------------
+
+Try  86, successes so far =  86
+Objective function evaluations this try =   27
+Last objective function value this try  = 0.752630E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -17774.1      13885.2      75998.9    
+Final coordinates: -3389.39      39156.1      33788.3    
+
+Scores for try =  86 follow:
+
+  1 loz1               score =0.752630E-02
+
+--------------------------------------------------------------------------------
+
+Try  87, successes so far =  87
+Objective function evaluations this try =   20
+Last objective function value this try  = 0.470555E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  77425.2      40225.6     -40575.4    
+Final coordinates:  76877.9      90865.2     -12654.6    
+
+Scores for try =  87 follow:
+
+  1 loz1               score =0.470555E-01
+
+--------------------------------------------------------------------------------
+
+Try  88, successes so far =  88
+Objective function evaluations this try =   34
+Last objective function value this try  = 0.633503E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  3083.51      13962.7     -7207.88    
+Final coordinates: -897.840      1813.23     -4126.69    
+
+Scores for try =  88 follow:
+
+  1 loz1               score =0.633503E-02
+
+--------------------------------------------------------------------------------
+
+Try  89, successes so far =  89
+Objective function evaluations this try =   35
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  26952.8      17825.6      28783.6    
+Final coordinates:  33619.5      24492.2      35450.3    
+
+Scores for try =  89 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try  90, successes so far =  90
+Objective function evaluations this try =   38
+Last objective function value this try  = 0.753054E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -29989.3      11367.4      53485.4    
+Final coordinates: -3516.40      40314.1      35382.5    
+
+Scores for try =  90 follow:
+
+  1 loz1               score =0.753054E-02
+
+--------------------------------------------------------------------------------
+
+Try  91, successes so far =  91
+Objective function evaluations this try =   35
+Last objective function value this try  = 0.642782E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  32898.4     -99242.5     -14561.3    
+Final coordinates: -1489.64      541.717     -2622.56    
+
+Scores for try =  91 follow:
+
+  1 loz1               score =0.642782E-02
+
+--------------------------------------------------------------------------------
+
+Try  92, successes so far =  92
+Objective function evaluations this try =   42
+Last objective function value this try  = 0.170367E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  93371.3     -86522.0      47090.8    
+Final coordinates:  87322.8     -8188.71     -14339.7    
+
+Scores for try =  92 follow:
+
+  1 loz1               score =0.170367E-01
+
+--------------------------------------------------------------------------------
+
+Try  93, successes so far =  93
+Objective function evaluations this try =   45
+Last objective function value this try  = 0.633431E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -32447.1     -86671.8      65807.9    
+Final coordinates: -1103.81      1436.53     -3645.04    
+
+Scores for try =  93 follow:
+
+  1 loz1               score =0.633431E-02
+
+--------------------------------------------------------------------------------
+
+Try  94, successes so far =  94
+Objective function evaluations this try =   50
+Last objective function value this try  = 0.750702E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -17152.6     -89054.3      80634.4    
+Final coordinates: -3544.51      32017.0      27271.5    
+
+Scores for try =  94 follow:
+
+  1 loz1               score =0.750702E-02
+
+--------------------------------------------------------------------------------
+
+Try  95, successes so far =  95
+Objective function evaluations this try =   28
+Last objective function value this try  =  1.25675    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -39372.2     -76226.9     -19861.1    
+Final coordinates: -2807.50     -696.349     -4597.39    
+
+Scores for try =  95 follow:
+
+  1 loz1               score = 1.25675    
+
+--------------------------------------------------------------------------------
+
+Try  96, successes so far =  96
+Objective function evaluations this try =   27
+Last objective function value this try  = 0.170359E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  89661.2     -18364.2      19626.6    
+Final coordinates:  108481.     -8137.66     -14450.9    
+
+Scores for try =  96 follow:
+
+  1 loz1               score =0.170359E-01
+
+--------------------------------------------------------------------------------
+
+Try  97, successes so far =  97
+Objective function evaluations this try =   23
+Last objective function value this try  = 0.274409E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  47779.5      95580.6     -54124.1    
+Final coordinates:  11555.1      21844.4     -13216.1    
+
+Scores for try =  97 follow:
+
+  1 loz1               score =0.274409E-01
+
+--------------------------------------------------------------------------------
+
+Try  98, successes so far =  98
+Objective function evaluations this try =   18
+Last objective function value this try  = 0.634527E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -27191.1     -38446.3      92922.8    
+Final coordinates: -1279.63      1879.04     -3154.29    
+
+Scores for try =  98 follow:
+
+  1 loz1               score =0.634527E-02
+
+--------------------------------------------------------------------------------
+
+Try  99, successes so far =  99
+Objective function evaluations this try =   32
+Last objective function value this try  = 0.632777E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -5244.25     -17802.6     -57913.1    
+Final coordinates: -919.533      1185.26     -4118.13    
+
+Scores for try =  99 follow:
+
+  1 loz1               score =0.632777E-02
+
+--------------------------------------------------------------------------------
+
+Try 100, successes so far = 100
+Objective function evaluations this try =   96
+Last objective function value this try  = 0.170308E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  79041.8     -87755.2      68889.2    
+Final coordinates:  63515.4     -8140.16     -14441.9    
+
+Scores for try = 100 follow:
+
+  1 loz1               score =0.170308E-01
+
+--------------------------------------------------------------------------------
+
+Try 101, successes so far = 101
+Objective function evaluations this try =   32
+Last objective function value this try  = 0.636533E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -35335.0     -30170.0     -46018.1    
+Final coordinates: -461.685      1766.83     -5164.15    
+
+Scores for try = 101 follow:
+
+  1 loz1               score =0.636533E-02
+
+--------------------------------------------------------------------------------
+
+Try 102, successes so far = 102
+Objective function evaluations this try =   35
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  94814.9      88774.2      74744.9    
+Final coordinates:  62939.9      56586.7      42557.4    
+
+Scores for try = 102 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try 103, successes so far = 103
+Objective function evaluations this try =   31
+Last objective function value this try  =  1.25675    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -5178.43     -20576.2      47891.1    
+Final coordinates: -2828.56     -714.541     -4592.24    
+
+Scores for try = 103 follow:
+
+  1 loz1               score = 1.25675    
+
+--------------------------------------------------------------------------------
+
+Try 104, successes so far = 104
+Objective function evaluations this try =   43
+Last objective function value this try  = 0.170358E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  6026.63      13202.3     -77573.9    
+Final coordinates:  89342.8     -8143.19     -14438.8    
+
+Scores for try = 104 follow:
+
+  1 loz1               score =0.170358E-01
+
+--------------------------------------------------------------------------------
+
+Try 105, successes so far = 105
+Objective function evaluations this try =   21
+Last objective function value this try  = 0.633715E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -79982.1     -8683.72      33205.0    
+Final coordinates: -491.074      884.218     -5150.12    
+
+Scores for try = 105 follow:
+
+  1 loz1               score =0.633715E-02
+
+--------------------------------------------------------------------------------
+
+Try 106, successes so far = 106
+Objective function evaluations this try =   50
+Last objective function value this try  = 0.632709E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  25655.1     -84412.3      72789.1    
+Final coordinates: -815.809      1106.98     -4375.24    
+
+Scores for try = 106 follow:
+
+  1 loz1               score =0.632709E-02
+
+--------------------------------------------------------------------------------
+
+Try 107, successes so far = 107
+Objective function evaluations this try =   24
+Last objective function value this try  = 0.633818E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  46849.0      58649.9     -49616.6    
+Final coordinates: -1123.69      1937.05     -3549.83    
+
+Scores for try = 107 follow:
+
+  1 loz1               score =0.633818E-02
+
+--------------------------------------------------------------------------------
+
+Try 108, successes so far = 108
+Objective function evaluations this try = 1007
+Last objective function value this try  =  1.26679    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  79054.8     -83110.6      54334.3    
+Final coordinates:  97696.9     -8141.07     -14443.6    
+
+Scores for try = 108 follow:
+
+  1 loz1               score = 1.26679    
+
+--------------------------------------------------------------------------------
+
+Try 109, successes so far = 109
+Objective function evaluations this try =   23
+Last objective function value this try  = 0.636941E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -91365.5     -8154.63     -26036.4    
+Final coordinates: -1118.77      492.117     -3606.75    
+
+Scores for try = 109 follow:
+
+  1 loz1               score =0.636941E-02
+
+--------------------------------------------------------------------------------
+
+Try 110, successes so far = 110
+Objective function evaluations this try =   31
+Last objective function value this try  =  1.25675    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  77805.1     -39835.7     -54606.2    
+Final coordinates: -2806.48     -705.251     -4602.15    
+
+Scores for try = 110 follow:
+
+  1 loz1               score = 1.25675    
+
+--------------------------------------------------------------------------------
+
+Try 111, successes so far = 111
+Objective function evaluations this try =   63
+Last objective function value this try  = 0.753136E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -91308.8      73689.6      54368.8    
+Final coordinates: -3415.93      41864.2      36571.6    
+
+Scores for try = 111 follow:
+
+  1 loz1               score =0.753136E-02
+
+--------------------------------------------------------------------------------
+
+Try 112, successes so far = 112
+Objective function evaluations this try =   49
+Last objective function value this try  = 0.170363E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  19359.6      84759.0     -87111.5    
+Final coordinates:  94985.9     -8140.95     -14444.1    
+
+Scores for try = 112 follow:
+
+  1 loz1               score =0.170363E-01
+
+--------------------------------------------------------------------------------
+
+Try 113, successes so far = 113
+Objective function evaluations this try =   23
+Last objective function value this try  = 0.170123E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  48545.6     -70072.7      9263.44    
+Final coordinates:  51953.3     -8128.06     -14454.7    
+
+Scores for try = 113 follow:
+
+  1 loz1               score =0.170123E-01
+
+--------------------------------------------------------------------------------
+
+Try 114, successes so far = 114
+Objective function evaluations this try =   26
+Last objective function value this try  = 0.672736E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -69989.0     -93190.8     -33213.5    
+Final coordinates:  1413.94     -817.052     -8831.55    
+
+Scores for try = 114 follow:
+
+  1 loz1               score =0.672736E-02
+
+--------------------------------------------------------------------------------
+
+Try 115, successes so far = 115
+Objective function evaluations this try =    6
+Last objective function value this try  =  1.25609    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -77403.3     -43453.1     -11351.3    
+Final coordinates: -995.341      1207.09     -3929.03    
+
+Scores for try = 115 follow:
+
+  1 loz1               score = 1.25609    
+
+--------------------------------------------------------------------------------
+
+Try 116, successes so far = 116
+Objective function evaluations this try =   30
+Last objective function value this try  = 0.633396E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -76829.5     -18474.1     -70552.0    
+Final coordinates: -1103.52      1371.07     -3648.87    
+
+Scores for try = 116 follow:
+
+  1 loz1               score =0.633396E-02
+
+--------------------------------------------------------------------------------
+
+Try 117, successes so far = 117
+Objective function evaluations this try =   21
+Last objective function value this try  = 0.635682E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -87186.6     -58237.8      73104.0    
+Final coordinates: -1275.01      1075.03     -3216.54    
+
+Scores for try = 117 follow:
+
+  1 loz1               score =0.635682E-02
+
+--------------------------------------------------------------------------------
+
+Try 118, successes so far = 118
+Objective function evaluations this try =   72
+Last objective function value this try  = 0.633466E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -86573.8     -2593.32      94470.6    
+Final coordinates: -1002.17      1615.02     -3890.77    
+
+Scores for try = 118 follow:
+
+  1 loz1               score =0.633466E-02
+
+--------------------------------------------------------------------------------
+
+Try 119, successes so far = 119
+Objective function evaluations this try =   42
+Last objective function value this try  = 0.665667E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -19724.4     -59226.5      83746.8    
+Final coordinates: -2721.49      4230.58      1590.59    
+
+Scores for try = 119 follow:
+
+  1 loz1               score =0.665667E-02
+
+--------------------------------------------------------------------------------
+
+Try 120, successes so far = 120
+Objective function evaluations this try =   33
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  78321.6      12292.4     -17559.9    
+Final coordinates:  84988.2      18959.0     -10893.3    
+
+Scores for try = 120 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try 121, successes so far = 121
+Objective function evaluations this try =   32
+Last objective function value this try  = 0.127035E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  48249.8     -79325.4      94204.9    
+Final coordinates: -6907.21     -530.648      90205.6    
+
+Scores for try = 121 follow:
+
+  1 loz1               score =0.127035E-01
+
+--------------------------------------------------------------------------------
+
+Try 122, successes so far = 122
+Objective function evaluations this try =   21
+Last objective function value this try  = 0.633874E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -67329.9     -18601.0     -2150.76    
+Final coordinates: -1202.74      1683.54     -3371.34    
+
+Scores for try = 122 follow:
+
+  1 loz1               score =0.633874E-02
+
+--------------------------------------------------------------------------------
+
+Try 123, successes so far = 123
+Objective function evaluations this try =   16
+Last objective function value this try  = 0.135892E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -25539.3      64853.7     -49466.8    
+Final coordinates:  2377.45      28038.0      7976.64    
+
+Scores for try = 123 follow:
+
+  1 loz1               score =0.135892E-01
+
+--------------------------------------------------------------------------------
+
+Try 124, successes so far = 124
+Objective function evaluations this try =   35
+Last objective function value this try  =  2.52577    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  89625.2      2374.84      46820.8    
+Final coordinates:  96291.8      9041.50      53487.5    
+
+Scores for try = 124 follow:
+
+  1 loz1               score = 2.52577    
+
+--------------------------------------------------------------------------------
+
+Try 125, successes so far = 125
+Objective function evaluations this try =   33
+Last objective function value this try  =  1.25675    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  27809.3     -93603.9     -71866.1    
+Final coordinates: -2812.52     -702.776     -4580.99    
+
+Scores for try = 125 follow:
+
+  1 loz1               score = 1.25675    
+
+--------------------------------------------------------------------------------
+
+Try 126, successes so far = 126
+Objective function evaluations this try = 1013
+Last objective function value this try  = 0.217712E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  88161.8     -59474.7      71410.2    
+Final coordinates:  190333.     -12730.7      773.150    
+
+Scores for try = 126 follow:
+
+  1 loz1               score =0.217712E-01
+
+--------------------------------------------------------------------------------
+
+Try 127, successes so far = 127
+Objective function evaluations this try =   50
+Last objective function value this try  = 0.754733E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -54796.3      18523.2      69389.4    
+Final coordinates: -3600.26      122786.      118110.    
+
+Scores for try = 127 follow:
+
+  1 loz1               score =0.754733E-02
+
+--------------------------------------------------------------------------------
+
+Try 128, successes so far = 128
+Objective function evaluations this try =   16
+Last objective function value this try  = 0.635323E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  11224.8      38984.2     -48728.7    
+Final coordinates: -1374.73      2020.58     -2884.68    
+
+Scores for try = 128 follow:
+
+  1 loz1               score =0.635323E-02
+
+--------------------------------------------------------------------------------
+
+Try 129, successes so far = 129
+Objective function evaluations this try =   36
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  28842.0      77235.0      86415.5    
+Final coordinates:  35508.6      83901.7      93082.2    
+
+Scores for try = 129 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try 130, successes so far = 130
+Objective function evaluations this try = 1008
+Last objective function value this try  =  1.25730    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -80002.8      64537.9      71164.8    
+Final coordinates: -3498.19      54733.6      49704.0    
+
+Scores for try = 130 follow:
+
+  1 loz1               score = 1.25730    
+
+--------------------------------------------------------------------------------
+
+Try 131, successes so far = 131
+Objective function evaluations this try =   23
+Last objective function value this try  = 0.753990E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -1109.55      38505.8      11602.1    
+Final coordinates: -3592.97      44762.5      40085.7    
+
+Scores for try = 131 follow:
+
+  1 loz1               score =0.753990E-02
+
+--------------------------------------------------------------------------------
+
+Try 132, successes so far = 132
+Objective function evaluations this try =   36
+Last objective function value this try  =  2.52577    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  59647.8      34367.5     -3823.75    
+Final coordinates:  66314.4      41034.1      2842.91    
+
+Scores for try = 132 follow:
+
+  1 loz1               score = 2.52577    
+
+--------------------------------------------------------------------------------
+
+Try 133, successes so far = 133
+Objective function evaluations this try =   28
+Last objective function value this try  = 0.731485E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  61649.4      62560.8     -53388.4    
+Final coordinates: -3257.01      18410.3      13305.2    
+
+Scores for try = 133 follow:
+
+  1 loz1               score =0.731485E-02
+
+--------------------------------------------------------------------------------
+
+Try 134, successes so far = 134
+Objective function evaluations this try =   25
+Last objective function value this try  = 0.126995E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -79728.6      41644.4      11237.2    
+Final coordinates: -6904.74     -528.221      88152.0    
+
+Scores for try = 134 follow:
+
+  1 loz1               score =0.126995E-01
+
+--------------------------------------------------------------------------------
+
+Try 135, successes so far = 135
+Objective function evaluations this try =   28
+Last objective function value this try  = 0.634748E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -30192.8     -29020.6     -57090.5    
+Final coordinates: -848.424      440.545     -4280.92    
+
+Scores for try = 135 follow:
+
+  1 loz1               score =0.634748E-02
+
+--------------------------------------------------------------------------------
+
+Try 136, successes so far = 136
+Objective function evaluations this try =   38
+Last objective function value this try  = 0.169876E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -48049.7      73140.8     -55848.2    
+Final coordinates:  46380.5     -8110.45     -14475.4    
+
+Scores for try = 136 follow:
+
+  1 loz1               score =0.169876E-01
+
+--------------------------------------------------------------------------------
+
+Try 137, successes so far = 137
+Objective function evaluations this try =   33
+Last objective function value this try  = 0.632788E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -62697.7     -54424.4     -27850.3    
+Final coordinates: -793.809      1045.11     -4430.29    
+
+Scores for try = 137 follow:
+
+  1 loz1               score =0.632788E-02
+
+--------------------------------------------------------------------------------
+
+Try 138, successes so far = 138
+Objective function evaluations this try =   35
+Last objective function value this try  = 0.170337E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  46811.6     -35096.4      39677.2    
+Final coordinates:  69902.9     -8134.73     -14455.6    
+
+Scores for try = 138 follow:
+
+  1 loz1               score =0.170337E-01
+
+--------------------------------------------------------------------------------
+
+Try 139, successes so far = 139
+Objective function evaluations this try =   37
+Last objective function value this try  = 0.632779E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -19374.7     -11800.5     -31379.1    
+Final coordinates: -948.353      1416.94     -4035.37    
+
+Scores for try = 139 follow:
+
+  1 loz1               score =0.632779E-02
+
+--------------------------------------------------------------------------------
+
+Try 140, successes so far = 140
+Objective function evaluations this try =   37
+Last objective function value this try  =  2.52577    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  65569.1      52460.8      32947.2    
+Final coordinates:  72235.8      59127.4      39613.9    
+
+Scores for try = 140 follow:
+
+  1 loz1               score = 2.52577    
+
+--------------------------------------------------------------------------------
+
+Try 141, successes so far = 141
+Objective function evaluations this try =   34
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  75726.7      68916.0      97529.1    
+Final coordinates:  82393.3      75582.6      104196.    
+
+Scores for try = 141 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try 142, successes so far = 142
+Objective function evaluations this try =   37
+Last objective function value this try  =  2.52577    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  31016.6      70069.7      80677.9    
+Final coordinates:  37683.3      76736.3      87344.6    
+
+Scores for try = 142 follow:
+
+  1 loz1               score = 2.52577    
+
+--------------------------------------------------------------------------------
+
+Try 143, successes so far = 143
+Objective function evaluations this try =   48
+Last objective function value this try  = 0.170361E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  69270.9     -58675.2      28407.0    
+Final coordinates:  98846.1     -8157.88     -14407.0    
+
+Scores for try = 143 follow:
+
+  1 loz1               score =0.170361E-01
+
+--------------------------------------------------------------------------------
+
+Try 144, successes so far = 144
+Objective function evaluations this try =   21
+Last objective function value this try  = 0.773098E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -72600.6     -61460.6      93340.4    
+Final coordinates:  982.271     -4628.28     -5573.88    
+
+Scores for try = 144 follow:
+
+  1 loz1               score =0.773098E-02
+
+--------------------------------------------------------------------------------
+
+Try 145, successes so far = 145
+Objective function evaluations this try =   26
+Last objective function value this try  =  1.25675    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -27873.0     -67738.9     -96625.2    
+Final coordinates: -2813.76     -701.107     -4580.90    
+
+Scores for try = 145 follow:
+
+  1 loz1               score = 1.25675    
+
+--------------------------------------------------------------------------------
+
+Try 146, successes so far = 146
+Objective function evaluations this try =   33
+Last objective function value this try  =  1.25796    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -485.140      94291.5      27238.7    
+Final coordinates: -5524.53      81164.3      77611.9    
+
+Scores for try = 146 follow:
+
+  1 loz1               score = 1.25796    
+
+--------------------------------------------------------------------------------
+
+Try 147, successes so far = 147
+Objective function evaluations this try =   36
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  76758.8      69340.0      25259.8    
+Final coordinates:  83425.4      76006.7      31926.5    
+
+Scores for try = 147 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try 148, successes so far = 148
+Objective function evaluations this try =   29
+Last objective function value this try  = 0.675139E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -88082.3     -34414.5     -39648.6    
+Final coordinates:  1480.55     -1007.37     -8899.78    
+
+Scores for try = 148 follow:
+
+  1 loz1               score =0.675139E-02
+
+--------------------------------------------------------------------------------
+
+Try 149, successes so far = 149
+Objective function evaluations this try =   16
+Last objective function value this try  = 0.642238E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -75241.8      81270.0     -49387.2    
+Final coordinates:  74.1956      1179.15     -6397.94    
+
+Scores for try = 149 follow:
+
+  1 loz1               score =0.642238E-02
+
+--------------------------------------------------------------------------------
+
+Try 150, successes so far = 150
+Objective function evaluations this try =    6
+Last objective function value this try  =  1.25609    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -66982.4     -44514.4      97324.0    
+Final coordinates: -901.648      1171.61     -4162.29    
+
+Scores for try = 150 follow:
+
+  1 loz1               score = 1.25609    
+
+--------------------------------------------------------------------------------
+
+Try 151, successes so far = 151
+Objective function evaluations this try =   34
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  15285.1      10540.6      18257.4    
+Final coordinates:  21951.8      17207.3      24924.0    
+
+Scores for try = 151 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try 152, successes so far = 152
+Objective function evaluations this try =   38
+Last objective function value this try  =  2.52577    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  53114.3      70014.4      26699.0    
+Final coordinates:  59781.0      76681.1      33365.7    
+
+Scores for try = 152 follow:
+
+  1 loz1               score = 2.52577    
+
+--------------------------------------------------------------------------------
+
+Try 153, successes so far = 153
+Objective function evaluations this try = 1002
+Last objective function value this try  =  1.26959    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  15045.9     -71728.6      77902.1    
+Final coordinates:  68170.8     -11561.0     -5205.84    
+
+Scores for try = 153 follow:
+
+  1 loz1               score = 1.26959    
+
+--------------------------------------------------------------------------------
+
+Try 154, successes so far = 154
+Objective function evaluations this try =   31
+Last objective function value this try  = 0.707340E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -81968.5      92584.8     -24012.3    
+Final coordinates: -2677.40      12565.6      6454.10    
+
+Scores for try = 154 follow:
+
+  1 loz1               score =0.707340E-02
+
+--------------------------------------------------------------------------------
+
+Try 155, successes so far = 155
+Objective function evaluations this try = 1006
+Last objective function value this try  =  1.27018    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  92976.6     -61688.6      26329.6    
+Final coordinates:  84085.3     -11939.5     -3548.03    
+
+Scores for try = 155 follow:
+
+  1 loz1               score = 1.27018    
+
+--------------------------------------------------------------------------------
+
+Try 156, successes so far = 156
+Objective function evaluations this try =   32
+Last objective function value this try  = 0.751468E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -9618.31     -8455.26      82515.6    
+Final coordinates: -3410.27      34968.1      29710.1    
+
+Scores for try = 156 follow:
+
+  1 loz1               score =0.751468E-02
+
+--------------------------------------------------------------------------------
+
+Try 157, successes so far = 157
+Objective function evaluations this try =   23
+Last objective function value this try  = 0.666562E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  19327.2     -90943.3     -81971.1    
+Final coordinates: -2641.68      5687.15      1909.18    
+
+Scores for try = 157 follow:
+
+  1 loz1               score =0.666562E-02
+
+--------------------------------------------------------------------------------
+
+Try 158, successes so far = 158
+Objective function evaluations this try =   25
+Last objective function value this try  = 0.632896E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -925.987      21046.7     -84740.3    
+Final coordinates: -764.617      922.434     -4503.71    
+
+Scores for try = 158 follow:
+
+  1 loz1               score =0.632896E-02
+
+--------------------------------------------------------------------------------
+
+Try 159, successes so far = 159
+Objective function evaluations this try =   32
+Last objective function value this try  =  1.25675    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -5331.26      66255.7     -76157.6    
+Final coordinates: -2809.39     -708.225     -4587.57    
+
+Scores for try = 159 follow:
+
+  1 loz1               score = 1.25675    
+
+--------------------------------------------------------------------------------
+
+Try 160, successes so far = 160
+Objective function evaluations this try =   18
+Last objective function value this try  = 0.753396E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -90372.3      39944.0      80931.2    
+Final coordinates: -3488.01      43355.6      38309.4    
+
+Scores for try = 160 follow:
+
+  1 loz1               score =0.753396E-02
+
+--------------------------------------------------------------------------------
+
+Try 161, successes so far = 161
+Objective function evaluations this try =   14
+Last objective function value this try  = 0.632675E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -36904.2     -88232.0     -80192.1    
+Final coordinates: -822.891      1294.92     -4349.21    
+
+Scores for try = 161 follow:
+
+  1 loz1               score =0.632675E-02
+
+--------------------------------------------------------------------------------
+
+Try 162, successes so far = 162
+Objective function evaluations this try = 1001
+Last objective function value this try  = 0.109546E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  92471.9     -83991.0     -25464.1    
+Final coordinates:  3498.52     -7942.19     -5705.52    
+
+Scores for try = 162 follow:
+
+  1 loz1               score =0.109546E-01
+
+--------------------------------------------------------------------------------
+
+Try 163, successes so far = 163
+Objective function evaluations this try =   14
+Last objective function value this try  = 0.173448E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  62195.3      80508.3     -9316.86    
+Final coordinates:  4443.88      170962.      146484.    
+
+Scores for try = 163 follow:
+
+  1 loz1               score =0.173448E-01
+
+--------------------------------------------------------------------------------
+
+Try 164, successes so far = 164
+Objective function evaluations this try =   19
+Last objective function value this try  = 0.634788E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  65451.4     -35839.3     -44331.6    
+Final coordinates: -1314.05      1974.34     -3050.43    
+
+Scores for try = 164 follow:
+
+  1 loz1               score =0.634788E-02
+
+--------------------------------------------------------------------------------
+
+Try 165, successes so far = 165
+Objective function evaluations this try =    6
+Last objective function value this try  =  1.25609    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -30453.2     -63354.0     -38787.5    
+Final coordinates: -1057.96      1315.22     -3767.30    
+
+Scores for try = 165 follow:
+
+  1 loz1               score = 1.25609    
+
+--------------------------------------------------------------------------------
+
+Try 166, successes so far = 166
+Objective function evaluations this try =   34
+Last objective function value this try  = 0.753699E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -68156.8      70900.3      73359.9    
+Final coordinates: -3439.13      48460.3      43229.8    
+
+Scores for try = 166 follow:
+
+  1 loz1               score =0.753699E-02
+
+--------------------------------------------------------------------------------
+
+Try 167, successes so far = 167
+Objective function evaluations this try =   18
+Last objective function value this try  = 0.632732E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  14437.5     -25570.8     -72034.8    
+Final coordinates: -827.632      1056.79     -4347.18    
+
+Scores for try = 167 follow:
+
+  1 loz1               score =0.632732E-02
+
+--------------------------------------------------------------------------------
+
+Try 168, successes so far = 168
+Objective function evaluations this try =   35
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  95985.2      3360.23      6657.69    
+Final coordinates:  102652.      10026.9      13324.4    
+
+Scores for try = 168 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try 169, successes so far = 169
+Objective function evaluations this try =   20
+Last objective function value this try  = 0.633760E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -72100.3     -6061.38     -40212.1    
+Final coordinates: -1175.02      1785.53     -3432.74    
+
+Scores for try = 169 follow:
+
+  1 loz1               score =0.633760E-02
+
+--------------------------------------------------------------------------------
+
+Try 170, successes so far = 170
+Objective function evaluations this try =   36
+Last objective function value this try  =  2.52577    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  77257.1      44747.1      53681.7    
+Final coordinates:  83923.8      51413.8      60348.4    
+
+Scores for try = 170 follow:
+
+  1 loz1               score = 2.52577    
+
+--------------------------------------------------------------------------------
+
+Try 171, successes so far = 171
+Objective function evaluations this try =   27
+Last objective function value this try  =  1.25675    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -48549.1     -33308.8      39689.5    
+Final coordinates: -2808.12     -720.747     -4596.02    
+
+Scores for try = 171 follow:
+
+  1 loz1               score = 1.25675    
+
+--------------------------------------------------------------------------------
+
+Try 172, successes so far = 172
+Objective function evaluations this try =   38
+Last objective function value this try  = 0.632987E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -66177.0     -33446.5      31824.6    
+Final coordinates: -710.926      860.366     -4633.80    
+
+Scores for try = 172 follow:
+
+  1 loz1               score =0.632987E-02
+
+--------------------------------------------------------------------------------
+
+Try 173, successes so far = 173
+Objective function evaluations this try =   24
+Last objective function value this try  = 0.127278E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  7867.01     -14743.1      66001.3    
+Final coordinates: -6860.97     -790.907      143729.    
+
+Scores for try = 173 follow:
+
+  1 loz1               score =0.127278E-01
+
+--------------------------------------------------------------------------------
+
+Try 174, successes so far = 174
+Objective function evaluations this try =   35
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  84157.5      93422.7      8047.36    
+Final coordinates:  90824.1      100089.      14714.0    
+
+Scores for try = 174 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try 175, successes so far = 175
+Objective function evaluations this try = 1006
+Last objective function value this try  =  1.25730    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  47012.2      92511.7      9121.58    
+Final coordinates: -3405.55      86534.5      81172.6    
+
+Scores for try = 175 follow:
+
+  1 loz1               score = 1.25730    
+
+--------------------------------------------------------------------------------
+
+Try 176, successes so far = 176
+Objective function evaluations this try =   30
+Last objective function value this try  = 0.632887E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -58188.9      37016.4      14070.5    
+Final coordinates: -934.625      1499.98     -4064.43    
+
+Scores for try = 176 follow:
+
+  1 loz1               score =0.632887E-02
+
+--------------------------------------------------------------------------------
+
+Try 177, successes so far = 177
+Objective function evaluations this try =   33
+Last objective function value this try  = 0.632674E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  46764.9     -75409.9     -30679.2    
+Final coordinates: -786.080      1125.08     -4446.73    
+
+Scores for try = 177 follow:
+
+  1 loz1               score =0.632674E-02
+
+--------------------------------------------------------------------------------
+
+Try 178, successes so far = 178
+Objective function evaluations this try =   35
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  57455.9     -1052.05      65524.7    
+Final coordinates:  64122.5      5614.61      72191.3    
+
+Scores for try = 178 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try 179, successes so far = 179
+Objective function evaluations this try =   21
+Last objective function value this try  = 0.633203E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -81889.7      71437.4     -37572.3    
+Final coordinates: -1080.96      1563.93     -3692.88    
+
+Scores for try = 179 follow:
+
+  1 loz1               score =0.633203E-02
+
+--------------------------------------------------------------------------------
+
+Try 180, successes so far = 180
+Objective function evaluations this try =   48
+Last objective function value this try  = 0.647893E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -22232.2     -20679.3     -22957.9    
+Final coordinates: -1976.83      1532.80     -1252.64    
+
+Scores for try = 180 follow:
+
+  1 loz1               score =0.647893E-02
+
+--------------------------------------------------------------------------------
+
+Try 181, successes so far = 181
+Objective function evaluations this try =   33
+Last objective function value this try  = 0.753982E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -8659.07      55824.1      50548.1    
+Final coordinates: -3505.85      52524.6      47522.8    
+
+Scores for try = 181 follow:
+
+  1 loz1               score =0.753982E-02
+
+--------------------------------------------------------------------------------
+
+Try 182, successes so far = 182
+Objective function evaluations this try =   18
+Last objective function value this try  = 0.634925E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  89958.9     -27758.3     -96778.7    
+Final coordinates: -600.179      246.658     -4864.30    
+
+Scores for try = 182 follow:
+
+  1 loz1               score =0.634925E-02
+
+--------------------------------------------------------------------------------
+
+Try 183, successes so far = 183
+Objective function evaluations this try =   33
+Last objective function value this try  =  2.52576    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  80944.4      30916.7      34555.0    
+Final coordinates:  87611.1      37583.4      41221.7    
+
+Scores for try = 183 follow:
+
+  1 loz1               score = 2.52576    
+
+--------------------------------------------------------------------------------
+
+Try 184, successes so far = 184
+Objective function evaluations this try =   30
+Last objective function value this try  = 0.663773E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -84873.6     -67622.0      18501.4    
+Final coordinates: -2080.41      298.961     -876.671    
+
+Scores for try = 184 follow:
+
+  1 loz1               score =0.663773E-02
+
+--------------------------------------------------------------------------------
+
+Try 185, successes so far = 185
+Objective function evaluations this try =   29
+Last objective function value this try  = 0.668418E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -22745.1      14302.0      4016.55    
+Final coordinates: -2203.53      7010.87      1235.14    
+
+Scores for try = 185 follow:
+
+  1 loz1               score =0.668418E-02
+
+--------------------------------------------------------------------------------
+
+Try 186, successes so far = 186
+Objective function evaluations this try =   24
+Last objective function value this try  = 0.754152E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  14415.8      95515.7      53402.7    
+Final coordinates: -3436.69      85548.9      80295.3    
+
+Scores for try = 186 follow:
+
+  1 loz1               score =0.754152E-02
+
+--------------------------------------------------------------------------------
+
+Try 187, successes so far = 187
+Objective function evaluations this try =    6
+Last objective function value this try  =  1.26760    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  70189.1     -54235.3      92328.4    
+Final coordinates: -1338.93     -11708.8      50419.6    
+
+Scores for try = 187 follow:
+
+  1 loz1               score = 1.26760    
+
+--------------------------------------------------------------------------------
+
+Try 188, successes so far = 188
+Objective function evaluations this try =   33
+Last objective function value this try  =  1.25675    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -38324.8     -47259.8      8560.61    
+Final coordinates: -2912.30     -794.743     -4653.86    
+
+Scores for try = 188 follow:
+
+  1 loz1               score = 1.25675    
+
+--------------------------------------------------------------------------------
+
+Try 189, successes so far = 189
+Objective function evaluations this try =   33
+Last objective function value this try  = 0.754006E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -53975.5      43547.0      93038.2    
+Final coordinates: -3467.42      56523.3      51382.6    
+
+Scores for try = 189 follow:
+
+  1 loz1               score =0.754006E-02
+
+--------------------------------------------------------------------------------
+
+Try 190, successes so far = 190
+Objective function evaluations this try =   35
+Last objective function value this try  =  2.52577    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  21668.6      14612.9      28584.7    
+Final coordinates:  28335.3      21279.6      35251.4    
+
+Scores for try = 190 follow:
+
+  1 loz1               score = 2.52577    
+
+--------------------------------------------------------------------------------
+
+Try 191, successes so far = 191
+Objective function evaluations this try =   46
+Last objective function value this try  = 0.632692E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  57413.1     -56446.4      12555.6    
+Final coordinates: -892.009      1225.85     -4184.59    
+
+Scores for try = 191 follow:
+
+  1 loz1               score =0.632692E-02
+
+--------------------------------------------------------------------------------
+
+Try 192, successes so far = 192
+Objective function evaluations this try =   48
+Last objective function value this try  = 0.633543E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -76493.0      87511.0      61685.5    
+Final coordinates: -887.002      781.975     -4203.42    
+
+Scores for try = 192 follow:
+
+  1 loz1               score =0.633543E-02
+
+--------------------------------------------------------------------------------
+
+Try 193, successes so far = 193
+Objective function evaluations this try =   24
+Last objective function value this try  = 0.634378E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -44367.0      7913.53      45552.5    
+Final coordinates: -1220.10      2067.11     -3286.73    
+
+Scores for try = 193 follow:
+
+  1 loz1               score =0.634378E-02
+
+--------------------------------------------------------------------------------
+
+Try 194, successes so far = 194
+Objective function evaluations this try =   34
+Last objective function value this try  =  2.52577    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  14449.8     -600.565      78281.7    
+Final coordinates:  21116.5      6066.10      84948.3    
+
+Scores for try = 194 follow:
+
+  1 loz1               score = 2.52577    
+
+--------------------------------------------------------------------------------
+
+Try 195, successes so far = 195
+Objective function evaluations this try =   44
+Last objective function value this try  = 0.634232E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  56427.2     -78719.6      11601.0    
+Final coordinates: -961.938      2083.40     -3932.31    
+
+Scores for try = 195 follow:
+
+  1 loz1               score =0.634232E-02
+
+--------------------------------------------------------------------------------
+
+Try 196, successes so far = 196
+Objective function evaluations this try =   42
+Last objective function value this try  = 0.632967E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  44043.3     -79595.4     -88176.2    
+Final coordinates: -955.696      1557.69     -4007.89    
+
+Scores for try = 196 follow:
+
+  1 loz1               score =0.632967E-02
+
+--------------------------------------------------------------------------------
+
+Try 197, successes so far = 197
+Objective function evaluations this try =   34
+Last objective function value this try  =  2.52577    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  24855.3      2976.77      25060.3    
+Final coordinates:  31522.0      9643.44      31727.0    
+
+Scores for try = 197 follow:
+
+  1 loz1               score = 2.52577    
+
+--------------------------------------------------------------------------------
+
+Try 198, successes so far = 198
+Objective function evaluations this try =   15
+Last objective function value this try  = 0.133895E-01
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  47809.4     -56958.6     -44363.2    
+Final coordinates:  8228.18     -8883.92     -8178.47    
+
+Scores for try = 198 follow:
+
+  1 loz1               score =0.133895E-01
+
+--------------------------------------------------------------------------------
+
+Try 199, successes so far = 199
+Objective function evaluations this try =   20
+Last objective function value this try  = 0.636472E-02
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates: -22566.1     -98959.9      70199.1    
+Final coordinates: -1429.62      1454.91     -2792.79    
+
+Scores for try = 199 follow:
+
+  1 loz1               score =0.636472E-02
+
+--------------------------------------------------------------------------------
+
+Try 200, successes so far = 200
+Objective function evaluations this try =   32
+Last objective function value this try  =  1.26751    
+Best result so far = 0.632658E-02 was obtained on try  76
+
+Initial coordinates:  68218.6     -79281.9      64132.8    
+Final coordinates:  104354.     -9921.01     -14757.5    
+
+Scores for try = 200 follow:
+
+  1 loz1               score = 1.26751    
+
+--------------------------------------------------------------------------------

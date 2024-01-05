@@ -3306,15 +3306,19 @@ c                                 get phases to be fractionated
                   write (*,1100) phase(ifrct)
                   cycle
 
-               else if (ksmod(ifr(ifrct)).eq.39.and.lopt(32).and.
-     *                  iopt(22).eq.0) then
+               else if (ifr(ifrct).gt.0) then
+
+                  if (ksmod(ifr(ifrct)).eq.39.and.lopt(32).and.
+     *                iopt(22).eq.0) then
 c                                 fractionating an electrolytic fluid:
 c                                 override solid component depletion
 c                                 error trap in yclos2 to allow output,
 c                                 no examples where this does anything.
-                  lopt(71) = .false.
+                     lopt(71) = .false.
 
-                  call warn (62,numb,ifrct,phase(ifrct))
+                     call warn (62,numb,ifrct,phase(ifrct))
+
+                  end if
 
                end if
 
