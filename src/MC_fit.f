@@ -1395,7 +1395,7 @@ c                                 found phase and ambiguity
 
          end do
 c                                 missing phase residual
-         obj = obj + wmiss * (1d0 - mpred/mphase)
+         obj = obj + wmiss * (1d0 - mpred/mphase)**2
 
       end if
 

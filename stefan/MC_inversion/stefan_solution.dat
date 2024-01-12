@@ -19,19 +19,9 @@ begin_excess_function
 
 W(nin fnin)          14332.4  
 W(fnin old)          76847.7     -26.0627*T
-W(nin old)           27268.1
+W(nin old old)         0
+W(nin nin old)         0
 
-|W(old nin fnin)     -4592.58
-
-
-
-
-|W(fnin old)  77304.0     -28.7621 0
-|W(fnin old)  135878. |  9449.89     -78.4201 * T_K |model 41 stinv_cf_with_T
-|W(nin old)  43300
-|W(old nin fnin) 2708
-|W(nin old) 29190
-|W(old fnin fnin) -37763.9 |model 31 stinv_cf
 
 end_excess_function
 
@@ -70,19 +60,9 @@ W(ninL troL)         15242.5
 W(troL oldL oldL)  817439.     -311.194*T  
 W(oldL troL troL)  203286.     -205.912*T    
 
-
 W(ninL oldL oldL)    48810.1     -35.1137*T
 W(oldL ninL ninL)    35508.8     -72.3391*T
-|W(oldL ninL troL)    697436.     -139.964*T
 
-
-
-|W(troL oldL oldL)  363112.  |-158845. +  268.721 * T_K |model 41 stinv_cf_with_T
-|W(oldL troL troL)  -57350.5 |-43408.5 -24.8162 * T_K   |model 41 stinv_cf_with_T
-|W(troL oldL oldL)   441665.     -34.6943 0
-|W(oldL troL troL)   367203.     -328.535 0
-|W(ninL oldL) 15311.9 
-|W(oldL ninL troL)  584500
 end_excess_function
 
 1                                     1 site configurational entropy model

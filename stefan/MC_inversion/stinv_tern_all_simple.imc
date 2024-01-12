@@ -1,0 +1,2359 @@
+| comments are preceded by the "|" character
+
+| MC_inverter, the mode and expected format of the *.imc file is 
+| determined by the following flag:
+
+T      | invxpt, T => invert experimental data, F => inverse thermobarometry
+F      | random, T => generate a new seed for random number generation each time the
+       | program is run. F => for reproducible sequence (e.g., for debugging).
+
+| Monte-Carlo logistical variables:
+
+100   | ntry, number of starting guesses used to find a best fit model
+00     | nunc, number of iteration to evaluate uncertainities. set nunc = 0 
+       | to suppress uncertainty evaluation.
+
+       | time cost is proportional to nunc + 1, i.e., the program will 
+       | do (nunc + 1) * ntry Nelder-Meade minimizations.
+
+       | Each Nelder-Meade minimization is allowed to do a maximum of kcount
+       | free energy minimization calculations plus a few extra (~10-50) if
+       | the minimum is to be fit to a surface (iquad = 1). I see 
+       | little value to the surface fitting, who cares if it's at a true 
+       | minimum? The result is still useful if it's better than the other 
+       | results.
+
+| Nelder-Meade MINIM algorithm variables
+
+1d3    | oktol, threshold at which a failed minim result will be considered a legitimate result
+1d-5   | tol, by trial and error
+1d-6   | simplx, trial and error
+0.1    | frac, fractional step size
+10     | conchk, how often to check for convergence
+0      | iprint, 0 => normal print, < 0 => silent, > 0 => verbose
+1      | iquad, 1 => fit surface to minimum, 0 => don't fit 
+1000   | kcount, max # of objective evaluations per try, recommended nparm*1024
+
+| Nelder-Meade Objective function weights
+
+1d0    | wcomp, compositional residual weight
+1d1    | wextra, extra phase amount residual weight
+1d1    | wmiss, missing phase residual weight
+
+| endmembers and solutions with free parameters
+
+begin_phase_free_parameters
+
+Nin                              | for solution models the interaction terms of the model may be specified as free parameters
+                                 | NB! terms MUST be specified identically to the way they are specified in the solution model
+W(nin old old)
+parameter 1 -1e5 1e5
+
+W(nin nin old)
+parameter 1 -1e5 1e5
+
+end_list
+
+melt
+
+W(ninL oldL oldL)
+parameter 1 -1e5 1e5
+parameter 2 -1d2 0
+
+W(oldL ninL ninL)
+parameter 1 -1e5 1e5
+parameter 2 -1d2 0
+
+end_list
+
+end_phase_free_parameters
+
+| the remainder of the file lists the observations to be used for inversion
+| all numerical quantities are followed by their uncertainties (<=0 indicates no uncertainty)
+
+
+| subsolidus ter1 - ter11
+
+|----------------------------------
+
+
+begin_exp
+
+Ninold0
+
+1.0    -1   | pressure (bar)
+973.15 5   | temperature (K)
+
+begin_bulk
+CaS 0.4 .005
+MgS 0.6 .005
+end_bulk
+
+Nin
+
+begin_comp
+CaS 1 0.0
+MgS 0 0.0
+end_comp
+
+Nin
+
+begin_comp
+CaS 0.985 0.02
+MgS 0.015 0.02
+end_comp
+
+end_exp
+
+|---------------------------------
+begin_exp
+
+Ninold1
+
+1.0    -1   | pressure (bar)
+1073.15 5   | temperature (K)
+
+begin_bulk
+CaS 0.4 .005
+MgS 0.6 .005
+end_bulk
+
+Nin
+
+begin_comp
+CaS 0.055 0.02
+MgS 0.945 0.02
+end_comp
+
+Nin
+
+begin_comp
+CaS 0.921 0.02
+MgS 0.079 0.02
+end_comp
+
+end_exp
+
+|---------------------------------
+begin_exp
+
+Ninold2
+
+1.0    -1   | pressure (bar)
+973.15 5   | temperature (K)
+
+begin_bulk
+CaS 0.4 .005
+MgS 0.6 .005
+end_bulk
+
+Nin
+
+begin_comp
+CaS 0.975 0.01
+MgS 0.025 0.01
+end_comp
+
+Nin
+
+begin_comp
+CaS 0.01 0.02
+MgS 0.99 0.02
+end_comp
+
+end_exp
+
+|---------------------------------
+begin_exp
+
+Ninold3
+
+1.0    -1   | pressure (bar)
+1173.15 5   | temperature (K)
+
+begin_bulk
+CaS 0.4 .005
+MgS 0.6 .005
+end_bulk
+
+Nin
+
+begin_comp
+CaS 0.88 0.02
+MgS 0.12 0.02
+end_comp
+
+Nin
+
+begin_comp
+CaS 0.13 0.02
+MgS 0.87 0.02
+end_comp
+
+end_exp
+
+|---------------------------------
+begin_exp
+
+Ninold4
+
+1.0    -1   | pressure (bar)
+1173.15 5   | temperature (K)
+
+begin_bulk
+CaS 0.4 .005
+MgS 0.6 .005
+end_bulk
+
+Nin
+
+begin_comp
+CaS 0.863 0.02
+MgS 0.137 0.02
+end_comp
+
+Nin
+
+begin_comp
+CaS 0.125 0.02
+MgS 0.875 0.02
+end_comp
+
+end_exp
+
+|---------------------------------
+begin_exp
+
+Ninold5
+
+1.0    -1   | pressure (bar)
+1273.15 5   | temperature (K)
+
+begin_bulk
+CaS 0.4 .005
+MgS 0.6 .005
+end_bulk
+
+Nin
+
+begin_comp
+CaS 0.811 0.02
+MgS 0.189 0.02
+end_comp
+
+Nin
+
+begin_comp
+CaS 0.749 0.02
+MgS 0.251 0.02
+end_comp
+
+end_exp
+
+
+
+|----------------------------------
+begin_exp
+
+
+ter1
+
+
+1.0    -1   | pressure (bar)
+1324.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.202621308 0.005
+CaS 0.101871346 0.005
+FeS 0.695507346 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.2317251  0.006720386
+CaS 0.068535302  0.002355256
+FeS 0.699739599  0.00897223
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.069662782  0.001530824
+CaS 0.898941198  0.004495945
+FeS 0.031396021  0.005180403
+
+end_comp
+
+tro
+
+
+end_exp
+
+|----------------------------------
+
+begin_exp
+
+ter4
+
+
+1.0    -1   | pressure (bar)
+1324.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.158059486 0.005
+CaS 0.530123944 0.005
+FeS 0.31181657 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.226935913  0.003010332
+CaS 0.071638567  0.003956318
+FeS 0.70142552  0.006088498
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.066129102  0.001436657
+CaS 0.902018452  0.005103051
+FeS 0.031852446  0.004524287
+end_comp
+
+end_exp
+
+|----------------------------------
+begin_exp
+
+ter3
+
+
+1.0    -1   | pressure (bar)
+1324.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.248536375 0.005
+CaS 0.24049759 0.005
+FeS 0.510966035 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.262042516  0.007173034
+CaS 0.080476399  0.003701289
+FeS 0.657481085  0.006283319
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.072285007  0.006869433
+CaS 0.894028069  0.003696476
+FeS 0.033686924  0.005111505
+end_comp
+
+end_exp
+
+|----------------------------------
+
+begin_exp
+
+ter2
+
+
+1.0    -1   | pressure (bar)
+1324.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.246563992 0.005
+CaS 0.346175751 0.005
+FeS 0.407260257 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.310623366  0.001786932
+CaS 0.094090758  0.005209793
+FeS 0.595285876  0.006448116
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.083324509  0.001582237
+CaS 0.879529609  0.00520119
+FeS 0.037145882  0.005313806
+end_comp
+
+end_exp
+
+|----------------------------------
+begin_exp
+
+ter5
+
+
+1.0    -1   | pressure (bar)
+1324.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.070575004 0.005
+CaS 0.410010852 0.005
+FeS 0.519414145 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.225171591  0.008771606
+CaS 0.067823542  0.001868591
+FeS 0.707004867  0.009760602
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.06685409  0.0016746
+CaS 0.898821012  0.004385149
+FeS 0.034324899  0.004084965
+end_comp
+
+tro
+
+
+end_exp
+
+|----------------------------------
+begin_exp
+
+ter6
+
+1.0    -1   | pressure (bar)
+1324.15 5   | temperature (K)
+
+
+begin_bulk
+MgS 0.498530864 0.005
+CaS 0.095236427 0.005
+FeS 0.406232709 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.465926116  0.039288038
+CaS 0.102869342  0.003797909
+FeS 0.431204542  0.040379685
+end_comp 
+
+end_exp
+
+|----------------------------------
+begin_exp
+
+ter7
+
+1.0    -1   | pressure (bar)
+1324.15 5   | temperature (K)
+
+
+begin_bulk
+MgS 0.101328494 0.005
+CaS 0.196606087 0.005
+FeS 0.702065418 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.301928655  0.017336688
+CaS 0.081018876  0.001641064
+FeS 0.617052469  0.01866494
+end_comp 
+
+tro
+
+
+end_exp
+
+|----------------------------------
+begin_exp
+
+ter8
+
+1.0    -1   | pressure (bar)
+1324.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.373148567 0.005
+CaS 0.190221352 0.005
+FeS 0.43663008 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.386125607  0.002266276
+CaS 0.120547053  0.004034971
+FeS 0.49332734  0.005275071
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.096697638  0.007584159
+CaS 0.858048506  0.003579589
+FeS 0.045253856  0.009380348
+end_comp
+
+
+end_exp
+
+|----------------------------------
+begin_exp
+
+ter9
+
+1.0    -1   | pressure (bar)
+1324.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.373148567 0.005
+CaS 0.190221352 0.005
+FeS 0.43663008 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.378291212  0.003388629
+CaS 0.117871088  0.002412531
+FeS 0.5038377  0.003888202
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.101987562  0.003901999
+CaS 0.858571457  0.005860257
+FeS 0.039440981  0.008047004
+end_comp
+
+end_exp
+
+|----------------------------------
+
+
+|------------------------------
+
+begin_exp
+
+ter11
+
+1.0    -1   | pressure (bar)
+1373.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.101328494 0.005
+CaS 0.196606087 0.005
+FeS 0.702065418 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.275480053 0.01113131
+CaS 0.100804454 0.005742067
+FeS 0.623715493 0.014252632
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.096513319 0.002443357
+CaS 0.853403157 0.019502243
+FeS 0.050083524 0.014252632
+end_comp
+
+melt
+
+begin_comp
+MgS 0.016426745 0.003577514
+CaS 0.090335427 0.016967916
+FeS 0.893237828 0.021136529
+end_comp
+
+end_exp
+
+|----------------------------------
+
+begin_exp
+
+ter12
+
+1.0    -1   | pressure (bar)
+1373.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.158059486 0.005
+CaS 0.530123944 0.005
+FeS 0.31181657 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.235380825 0.010970056
+CaS 0.093635587 0.004566822
+FeS 0.670983588 0.014447397
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.087153515 0.004798462
+CaS 0.863243856 0.015934329
+FeS 0.04960263 0.014447397
+end_comp
+
+melt
+
+begin_comp
+MgS 0.013638766 0.00432369
+CaS 0.087849568 0.022028136
+FeS 0.898511666 0.027781656
+end_comp
+
+end_exp
+
+|----------------------------------
+
+begin_exp
+
+ter13
+
+1.0    -1   | pressure (bar)
+1373.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.246563992 0.005
+CaS 0.346175751 0.005
+FeS 0.407260257 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.281318362 0.018156099
+CaS 0.101636561 0.006606528
+FeS 0.617045077 0.023353716
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.097983563 0.004629823
+CaS 0.846025312 0.010567961
+FeS 0.055991125 0.023353716
+end_comp
+
+end_exp
+
+|----------------------------------
+
+begin_exp
+
+ter14
+
+1.0    -1   | pressure (bar)
+1373.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.202621308 0.005
+CaS 0.101871346 0.005
+FeS 0.695507346 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.277296347 0.010598161
+CaS 0.094104597 0.006373332
+FeS 0.628599056 0.017390553
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.023936215 0.005096535
+CaS 0.095288785 0.020096159
+FeS 0.880775 0.026127821
+end_comp
+
+end_exp
+
+|----------------------------------
+
+begin_exp
+
+ter15
+
+1.0    -1   | pressure (bar)
+1373.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.373148567 0.005
+CaS 0.190221352 0.005
+FeS 0.43663008 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.357372534 0.010668262
+CaS 0.134945912 0.007364974
+FeS 0.507681554 0.016660702
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.116184245 0.010431148
+CaS 0.828348897 0.011972777
+FeS 0.055466858 0.016660702
+end_comp
+
+end_exp
+
+|----------------------------------
+
+begin_exp
+
+ter16
+
+1.0    -1   | pressure (bar)
+1373.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.498530864 0.005
+CaS 0.095236427 0.005
+FeS 0.406232709 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.488878622 0.020580955
+CaS 0.098687792 0.004840227
+FeS 0.412433586 0.023236938
+end_comp 
+
+end_exp
+
+|----------------------------------
+
+begin_exp
+
+ter17
+
+1.0    -1   | pressure (bar)
+1373.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.202621308 0.005
+CaS 0.101871346 0.005
+FeS 0.695507346 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.268677634 0.007149543
+CaS 0.091037655 0.00852868
+FeS 0.640284711 0.009643958
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.095945255 0.009250966
+CaS 0.850644189 0.014059843
+FeS 0.053410556 0.009643958
+end_comp
+
+melt
+
+begin_comp
+MgS 0.017132117 0.011026577
+CaS 0.081317041 0.035054382
+FeS 0.901550842 0.046935307
+end_comp
+
+end_exp
+
+|----------------------------------
+
+begin_exp
+
+ter18
+
+1.0    -1   | pressure (bar)
+1373.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.026815639 0.005
+CaS 0.012598135 0.005
+FeS 0.960586226 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.176881694 0.008369201
+CaS 0.040980323 0.007821171
+FeS 0.782137983 0.016623798
+end_comp 
+
+tro
+
+
+melt
+
+begin_comp
+MgS 0.022417106 0.005602345
+CaS 0.125303037 0.014450742
+FeS 0.852279857 0.017566835
+end_comp
+
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter19
+
+1.0    -1   | pressure (bar)
+1373.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.248536375 0.005
+CaS 0.24049759 0.005
+FeS 0.510966035 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.365507713 0.008683996
+CaS 0.143936702 0.004680707
+FeS 0.490555585 0.011430393
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.11947365 0.012966212
+CaS 0.819728362 0.026665183
+FeS 0.060797987 0.011430393
+end_comp
+
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter21
+
+1.0    -1   | pressure (bar)
+1425.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.365507713 0.005
+CaS 0.401388217 0.005
+FeS 0.258542148 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.395025961 0.003981758
+CaS 0.1954922 0.004955684
+FeS 0.409481839 0.005443621
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.15132116 0.000931989
+CaS 0.783626384 0.002886631
+FeS 0.065052456 0.005443621
+end_comp
+
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter22
+
+1.0    -1   | pressure (bar)
+1425.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.248536375 0.005
+CaS 0.24049759 0.005
+FeS 0.510966035 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.375315093 0.008755258
+CaS 0.187593286 0.002912316
+FeS 0.437091621 0.010851035
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.144930597 0.002281844
+CaS 0.792274043 0.004105489
+FeS 0.06279536 0.010851035
+end_comp
+
+melt
+
+begin_comp
+MgS 0.020177811 0.003547899
+CaS 0.084277228 0.009711129
+FeS 0.895544961 0.011530192
+end_comp
+
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter24
+
+1.0    -1   | pressure (bar)
+1425.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.158059486 0.005
+CaS 0.530123944 0.005
+FeS 0.31181657 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.37143111 0.005094926
+CaS 0.179919057 0.003224722
+FeS 0.448649832 0.00621546
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.13938296 0.00169376
+CaS 0.799459977 0.002878944
+FeS 0.061157063 0.00621546
+end_comp
+
+melt
+
+begin_comp
+MgS 0.022747514 0.001421978
+CaS 0.099698266 0.007959649
+FeS 0.87755422 0.008896166
+end_comp
+
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter25
+
+1.0    -1   | pressure (bar)
+1425.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.101328494 0.005
+CaS 0.196606087 0.005
+FeS 0.702065418 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.370653819 0.00370825
+CaS 0.177791571 0.002977711
+FeS 0.45155461 0.004681411
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.136812388 0.001779476
+CaS 0.801733781 0.002937462
+FeS 0.061453831 0.004681411
+end_comp
+
+melt
+
+begin_comp
+MgS 0.01929549 0.002727825
+CaS 0.090818524 0.011450686
+FeS 0.889885987 0.014087319
+end_comp
+
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter26
+
+1.0    -1   | pressure (bar)
+1425.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.246563992 0.005
+CaS 0.346175751 0.005
+FeS 0.407260257 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.373666667 0.00485832
+CaS 0.179333333 0.00356626
+FeS 0.447 0.002429993
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.1397 0.00485832
+CaS 0.7959 0.00356626
+FeS 0.0644 0.002429993
+end_comp
+
+melt
+
+begin_comp
+MgS 0.017408867 0.002248109
+CaS 0.085442393 0.013985604
+FeS 0.897148741 0.015846392
+end_comp
+
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter27
+
+1.0    -1   | pressure (bar)
+1425.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.498530864 0.005
+CaS 0.095236427 0.005
+FeS 0.406232709 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.448918432 0.05
+CaS 0.105520012 0.05
+FeS 0.445561557 0.05
+end_comp 
+
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter28
+
+1.0    -1   | pressure (bar)
+1425.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.202621308 0.005
+CaS 0.101871346 0.005
+FeS 0.695507346 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.377156107 0.00662753
+CaS 0.117299963 0.002985764
+FeS 0.505543929 0.007765274
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.020589617 0.002597819
+CaS 0.10031855 0.004145082
+FeS 0.879091833 0.006109145
+end_comp
+
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter29
+
+1.0    -1   | pressure (bar)
+1425.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.373148567 0.005
+CaS 0.190221352 0.005
+FeS 0.43663008 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.3759624 0.005577592
+CaS 0.183969604 0.001175965
+FeS 0.440067996 0.004996623
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.016582827 0.003647108
+CaS 0.092829447 0.005837993
+FeS 0.890587725 0.009254561
+end_comp
+
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter30
+
+1.0    -1   | pressure (bar)
+1425.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.070575004 0.005
+CaS 0.410010852 0.005
+FeS 0.519414145 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.300004087 0.014442547
+CaS 0.120282581 0.003289585
+FeS 0.579713332 0.016062942
+
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.102588981 0.001928829
+CaS 0.848619869 0.003652452
+FeS 0.04879115 0.003041896
+end_comp
+
+melt
+
+begin_comp
+MgS 0.016875277 0.002823475
+CaS 0.065181236 0.013827519
+FeS 0.917943487 0.015945615
+end_comp
+
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter31
+
+1.0    -1   | pressure (bar)
+1425.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.611476847 0.005
+CaS 0.202883634 0.005
+FeS 0.185639518 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.617292643 0.011251908
+CaS 0.201335906 0.015352675
+FeS 0.181371452 0.004901383
+
+end_comp 
+
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter34
+
+1.0    -1   | pressure (bar)
+1473.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.248536375 0.005
+CaS 0.24049759 0.005
+FeS 0.510966035 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.389140938 0.007871909
+CaS 0.236543275 0.003695867
+FeS 0.374315787 0.009922287
+
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.162359569 0.031016766
+CaS 0.759083898 0.032144723
+FeS 0.078556533 0.006516265
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.016033225 0.003856313
+CaS 0.066411851 0.008548575
+FeS 0.917554924 0.009312653
+
+end_comp 
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter35
+
+1.0    -1   | pressure (bar)
+1473.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.340069635 0.005
+CaS 0.401388217 0.005
+FeS 0.258542148 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.392603201 0.002987755
+CaS 0.240507376 0.003061942
+FeS 0.366889423 0.002841916
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.175182617 0.002746554
+CaS 0.74826326 0.00538668
+FeS 0.076554123 0.005294795
+
+end_comp 
+
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter36
+
+1.0    -1   | pressure (bar)
+1473.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.498530864 0.005
+CaS 0.095236427 0.005
+FeS 0.406232709 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.474612042 0.006562067
+CaS 0.09546203 0.003186241
+FeS 0.429925928 0.007588657
+end_comp 
+
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter37
+
+1.0    -1   | pressure (bar)
+1473.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.373148567 0.005
+CaS 0.190221352 0.005
+FeS 0.43663008 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.397075089 0.006471006
+CaS 0.197251233 0.003469197
+FeS 0.405673678 0.008260109
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.015256427 0.004640505
+CaS 0.078017449 0.005042219
+FeS 0.906726124 0.007960825
+
+end_comp 
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter38
+
+1.0    -1   | pressure (bar)
+1473.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.202621308 0.005
+CaS 0.101871346 0.005
+FeS 0.695507346 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.414193462 0.012295324
+CaS 0.113354942 0.002960076
+FeS 0.472451597 0.013136481
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.016227349 0.002969515
+CaS 0.09069875 0.012566482
+FeS 0.893073902 0.015332356
+
+end_comp 
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter39
+
+1.0    -1   | pressure (bar)
+1473.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.101328494 0.005
+CaS 0.196606087 0.005
+FeS 0.702065418 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.391626166 0.003141935
+CaS 0.234104967 0.004010538
+FeS 0.374268867 0.005949375
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.171111354 0.003203117
+CaS 0.752928053 0.002985767
+FeS 0.075960593 0.003021625
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.017314129 0.002187261
+CaS 0.077596295 0.006823127
+FeS 0.905089576 0.008917569
+
+end_comp 
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter40
+
+1.0    -1   | pressure (bar)
+1473.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.246563992 0.005
+CaS 0.346175751 0.005
+FeS 0.407260257 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.391930253 0.002529414
+CaS 0.237558494 0.004415487
+FeS 0.370511253 0.0054262
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.175397637 0.003237489
+CaS 0.748207591 0.004423955
+FeS 0.076394773 0.005682421
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.017865169 0.001618797
+CaS 0.071730535 0.013266602
+FeS 0.910404295 0.014695148
+
+end_comp 
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter41
+
+1.0    -1   | pressure (bar)
+1473.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.158059486 0.005
+CaS 0.530123944 0.005
+FeS 0.31181657 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.378790047 0.015896753
+CaS 0.234965906 0.003790137
+FeS 0.386244047 0.018459077
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.177845228 0.002274429
+CaS 0.743258209 0.003181508
+FeS 0.078896563 0.002443618
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.01916907 0.001833896
+CaS 0.069486679 0.011799951
+FeS 0.911344251 0.012702278
+
+end_comp 
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter42
+
+1.0    -1   | pressure (bar)
+1473.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.326539703 0.005
+CaS 0.593396198 0.005
+FeS 0.080064099 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.299305319 0.03
+CaS 0.605529557 0.009864337
+FeS 0.095165124 0.004808922
+end_comp 
+
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter43
+
+1.0    -1   | pressure (bar)
+1473.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.611476847 0.005
+CaS 0.202883634 0.005
+FeS 0.185639518 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.605890594 0.005450567
+CaS 0.207969581 0.002959708
+FeS 0.186139825 0.004205428
+end_comp 
+ 
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter44
+
+1.0    -1   | pressure (bar)
+1473.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.070575004 0.005
+CaS 0.410010852 0.005
+FeS 0.519414145 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.112279443 0.001368526
+CaS 0.833538154 0.006072584
+FeS 0.054182403 0.005459186
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.016318876 0.002055103
+CaS 0.079923449 0.006477269
+FeS 0.903757676 0.008095945
+
+end_comp 
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter46
+
+1.0    -1   | pressure (bar)
+1514.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.026815639 0.005
+CaS 0.012598135 0.005
+FeS 0.960586226 0.005
+end_bulk
+
+melt
+
+begin_comp
+MgS 0.033483676 0.005509601
+CaS 0.017069895 0.005012393
+FeS 0.949446429 0.009587108
+
+end_comp 
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter47
+
+1.0    -1   | pressure (bar)
+1514.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.246563992 0.005
+CaS 0.346175751 0.005
+FeS 0.407260257 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.38447168 0.004228939
+CaS 0.350619965 0.004100895
+FeS 0.264908355 0.004698284
+end_comp 
+
+Nin
+
+begin_comp
+MgS 0.233717637 0.010310769
+CaS 0.650957685 0.004603753
+FeS 0.115324677 0.008300921
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.017046389 0.015038515
+CaS 0.067267942 0.01194648
+FeS 0.915685669 0.013453414
+
+end_comp 
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter48
+
+1.0    -1   | pressure (bar)
+1514.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.498530864 0.005
+CaS 0.095236427 0.005
+FeS 0.406232709 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.484234898 0.014947308
+CaS 0.099686592 0.004471642
+FeS 0.41607851 0.013099206
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.010044122 0.003827957
+CaS 0.047297431 0.037133173
+FeS 0.942658447 0.040624139
+
+end_comp 
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter49
+
+1.0    -1   | pressure (bar)
+1514.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.101328494 0.005
+CaS 0.196606087 0.005
+FeS 0.702065418 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.244135974 0.012121746
+CaS 0.645036158 0.01331277
+FeS 0.110827869 0.001715165
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.02354014 0.012420757
+CaS 0.076452618 0.022615107
+FeS 0.900007243 0.034927306
+
+end_comp 
+end_exp
+
+|---------------------------------
+
+begin_exp
+
+ter50
+
+1.0    -1   | pressure (bar)
+1514.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.373148567 0.005
+CaS 0.190221352 0.005
+FeS 0.43663008 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.449828078 0.00571475
+CaS 0.218349185 0.002061721
+FeS 0.331822737 0.006655133
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.003119228 0.003523896
+CaS 0.007930723 0.009344797
+FeS 0.988950049 0.013192879
+
+end_comp 
+end_exp
+
+|--------------------------------
+
+begin_exp
+
+ter53
+
+1.0    -1   | pressure (bar)
+1514.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.248536375 0.005
+CaS 0.24049759 0.005
+FeS 0.510966035 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.390285404 0.003428
+CaS 0.335674525 0.003766813
+FeS 0.274040071 0.003735068
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.01241714 0.002974938
+CaS 0.064453942 0.008579623
+FeS 0.923128918 0.011543011
+
+end_comp 
+end_exp
+
+|--------------------------------
+
+begin_exp
+
+ter54
+
+1.0    -1   | pressure (bar)
+1514.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.202621308 0.005
+CaS 0.101871346 0.005
+FeS 0.695507346 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.47167806 0.002815043
+CaS 0.123323721 0.00230766
+FeS 0.404998219 0.004199113
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.01464546 0.001337238
+CaS 0.079754718 0.004135956
+FeS 0.905599822 0.005523089
+
+end_comp 
+end_exp
+
+|--------------------------------
+
+begin_exp
+
+ter57
+
+1.0    -1   | pressure (bar)
+1570.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.202621308 0.005
+CaS 0.101871346 0.005
+FeS 0.695507346 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.244135974 0.008897
+CaS 0.148957949 0.002749126
+FeS 0.339617491 0.009822498
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.013602969 0.008904272
+CaS 0.085836294  0.009753599
+FeS 0.900560737  0.016128889
+
+end_comp 
+end_exp
+
+|--------------------------------
+
+begin_exp
+
+ter58
+
+1.0    -1   | pressure (bar)
+1570.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.373148567 0.005
+CaS 0.190221352 0.005
+FeS 0.43663008 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.475344684  0.01110261
+CaS 0.238018817  0.003214956
+FeS 0.286636499  0.011599662
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.012087786  0.003209529
+CaS 0.064558021  0.017074216
+FeS 0.923354193  0.020058942
+
+end_comp 
+end_exp
+
+|--------------------------------
+
+begin_exp
+
+ter59
+
+1.0    -1   | pressure (bar)
+1570.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.158059486 0.005
+CaS 0.530123944 0.005
+FeS 0.31181657 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.213406459  0.003137111
+CaS 0.703200134  0.004941272
+FeS 0.083393407  0.002709843
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.012565777  0.004644621
+CaS 0.060089025  0.005660301
+FeS 0.927345198  0.010254241
+
+end_comp 
+end_exp
+
+|--------------------------------
+
+begin_exp
+
+ter60
+
+1.0    -1   | pressure (bar)
+1570.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.340069635 0.005
+CaS 0.401388217 0.005
+FeS 0.258542148 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.425638784  0.005555134
+CaS 0.321322652  0.004217597
+FeS 0.253038564  0.004216793
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.019447581  0.008355475
+CaS 0.085897795  0.019803212
+FeS 0.894654625  0.028639409
+
+end_comp 
+end_exp
+
+|--------------------------------
+
+begin_exp
+
+ter61
+
+1.0    -1   | pressure (bar)
+1570.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.101328494 0.005
+CaS 0.196606087 0.005
+FeS 0.702065418 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.310580686  0.003903833
+CaS 0.542489348  0.003115288
+FeS 0.146929966  0.005649489
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.007933438  0.005904497
+CaS 0.065201918  0.00936384
+FeS 0.926864644  0.015505066
+
+end_comp 
+end_exp
+
+|--------------------------------
+
+begin_exp
+
+ter62
+
+1.0    -1   | pressure (bar)
+1570.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.498530864 0.005
+CaS 0.095236427 0.005
+FeS 0.406232709 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.538819938  0.002981895
+CaS 0.095056609  0.002595283
+FeS 0.366123452  0.003470617
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.015070368  0.003150836
+CaS 0.071430107  0.018662749
+FeS 0.913499525  0.021562118
+
+end_comp 
+end_exp
+
+|--------------------------------
+
+begin_exp
+
+ter63
+
+1.0    -1   | pressure (bar)
+1570.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.026815639 0.005
+CaS 0.012598135 0.005
+FeS 0.960586226 0.005
+end_bulk
+
+melt
+
+begin_comp
+MgS 0.04245278  0.02860972
+CaS 0.026467889  0.008080544
+FeS 0.931079331  0.009580287
+
+end_comp 
+end_exp
+
+|--------------------------------
+
+begin_exp
+
+ter64
+
+1.0    -1   | pressure (bar)
+1570.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.246563992 0.005
+CaS 0.346175751 0.005
+FeS 0.407260257 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.348888797  0.003171678
+CaS 0.476620887  0.003540264
+FeS 0.174490316  0.005108724
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.017157448  0.00381095
+CaS 0.065342902  0.024912798
+FeS 0.91749965  0.029439014
+
+end_comp 
+end_exp
+
+|--------------------------------
+
+begin_exp
+
+ter65
+
+1.0    -1   | pressure (bar)
+1570.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.326539703 0.005
+CaS 0.593396198 0.005
+FeS 0.080064099 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.310021665  0.00385636
+CaS 0.59878721  0.004443909
+FeS 0.091191125  0.002286342
+
+end_comp 
+
+end_exp
+
+|--------------------------------
+
+begin_exp
+
+ter66
+
+1.0    -1   | pressure (bar)
+1570.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.611476847 0.005
+CaS 0.202883634 0.005
+FeS 0.185639518 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.609725518  0.003975528
+CaS 0.20335686  0.002444051
+FeS 0.186917622  0.002519427
+
+end_comp 
+
+end_exp
+
+|--------------------------------
+
+begin_exp
+
+ter67
+
+1.0    -1   | pressure (bar)
+1570.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.070575004 0.005
+CaS 0.410010852 0.005
+FeS 0.519414145 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.118663655  0.003808174
+CaS 0.827540211  0.005368845
+FeS 0.053796134  0.004610667
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.013043648  0.002815529
+CaS 0.036129697  0.005140777
+FeS 0.950826655  0.007548994
+
+end_comp 
+end_exp
+
+|--------------------------------
+
+begin_exp
+
+ter69
+
+1.0    -1   | pressure (bar)
+1635.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.158059486 0.005
+CaS 0.530123944 0.005
+FeS 0.31181657 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.194687447  0.003889985
+CaS 0.727253782  0.011023384
+FeS 0.078058772  0.014554782
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.010866862  0.005357782
+CaS 0.056701702  0.013411944
+FeS 0.932431436  0.01821695
+
+end_comp 
+end_exp
+
+|--------------------------------
+
+begin_exp
+
+ter70
+
+1.0    -1   | pressure (bar)
+1635.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.498530864 0.005
+CaS 0.095236427 0.005
+FeS 0.406232709 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.599300487  0.002715053
+CaS 0.104287205  0.000508363
+FeS 0.296412307  0.002789665
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.025771559  0.008653037
+CaS 0.020454637  0.009214851
+FeS 0.953773804  0.000561814
+
+end_comp 
+end_exp
+
+|--------------------------------
+
+begin_exp
+
+ter71
+
+1.0    -1   | pressure (bar)
+1635.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.248536375 0.005
+CaS 0.24049759 0.005
+FeS 0.510966035 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.428974323  0.009901982
+CaS 0.367034697  0.002791421
+FeS 0.20399098  0.010332887
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.014351996  0.003568489
+CaS 0.051222592  0.015672503
+FeS 0.934425412  0.019067444
+
+end_comp 
+end_exp
+
+|--------------------------------
+
+begin_exp
+
+ter74
+
+1.0    -1   | pressure (bar)
+1635.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.202621308 0.005
+CaS 0.101871346 0.005
+FeS 0.695507346 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.565107772  0.00394578
+CaS 0.132834669  0.018146494
+FeS 0.302057559  0.021272586
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.014285277  0.004304132
+CaS 0.070679614  0.0194083
+FeS 0.915035109  0.023660605
+
+end_comp 
+end_exp
+
+|-------------------------------
+
+begin_exp
+
+ter75
+
+1.0    -1   | pressure (bar)
+1635.15 5   | temperature (K)
+
+begin_bulk
+MgS 0.246563992 0.005
+CaS 0.346175751 0.005
+FeS 0.407260257 0.005
+end_bulk
+
+Nin
+
+begin_comp
+MgS 0.355259596  0.001177074
+CaS 0.490857472  0.002851017
+FeS 0.153882932  0.002611319
+
+end_comp 
+
+melt
+
+begin_comp
+MgS 0.010574174  0.00119038
+CaS 0.065295849  0.005554799
+FeS 0.924129977  0.007372539
+
+end_comp 
+end_exp
+
+
+
+
+
+
+
