@@ -8630,8 +8630,8 @@ c                                  just continue, minfx set T by pinc.
 
             end do
 
-            if (dabs(tdp/xtdp).gt.1d0.and.gold.lt.g) then
-               oscil = .true.
+            if (xtdp.gt.0d0) then 
+               if (dabs(tdp/xtdp).gt.1d0.and.gold.lt.g) oscil = .true.
             end if
 
             if ((tdp.lt.nopt(50).or.

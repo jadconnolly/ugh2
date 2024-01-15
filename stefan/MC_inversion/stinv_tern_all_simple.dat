@@ -1,3 +1,4 @@
+<<<<<<< refs/remotes/origin/liquidus
 stefan_III.dat     thermodynamic data file                                                                                                      
 no_print | print generates print output
 plot     | obsolete 6.8.4+
@@ -62,3 +63,6 @@ end solution phase list
 
 
 Search   2 initial normalized coordinates: 0.392087E-06 0.254804E-01 0.352516     0.666914
+=======
+stefan_solution.dat     thermodynamic data file                                                                                             
+>>>>>>> put xdtp zero check in speci2
