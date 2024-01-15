@@ -121,6 +121,7 @@ c lopt(9)  - automatic solvus tolerance -> T
 c lopt(10) - pseudocompound_glossary
 c lopt(11) - auto_refine_file
 c lopt(12) - option_list_files
+c lopt(13) - true if user set finite zero mode check
 c lopt(14) - logarithmic_p
 c lopt(15) - spreadsheet format -> T = explicit output of independent variables
 c lopt(16) - bounds, T -> VRH averaging, F -> HS
@@ -465,6 +466,8 @@ c                                 auto_refine_file
       end if
 c                                 option_list_files
       lopt(12) = .false.
+c                                 automatic solvus_tolerance_II
+      lopt(13) = .true.
 c                                 logarithimic P
       lopt(14) = .false.
 c                                 spreadsheet format
@@ -837,7 +840,8 @@ c                                 bad number key
 
          else if (key.eq.'solvus_tolerance_II') then 
 
-            if (val.ne.'aut') then
+            if (val.ne.'aut') then 
+               lopt(13) = .false.
                read (strg,*) nopt(25)
             end if 
 
@@ -1818,12 +1822,28 @@ c                                 generic blurb
 
       if (iam.le.2.or.iam.eq.15) then 
 c                                 VERTEX/MEEMUM:
-c                                 solvus_tolerance text
-        call numtxt (nopt(8),text,siz)
-        write (nval1,'(14a)') (text(i),i=1,siz)
-c                                 solvus_tolerance_II text
-        call numtxt (nopt(25),text,siz)
-        write (nval2,'(14a)') (text(i),i=1,siz)
+c                                 solvus tolerance text
+         if (lopt(9)) then 
+
+           nval1 = 'aut    '
+
+         else 
+
+           call numtxt (nopt(8),text,siz)
+           write (nval1,'(14a)') (text(i),i=1,siz)
+
+         end if
+
+         if (lopt(13)) then 
+
+           nval2 = 'aut    '
+
+         else 
+
+           call numtxt (nopt(25),text,siz)
+           write (nval2,'(14a)') (text(i),i=1,siz)
+
+         end if 
 
          if (iam.eq.1.or.iam.eq.15) write (n,1015) valu(6), nopt(35),
      *    nopt(37), lopt(55), lopt(57), lopt(58), lopt(59)
@@ -2100,7 +2120,7 @@ c                                 thermo options for frendly
      *        4x,'scatter-points          ',l1,9x,'[T] F',/,
      *        4x,'scatter-increment      ',g7.1E1,4x,
      *           '[1e-2] 1e-2 => 1e-7',/,
-     *        4x,'solvus_tolerance_II     ',a7,3x,'[aut] 0->1 ',/,
+     *        4x,'solvus_tolerance_II     ',a7,3x,'[0.2] 0->1 ',/,
      *        4x,'zero_mode              ',e7.1E1,4x,
      *           '[1e-6] 0->1; < 0 => off')
 1190  format (/,2x,'1D grid options:',//,
