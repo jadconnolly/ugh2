@@ -982,7 +982,7 @@ c                                are present:
 
       do i = 1, ntot
 
-         if (amt(i).lt.nopt(9)) cycle
+c        if (amt(i).lt.nopt(9)) cycle
 
          if (nkp(i).lt.0) then
 c                                 the pseudocompound is a true compound
@@ -1084,11 +1084,11 @@ c                                  signals error ver102
                   end if 
 c                                 the pseudocompound matches a solution
 c                                 found earlier.
-                  if (amt(i).gt.nopt(9)) then 
-                     idsol(j) = idsol(j) + 1
-                     bsol(j,idsol(j)) = amt(i)
-                     jdsol(j,idsol(j)) = i
-                  end if
+c                 if (amt(i).gt.nopt(9)) then 
+c                    idsol(j) = idsol(j) + 1
+c                    bsol(j,idsol(j)) = amt(i)
+c                    jdsol(j,idsol(j)) = i
+c                 end if
 
                   quit = .true.
 
@@ -1101,13 +1101,13 @@ c                                 found earlier.
             if (quit) cycle 
 c                                 the pseudocompound is a new solution 
 c                                 phase.
-            if (amt(i).gt.nopt(9)) then 
-               np = np + 1
-               idsol(np) = 1
-               ksol(np,1) = nkp(i)
-               jdsol(np,1) = i
-               bsol(np,1) = amt(i)
-            end if
+c           if (amt(i).gt.nopt(9)) then 
+c              np = np + 1
+c              idsol(np) = 1
+c              ksol(np,1) = nkp(i)
+c              jdsol(np,1) = i
+c              bsol(np,1) = amt(i)
+c           end if
 
          end if
 
@@ -1277,11 +1277,11 @@ c                                 compound composition into cp3 array
 
       ntot = np + ncpd
 
-      do i = 1, ntot
-         if (amt(i).lt.nopt(9)) then 
-            write (*,*) 'oink'
-         end if
-      end do
+c     do i = 1, ntot
+c        if (amt(i).lt.nopt(9)) then 
+c           write (*,*) 'oink'
+c        end if
+c     end do
 
 99    end 
 
