@@ -59,20 +59,20 @@ end excluded phase list
 
 begin solution phase list
 feldspar  
-Sp(HGP)   
-Gt(HGP)   
-O(HGP)    
-Cpx(HGP)  
-Bi(HGP)   
-Mica(W)   
-Ep(HP11)  
-cAmph(G)  
-Ilm(WPH)  
-Chl(W)    
-Opx(HGP)  
-Ctd(W)    
-St(W)     
-Crd(HGP)  
+ Sp(HGP)   
+ Gt(HGP)   
+ O(HGP)    
+ Cpx(HGP)  
+ Bi(HGP)   
+ Mica(W)   
+ Ep(HP11)  
+ cAmph(G)  
+ Ilm(WPH)  
+ Chl(W)    
+ Opx(HGP)  
+ Ctd(W)    
+ St(W)     
+ Crd(HGP)  
 end solution phase list
 
    10000.0        1473.00        0.00000        0.00000        0.00000     max p, t, xco2, mu_1, mu_2

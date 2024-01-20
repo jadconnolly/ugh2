@@ -1,0 +1,212 @@
+DEW17HP622VER_ELEMENTS.DAT     thermodynamic data file                                                                                      
+no_print | print generates print output
+plot     | obsolete 6.8.4+
+solution_model.dat     | solution model file, blank = none                                                                                                                                                                                                      
+DMM_INF                                                                                                                                                                                                                                                         
+perplex_option_inf.dat     | Perple_X option file                                                                                                                                                                                                                   
+   12 calculation type: 0- composition, 1- Schreinemakers, 2 - liquidus/solidus, 3- Mixed, 5- gridded min, 7- 1d fract, 8- gwash, 9- 2d fract, 10- 7 w/file input, 11- 9 w/file input, 12- 0d infiltration
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 number component transformations
+   20 number of components in the data base
+    0 component amounts, 0 - mole, 1 mass
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 05
+    0 ifug EoS for saturated phase
+    1 gridded minimization dimension (1 or 2)
+    0 special dependencies: 0 - P and T independent, 1 - P(T), 2 - T(P)
+ 0.00000      0.00000      0.00000      0.00000      0.00000     Geothermal gradient polynomial coeffs.
+
+begin thermodynamic component list  | 1 m3 of Depleted Mantle infiltrated by the 22878 moles of fluid produced by 1 m3 of AOC at 4.3 GPa, 730°C & at FMQ+1
+Na    1  161.954      159.88858       0.00000     molar amount
+Mg    1  32817.085    11.74930        0.00000     molar amount
+Al    1  1452.934     1.31022         0.00000     molar amount
+Si    1  25865.383    385.46385       0.00000     molar amount
+Ca    1  2160.239     13.60008        0.00000     molar amount
+Fe    1  3887.816     0.00050         0.00000     molar amount
+O2    1  46567        7804.35270      0.00000     molar amount
+H2    1  0.00000001   14449.61922     0.00000     molar amount
+C     1  14.495       0.00            0.00000     molar amount
+S2    1  6.423        51.95903        0.00000     molar amount
+Cr    1  166.421      0.00000000      0.00000     molar amount
+end thermodynamic component list
+
+begin saturated component list
+end saturated component list
+
+
+begin saturated phase component list
+end saturated phase component list
+
+
+begin independent potential/fugacity/activity list
+end independent potential list
+
+
+begin excluded phase list     
+lrn     
+mont    
+mwd     
+fwd     
+mrw     
+frw          
+mak     
+fak     
+maj     
+nagt        
+ski     
+uv      
+vsv        
+smul    
+amul         
+mst     
+fst        
+merw    
+spu         
+mpm     
+fpm     
+jgd     
+geh     
+ak      
+rnk     
+ty      
+crd     
+hcrd    
+fcrd        
+cstn        
+pren    
+cen     
+hen     
+hfs           
+hed           
+acm     
+kos        
+caes    
+wo      
+pswo    
+wal          
+fact         
+fgl     
+nyb     
+rieb    
+anth    
+fanth     
+ged     
+spr4    
+spr5    
+fspr    
+mcar    
+fcar    
+deer          
+ma      
+naph     
+sud     
+fsud    
+prl       
+tap     
+nta     
+minn    
+minm    
+kao     
+pre     
+fpre         
+glt        
+ab      
+abh     
+an         
+ne      
+cg      
+cgh        
+me      
+wrk     
+lmt     
+heu     
+stlb    
+anl     
+lime    
+wu      
+cor     
+mcor        
+esk           
+mft          
+dsp     
+gth          
+dol        
+tro
+                 
+SO2     
+CO,aq   
+CO2,aq  
+H2,aq   
+H2S,aq  
+METHANE,
+O2,aq   
+ETHANE,aq 
+NaHCO3,a  | it destabilise the calculation and it's present in non sensical concentrations in the fluids
+ 
+acm_dqf 
+mrb     
+ts_dqf  
+parg_dqf
+gl_dqf  
+cumm_dqf
+grun_dqf
+ogl_dqf 
+fanth_dq
+omrb_dqf
+mpa     
+ged_dqf 
+coma    
+ocar    
+ma_dqf  
+kho     
+mots      
+kho1        
+msto    
+mots1   
+ospr        
+cfsg    
+nacfb       
+fcor    
+hmgts   
+end excluded phase list
+
+
+begin solution phase list
+T         
+Atg(PN)   
+Wus       
+Po(HP)    
+B         
+A-phase   
+Cc(AE)    
+Do(AE)    
+O(JH)     
+Opx(JH)   
+Cpx(JH)   
+Sp(JH)    
+Grt(JH)   
+Chum      
+Chl(W)    
+Mica(W)   
+Ep(HP11)  
+cAmph(G)  
+COH-Fluid
+Ctd(W)    
+end solution phase list
+
+   37500.0        1473.00        0.00000        0.00000        0.00000     max p, t, xco2, mu_1, mu_2
+   37500.0        1473.00        0.00000        0.00000        0.00000     min p, t, xco2, mu_1, mu_2
+   0.00000        0.00000        0.00000        0.00000        0.00000     unused place holder post 06
+
+ 1  2  4  5  3   index of the independent & sectioning variables
+
+  150   0.010     Number and size (mole) of fluid aliquots for 0d infilitration model

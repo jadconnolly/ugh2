@@ -891,7 +891,7 @@ c----------------------------------------------------------------------
      *        i,j,jdsol(k19,k19),jd,k,l,nkp(k19),xjdsol(k19),kk
 
       double precision bsol(k19,k19),cpnew(k19,k19),xx,xb(k19),msol,
-     *                 bnew(k19),pnew(k19,m14),ncaq(k19,l10),ximp,sum
+     *                 bnew(k19),pnew(k19,m14),ncaq(k19,l10),ximp
 
       logical solvs1, solvs4
       external solvs1, solvs4
