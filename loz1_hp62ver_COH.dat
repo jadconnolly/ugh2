@@ -118,17 +118,18 @@ begin_makes
 musp   = 1 usp + 2 sp - 2 herc
 DQF = 0
 
-|try 118 loz1
-|Final coordinates: -4059.45      18191.6     -65917.4     -2348.25     -121818.      158.742    
+| hcrd crd fcrd
+|try  16
+|Final coordinates: -3024.00      31.8884      6286.54      72.6228      7842.74      9.63481    
 
 hcrd = 1 hcrd0 
-DQF = -825.834 
+DQF =  -3024.00   +   31.8884*T
 
 crd = 1 crd0 
-DQF = 1165.98 
+DQF =  6286.54    +  72.6228*T
 
 fcrd = 1 fcrd0 
-DQF =  -4349.24 
+DQF =   7842.74     + 9.63481*T
 
 |phl = 1 phl0 
 |DQF = -2348.25

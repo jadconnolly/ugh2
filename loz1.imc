@@ -9,7 +9,7 @@ F      | random, T => generate a new seed for random number generation each time
 
 | Monte-Carlo logistical variables:
 
-200    | ntry, number of starting guesses used to find a best fit model
+1000    | ntry, number of starting guesses used to find a best fit model
 00     | nunc, number of iteration to evaluate uncertainities. set nunc = 0 
        | to suppress uncertainty evaluation.
 
@@ -47,18 +47,18 @@ begin_phase_free_parameters
 hcrd                              | compounds must be specified by a make definition from one or more real entities;
                                   | the free parameters define the DQF = a + b*T + c*P for the make definition
 parameter a                      
-range        -1e4  1e4
+range        -6e3  0
 parameter b                      
-range        -1e2  1e2
+range        -10 70
 end_list
 
 
 crd                              | compounds must be specified by a make definition from one or more real entities;
                                  | the free parameters define the DQF = a + b*T + c*P for the make definition
 parameter a                      
-range        -1e4  1e4
+range        3000  9000
 parameter b                      
-range        -1e2  1e2
+range        20 100
 end_list
 
 
@@ -66,9 +66,9 @@ end_list
 fcrd                              | compounds must be specified by a make definition from one or more real entities;
                                  | the free parameters define the DQF = a + b*T + c*P for the make definition
 parameter a                      
-range        -1e4  1e4
+range        4000 10000
 parameter b                      
-range        -1e2  1e2
+range        -30 50
 end_list
 
 
