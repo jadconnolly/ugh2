@@ -14,7 +14,7 @@
 				<Tool Name="VFPreBuildEventTool"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
-		<Configuration Name="Release|Win32" OutputDirectory="..\$(PlatformName)" IntermediateDirectory="$(PlatformName)\$(ConfigurationName)" WholeProgramOptimization="true">
+		<Configuration Name="Release|Win32" OutputDirectory="../." IntermediateDirectory="$(PlatformName)\$(ConfigurationName)" WholeProgramOptimization="true">
 				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" InlineFunctionExpansion="expandOnlyInline" BufferedIO="true" DisableSpecificDiagnostics="8291,8290,8293" Diagnostics="diagnosticsShowAll" RuntimeChecks="rtChecksNone"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateManifest="false" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>

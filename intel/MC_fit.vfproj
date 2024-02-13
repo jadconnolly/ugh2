@@ -4,7 +4,7 @@
 		<Platform Name="Win32"/>
 		<Platform Name="x64"/></Platforms>
 	<Configurations>
-		<Configuration Name="Debug|Win32" OutputDirectory="..\." IntermediateDirectory="$(PlatformName)\$(ConfigurationName)" BuildLogFile="$(IntDir)\$(TargetName).BuildLog.htm" WholeProgramOptimization="true">
+		<Configuration Name="Debug|Win32" IntermediateDirectory="$(PlatformName)\$(ConfigurationName)" BuildLogFile="$(IntDir)\$(TargetName).BuildLog.htm" WholeProgramOptimization="true">
 				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" DisableSpecificDiagnostics="8291,8290,8293" WarnDeclarations="true" WarnUnusedVariables="true" WarnTruncateSource="true" WarnInterfaces="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateManifest="false" ManifestFile="$(TargetPath).$(TargetName).intermediate.manifest" GenerateDebugInformation="true" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>
@@ -14,7 +14,7 @@
 				<Tool Name="VFPreBuildEventTool"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
-		<Configuration Name="Release|Win32" OutputDirectory="..\$(PlatformName)" IntermediateDirectory="$(PlatformName)\$(ConfigurationName)">
+		<Configuration Name="Release|Win32" OutputDirectory="../." IntermediateDirectory="$(PlatformName)\$(ConfigurationName)">
 				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DisableSpecificDiagnostics="8291,8290,8293" RuntimeChecks="rtChecksNone" BoundsCheck="true" UninitializedVariablesCheck="true" GlobalOptimizations="true"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateManifest="false" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>

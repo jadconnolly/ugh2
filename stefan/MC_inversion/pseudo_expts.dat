@@ -1,0 +1,218 @@
+
+begin_exp
+                                 | this is pseudo-experiment included to assure that tro
+                                 | is stable in the FeS system below its melting point (1465 K)
+pseudo_experiment_1
+
+1.0    -1   | pressure (bar)
+1464   -1   | temperature (K)
+
+begin_bulk
+FeS 1.0 .0
+end_bulk
+
+tro
+
+end_exp
+
+begin_exp
+                                 | this is pseudo-experiment included to assure that tro
+                                 | liquid is miscible at 2800
+pseudo_experiment_2
+
+1.0    -1   | pressure (bar)
+2800   -1   | temperature (K)
+
+begin_bulk
+CaS 0.1 .00
+FeS 0.9 .00
+end_bulk
+
+melt
+
+begin_comp
+CaS 0.1 .00
+FeS 0.9 .00
+end_comp
+
+end_exp
+
+begin_exp
+                                 | this is pseudo-experiment included to assure that tro
+                                 | liquid is miscible at 2800
+pseudo_experiment_3
+
+1.0    -1   | pressure (bar)
+2800   -1   | temperature (K)
+
+begin_bulk
+CaS 0.2 .00
+FeS 0.8 .00
+end_bulk
+
+melt
+
+begin_comp
+CaS 0.2 .00
+FeS 0.8 .00
+end_comp
+
+end_exp
+
+begin_exp
+                                 | this is pseudo-experiment included to assure that tro
+                                 | liquid is miscible at 2800
+pseudo_experiment_4
+
+1.0    -1   | pressure (bar)
+2800   -1   | temperature (K)
+
+begin_bulk
+CaS 0.3 .00
+FeS 0.7 .00
+end_bulk
+
+melt
+
+begin_comp
+CaS 0.3 .00
+FeS 0.7 .00
+end_comp
+
+end_exp
+
+begin_exp
+                                 | this is pseudo-experiment included to assure that tro
+                                 | liquid is miscible at 2800
+pseudo_experiment_5
+
+1.0    -1   | pressure (bar)
+2800   -1   | temperature (K)
+
+begin_bulk
+CaS 0.4 .00
+FeS 0.6 .00
+end_bulk
+
+melt
+
+begin_comp
+CaS 0.4 .00
+FeS 0.6 .00
+end_comp
+
+end_exp
+
+begin_exp
+                                 | this is pseudo-experiment included to assure that tro
+                                 | liquid is miscible at 2800
+pseudo_experiment_6
+
+1.0    -1   | pressure (bar)
+2800   -1   | temperature (K)
+
+begin_bulk
+CaS 0.5 .00
+FeS 0.5 .00
+end_bulk
+
+melt
+
+begin_comp
+CaS 0.5 .00
+FeS 0.5 .00
+end_comp
+
+end_exp
+
+begin_exp
+                                 | this is pseudo-experiment included to assure that tro
+                                 | liquid is miscible at 2800
+pseudo_experiment_7
+
+1.0    -1   | pressure (bar)
+2800   -1   | temperature (K)
+
+begin_bulk
+CaS 0.6 .00
+FeS 0.4 .00
+end_bulk
+
+melt
+
+begin_comp
+CaS 0.6 .00
+FeS 0.4 .00
+end_comp
+
+end_exp
+
+begin_exp
+                                 | this is pseudo-experiment included to assure that tro
+                                 | liquid is miscible at 2800
+pseudo_experiment_8
+
+1.0    -1   | pressure (bar)
+2800   -1   | temperature (K)
+
+begin_bulk
+CaS 0.7 .00
+FeS 0.3 .00
+end_bulk
+
+melt
+
+begin_comp
+CaS 0.7 .00
+FeS 0.3 .00
+end_comp
+
+end_exp
+
+begin_exp
+                                 | this is pseudo-experiment included to assure that tro
+                                 | liquid is miscible at 2800
+pseudo_experiment_9
+
+1.0    -1   | pressure (bar)
+2800   -1   | temperature (K)
+
+begin_bulk
+CaS 0.8 .00
+FeS 0.2 .00
+end_bulk
+
+melt
+
+begin_comp
+CaS 0.8 .00
+FeS 0.2 .00
+end_comp
+
+end_exp
+
+begin_exp
+                                 | this is pseudo-experiment included to assure that tro
+                                 | liquid is miscible at 2800
+pseudo_experiment_10
+
+1.0    -1   | pressure (bar)
+2800   -1   | temperature (K)
+
+begin_bulk
+CaS 0.9 .00
+FeS 0.1 .00
+end_bulk
+
+melt
+
+begin_comp
+CaS 0.8 .00
+FeS 0.2 .00
+end_comp
+
+end_exp
+
+| comments are preceded by the "|" character
+
+begin_exp

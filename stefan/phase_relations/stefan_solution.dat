@@ -1,0 +1,99 @@
+690 DO NOT DELETE THIS LINE
+
+                      --------------------------------------------------------
+begin_model
+                       CaS-MgS-FeS  solid solution 
+Nin                   
+abbreviation Nin
+full_name    niningerite
+
+2                                     model type: simplicial composition space
+
+3                                     endmembers
+old nin fnin
+  0  0  0                   | endmember flags
+0  1  .1   0                | subdivision range, imod = 0 -> cartesian subdivision
+0  1  .1   0                | subdivision range, imod = 0 -> cartesian subdivision
+
+begin_excess_function
+
+W(nin fnin)          14332.4  | model 40 stinv_mf
+
+|W(fnin old)         40209.2  
+
+W(fnin old)          76847.7     -26.0627*T
+
+W(nin old)          27268.1 
+|W(old nin fnin)     -4592.58
+
+
+
+
+|W(fnin old)  77304.0     -28.7621 0
+|W(fnin old)  135878. |  9449.89     -78.4201 * T_K |model 41 stinv_cf_with_T
+|W(nin old)  43300
+|W(old nin fnin) 2708
+|W(nin old) 29190
+|W(old fnin fnin) -37763.9 |model 31 stinv_cf
+
+end_excess_function
+
+1                                     1 site configurational entropy model
+
+3 1                                   3 species (Ca, Mg, Fe), site multiplicity = 1.
+z(M,Mg) = 1 nin
+z(M,Fe) = 1 fnin
+
+refine_endmembers
+
+end_of_model
+                      --------------------------------------------------------
+
+begin_model
+                       CaS-MgS-FeS liquid
+melt                   
+abbreviation melt
+full_name    melt
+
+2                                     model type: simplicial composition space
+
+3                                     endmembers
+oldL ninL troL 
+  0  0  0                     | endmember flags
+0  1  .1   0               | subdivision range, imod = 0 -> cartesian subdivision
+0  1  .1   0               | subdivision range, imod = 0 -> cartesian subdivision
+
+begin_excess_function
+
+W(ninL troL)         15242.5
+
+|W(troL oldL oldL)   404189.
+|W(oldL troL troL)   -71384.3
+
+W(troL oldL oldL)  817439.     -311.194*T  
+W(oldL troL troL)  203286.     -205.912*T    
+
+
+W(ninL oldL oldL)    48810.1     -35.1137*T
+W(oldL ninL ninL)    35508.8     -72.3391*T
+|W(oldL ninL troL)    697436.     -139.964*T
+
+
+
+|W(troL oldL oldL)  363112.  |-158845. +  268.721 * T_K |model 41 stinv_cf_with_T
+|W(oldL troL troL)  -57350.5 |-43408.5 -24.8162 * T_K   |model 41 stinv_cf_with_T
+|W(troL oldL oldL)   441665.     -34.6943 0
+|W(oldL troL troL)   367203.     -328.535 0
+|W(ninL oldL) 15311.9 
+|W(oldL ninL troL)  584500
+end_excess_function
+
+1                                     1 site configurational entropy model
+
+3 1                                   3 species (Ca, Mg, Fe), site multiplicity = 1.
+z(M,Mg) = 1 ninL
+z(M,Fe) = 1 troL
+
+refine_endmembers
+
+end_of_model
