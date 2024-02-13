@@ -2090,7 +2090,7 @@ c           13: circle and times superimposed
             yc = RADIUS * dcy * size
             call pselip (x,y, xc, yc, 1d0, 0d0, gfill, ifg, ibg)
             call psline (x-xc,y-yc,x+xc,y+yc,rline,cwidth)
-            call psline (x-xc,y+yc,x-xc,y-yc,rline,cwidth)
+            call psline (x-xc,y+yc,x+xc,y-yc,rline,cwidth)
          else if (symb.eq.14) then
 c           14: square and point-up triangle superimposed
             xc = RADIUS * dcx * size
