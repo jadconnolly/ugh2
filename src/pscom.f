@@ -1916,12 +1916,10 @@ c                                 like lty=, lwd=
                   if (ix.eq.0) ix = nblen(line)
                   read(line(1:ix),*,iostat=ier) lx(npts),ly(npts)
                   if (ier.eq.0) exit
-                   write(*,*) '**Bad line point: ',line(1:nblen(line))
+                  write(*,*) '**Bad line point: ',line(1:nblen(line))
                end do
 
-               if (ier.ne.0) exit
-
-               if (line(1:1).eq.'>') goto 100
+               if (ier.ne.0 .or. line(1:1).eq.'>') exit
 
             end do
 
