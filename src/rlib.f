@@ -550,7 +550,7 @@ c    *         -0.3213822427D7 / t + 0.6464888248D6 - 0.1403012026D3*t
          else if (eos(id).ge.610.and.eos(id).le.654) then
 c                                 lacaze & Sundman (1990) EoS for Fe-Si-C alloys and compounds
 c                                 Xiong et al., 2011 for Fe-Cr alloys
-            gval = gval + glacaz(eos(id)) + vdp + thermo(1,id)
+            gval = gval + glacaz(eos(id)) + thermo(1,id)
 
 c        else if (eos(id).eq.800) then
 
@@ -22091,7 +22091,7 @@ c                                 holland and powell bragg-williams model
 
          else if (ltyp(id).eq.8) then
 c                                 George's Hillert & Jarl magnetic transition model
-            if (lct(id).gt.1) write(0,*)'**>1 type = 8 trans.!?'
+            if (lct(id).gt.1) write(0,*)'**>1 magnetic trans.!?'
             tc = therlm(1,1,lmda(id))
             b = therlm(2,1,lmda(id))
             pee = therlm(3,1,lmda(id))
