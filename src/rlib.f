@@ -10912,6 +10912,11 @@ c                            FCC Fe for use with FCC FeH Helffrich '23
          end if
          glacaz = gtmp + febcc(t)
 
+      else
+
+         write (*,*) 'what the **** am i doing here in glacaz?'
+         call errpau
+
       end if
 
       end
