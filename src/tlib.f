@@ -4648,6 +4648,18 @@ c                                 convert HSC G0 to SUP G0
 
                end do 
 
+c                                 could have magnetic transition info
+               if (.not.ok) then
+                  do i = 25, 27
+                     if (key.eq.strgs(i)) then
+                        read (values,*,iostat=ier) thermo(i,k10)
+                        if (ier.ne.0) call error (23,tot,ier,strg)
+                        ok = .true.
+                        exit
+                     end if
+                  end do
+               end if
+
             end if 
 
             if (ok) cycle
@@ -11218,11 +11230,12 @@ c                                 used for the BM3.
          b12 = b8 - 1d0
 c                                 anderson-gruneisen parameter is assumed = K' (abs(b8)) except for
 c                                 special EoS forms
-         if (ieos.gt.300) then
-            b11 = -s
-         else
+         if (ieos.gt.300.and.ieos.lt.600) then
 c                                 special EoS, anderson-gruneisen stored in
 c                                 s-position.
+            b11 = -s
+         else
+c                                 otherwise, is same as K'
             b11 = dabs(b8)
          end if
 
@@ -13696,6 +13709,26 @@ c----------------------------------------------------------------------
       else
          hserfe = -25384.451d0 + (299.31255d0 - 46d0*dlog(t))*t
      *          + 2.2960305e31/t**9
+      end if
+
+      end
+
+      double precision function febcc(t)
+c-----------------------------------------------------------------------
+c febcc returns the BCC(Fe) function of Zinkevitch et al. 2002.  Slight
+c difference from hserfe.
+c-----------------------------------------------------------------------
+      implicit none
+
+      double precision t
+c----------------------------------------------------------------------
+
+      if (t.lt.1811d0) then
+         febcc  = 1225.7d0 + 124.134d0*t -23.5143d0*t*dlog(t)
+     *           -.00439752d0*t**2 -5.8927d-8*t**3 + 77 359d0/t
+      else
+         febcc = -25 383.581d0 + 299.31255d0*t - 46d0*t*dlog(t)
+     *          + 2.29603d31/t**9
       end if
 
       end
