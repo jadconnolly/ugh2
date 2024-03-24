@@ -2083,8 +2083,8 @@ c                                 thermo options for frendly
      *        4x,'hybrid_EoS_CO2          ',i4,6x,'[4] 0-4, 7',/,
      *        4x,'hybrid_EoS_CH4          ',i4,6x,'[0] 0-1, 7')
 1017  format (4x,'fd_expansion_factor     ',f3.1,7x,'[2] >0',/,
-     *        4x,'finite_difference_p     ',g7.1,3x,'[1d4] >0; ',
-     *           'fraction = ',g7.1,3x,'[1d-2]')
+     *        4x,'finite_difference_p     ',1pg7.1,0p,3x,'[1d4] >0; ',
+     *           'fraction = ',1pg7.1,0p,3x,'[1d-2]')
 1020  format (/,'To change these options see: ',
      *        'www.perplex.ethz.ch/perplex_options.html',/)
 1100  format (/,2x,'Adapative minimization will be done with: ',
