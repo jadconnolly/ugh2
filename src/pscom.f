@@ -1697,7 +1697,7 @@ c                                 output
       write (*,1010) nscale, bbox, tcont, pcont, fill, label, plopt(3),
      *               rlabel, ascale, font, lgrid, half, width, dsx, 
      *               dsy, dtx, dty, drot, xfac, spline, tenth, 
-     *               cscale
+     *               cscale, plopt(4)
 
       write (*,1020) 
 c                                 -------------------------------------
