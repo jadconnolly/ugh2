@@ -1857,7 +1857,7 @@ c----------------------------------------------------------------
 
       character file*72
 
-      integer type, ier, symb, gfill, ix, npts, ifg, ibg
+      integer type, ier, symb, gfill, ix, npts, ifg, ibg, is, ie, icol
 
       double precision x, y, size, sigx, sigy, xy(2), sig(2),
      *   lx(nx), ly(nx), r, xc, yc, rline, cwidth, xx(4), yy(4)
@@ -1903,6 +1903,20 @@ c                                 check for line data
 c                                 in future, parse '> L' line for parameters
 c                                 like lty=, lwd=
          if (ix.ge.3 .and. line(1:3) .eq. '> L') then
+            is = index(line(1:ix),'col=')
+            if (is.ne.0) then
+c                                 parse line color, col=n
+               ie = index(line(is:ix),' ')
+               if (ie.eq.0) then
+                  ie = ix
+               else
+                  ie = is + ie-1
+               end if
+               read(line(is+4:ie),*,iostat=ier) icol
+               if (ier.ne.0) icol = 0
+            else
+               icol = 0
+            end if
 
             do npts=1,nx
 
@@ -1923,11 +1937,7 @@ c                                 like lty=, lwd=
 
             end do
 
-            if (npts.gt.2) then
-               do ix=1,npts-2
-                  call psline(lx(ix),ly(ix),lx(ix+1),ly(ix+1),1d0,1d0)
-               end do
-            end if
+            call pspyln(lx,ly,npts-1,1d0,1d0,icol)
 
             if (ier.ne.0) exit 
 
