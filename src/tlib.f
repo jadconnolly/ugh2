@@ -141,7 +141,7 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer ier, jer, i, loopx, loopy, ibeg, iend, ik1, ik21
+      integer ier, jer, i, loopx, loopy, ibeg, iend, ik1, ik21, nblen
 
       logical output, readyn
 
@@ -150,7 +150,7 @@ c----------------------------------------------------------------------
 
       double precision r2, dnan
 
-      external dnan, readyn
+      external dnan, readyn, nblen
 
       integer grid
       double precision rid 
@@ -1026,8 +1026,7 @@ c                                 zero_mode key
          else if (key.eq.'iteration'.or.
      *            key.eq.'resolution_factor') then
 c                                 how fast resolution improves with iteration
-            write (*,'(a)') 'iteration and resolution_factor are obso'//
-     *                      'lete options, 6.9.1+'
+            write (*,1190) 'iteration and resolution_factor','are'
 
          else if (key.eq.'initial_resolution') then
 c                                 initial_resolution key
@@ -1069,8 +1068,7 @@ c                                  special backward compatibility msg
 
          else if (key.eq.'final_resolution') then
 c                                 final_resolution keys 
-            write (*,'(a)') 'final_resolution is an obso'//
-     *                      'lete option, 6.9.1+'
+            write (*,1190) 'final_resolution','is an'
 
          else if (key.eq.'fd_expansion_factor') then 
 
@@ -1084,8 +1082,7 @@ c                                 p fraction
 
          else if (key.eq.'global_reach_increment') then
           
-            write (*,'(a)') 'global_reach_increment is an obso'//
-     *                      'lete option, 6.9.1+'
+            write (*,1190) 'global_reach_increment','is an'
 
          else if (key.eq.'seismic_output') then 
 c                                 seismic data output WERAMI/MEEMUM/FRENDLY
@@ -1116,6 +1113,10 @@ c                                 refinement points for stable solutions.
  
             if (val.ne.'T') lopt(50) = .false.
 
+         else if (key.eq.'site_check'.or.
+     *            key.eq.'speciation_tolerance') then 
+            write (*,1190) key(1:nblen(key)),'is an'
+
          else if (key.eq.'structural_formulae') then
 
             if (val.ne.'T') lopt(51) = .false. 
@@ -1135,8 +1136,7 @@ c                                 back-calculated and lagged speciation
 
          else if (key.eq.'reach_increment_switch') then 
 c                                 reach_increment_switch
-            write (*,'(a)') 'reach_increment_switch is an obso'//
-     *                      'lete option, 6.9.1+'
+            write (*,1190) 'reach_increment_switch','is an'
 
          else if (key.eq.'stretch_factor') then
 c                                 stretch_factor key = b - 1       
@@ -1277,8 +1277,7 @@ c                                 default autorefine relative increment
 
          else if (key.eq.'dependent_potentials') then 
 
-            write (*,'(a)') 'dependent potentials is an obso'//
-     *                      'lete option, 6.9.1+'
+            write (*,1190) 'dependent potentials','is an'
 
          else if (key.eq.'hard_limits') then 
 
@@ -1692,6 +1691,7 @@ c                                 consequent value for k1
 1180  format (/,'Error: value ',a,' is invalid for Perple_X option ',
      *        'keyword ',a,/,'see www.perplex.ch/perplex_options.html ',
      *        'for a list of valid values',/)
+1190  format (a,1x,a,1x,'obsolete option, 6.9.1+')
       end 
 
       subroutine lpset
@@ -2083,8 +2083,8 @@ c                                 thermo options for frendly
      *        4x,'hybrid_EoS_CO2          ',i4,6x,'[4] 0-4, 7',/,
      *        4x,'hybrid_EoS_CH4          ',i4,6x,'[0] 0-1, 7')
 1017  format (4x,'fd_expansion_factor     ',f3.1,7x,'[2] >0',/,
-     *        4x,'finite_difference_p     ',g7.1,3x,'[1d4] >0; ',
-     *           'fraction = ',g7.1,3x,'[1d-2]')
+     *        4x,'finite_difference_p     ',1pg7.1,0p,3x,'[1d4] >0; ',
+     *           'fraction = ',1pg7.1,0p,3x,'[1d-3]')
 1020  format (/,'To change these options see: ',
      *        'www.perplex.ethz.ch/perplex_options.html',/)
 1100  format (/,2x,'Adapative minimization will be done with: ',
@@ -4647,6 +4647,18 @@ c                                 convert HSC G0 to SUP G0
                   end if 
 
                end do 
+
+c                                 could have magnetic transition info
+               if (.not.ok) then
+                  do i = 25, 27
+                     if (key.eq.strgs(i)) then
+                        read (values,*,iostat=ier) thermo(i,k10)
+                        if (ier.ne.0) call error (23,tot,ier,strg)
+                        ok = .true.
+                        exit
+                     end if
+                  end do
+               end if
 
             end if 
 
@@ -11218,11 +11230,12 @@ c                                 used for the BM3.
          b12 = b8 - 1d0
 c                                 anderson-gruneisen parameter is assumed = K' (abs(b8)) except for
 c                                 special EoS forms
-         if (ieos.gt.300) then
-            b11 = -s
-         else
+         if (ieos.gt.300.and.ieos.lt.600) then
 c                                 special EoS, anderson-gruneisen stored in
 c                                 s-position.
+            b11 = -s
+         else
+c                                 otherwise, is same as K'
             b11 = dabs(b8)
          end if
 
@@ -13700,6 +13713,26 @@ c----------------------------------------------------------------------
 
       end
 
+      double precision function febcc(t)
+c-----------------------------------------------------------------------
+c febcc returns the BCC(Fe) function of Zinkevitch et al. 2002.  Slight
+c difference from hserfe.
+c-----------------------------------------------------------------------
+      implicit none
+
+      double precision t
+c----------------------------------------------------------------------
+
+      if (t.lt.1811d0) then
+         febcc  = 1225.7d0 + 124.134d0*t -23.5143d0*t*dlog(t)
+     *           -.00439752d0*t**2 -5.8927d-8*t**3 + 77 359d0/t
+      else
+         febcc = -25 383.581d0 + 299.31255d0*t - 46d0*t*dlog(t)
+     *          + 2.29603d31/t**9
+      end if
+
+      end
+
       double precision function hsersi (t)
 c-----------------------------------------------------------------------
 c hserfe returns the hser(si) function of Lacaze & Sundman 1990.
@@ -13787,6 +13820,25 @@ c-----------------------------------------------------------------------
      #           - 0.4723D-3 * t ** 2 + 0.2562600D7 / t -
      #             0.2643D9 / t ** 2 + 0.12D11 / t ** 3
 
+      end if
+      end
+
+      double precision function hserh2 (t)
+c-----------------------------------------------------------------------
+c hserh2 returns the reference Gibbs energy of H2(g)
+c-----------------------------------------------------------------------
+      implicit none
+      double precision t
+
+      if (t.lt.1000d0) then
+         hserh2 = -9522.9741d0 + 78.5273879d0*t - 31.35707d0*t*dlog(t)
+     *      + 0.0027589925d0*t**2 - 7.46390667d-7*t**3 + 56582.3/t
+      else if (t.lt.2100d0) then
+         hserh2 = 180.108664d0 - 15.6128256d0*t - 17.84857d0*t*dlog(t)
+     *      - 0.00584168d0*t**2 + 3.14618667d-7*t**3 - 1280036d0/t
+      else
+         hserh2 = -18840.1663d0 + 92.3120255d0*t - 32.05082d0*t*dlog(t)
+     *      - 0.0010728235d0*t**2 + 1.14281783d-8*t**3 + 3561002.5d0/t
       end if
       end
 

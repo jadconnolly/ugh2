@@ -1697,7 +1697,7 @@ c                                 output
       write (*,1010) nscale, bbox, tcont, pcont, fill, label, plopt(3),
      *               rlabel, ascale, font, lgrid, half, width, dsx, 
      *               dsy, dtx, dty, drot, xfac, spline, tenth, 
-     *               cscale
+     *               cscale, plopt(4)
 
       write (*,1020) 
 c                                 -------------------------------------
@@ -1916,12 +1916,10 @@ c                                 like lty=, lwd=
                   if (ix.eq.0) ix = nblen(line)
                   read(line(1:ix),*,iostat=ier) lx(npts),ly(npts)
                   if (ier.eq.0) exit
-                   write(*,*) '**Bad line point: ',line(1:nblen(line))
+                  write(*,*) '**Bad line point: ',line(1:nblen(line))
                end do
 
-               if (ier.ne.0) exit
-
-               if (line(1:1).eq.'>') goto 100
+               if (ier.ne.0 .or. line(1:1).eq.'>') exit
 
             end do
 

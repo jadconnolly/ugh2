@@ -547,10 +547,10 @@ c                                 real O fluid (O and O2 species)
 c                                 this is -RT(lnk2+lnk3)/2 (rksi5 k's)
 c    *         -0.3213822427D7 / t + 0.6464888248D6 - 0.1403012026D3*t
 
-         else if (eos(id).ge.610.and.eos(id).le.637) then
+         else if (eos(id).ge.610.and.eos(id).le.654) then
 c                                 lacaze & Sundman (1990) EoS for Fe-Si-C alloys and compounds
 c                                 Xiong et al., 2011 for Fe-Cr alloys
-            gval = gval + glacaz(eos(id)) + vdp + thermo(1,id)
+            gval = gval + glacaz(eos(id)) + thermo(1,id)
 
 c        else if (eos(id).eq.800) then
 
@@ -1101,6 +1101,17 @@ c                              JADC, 12/3/2017.
                  therlm(j+1,k,lamin) = tm(j,k)
 
               end do
+
+           end do
+
+        else if (jlam.eq.8) then
+
+           do k = 1, ilam
+c                              magnetic transitions a la Hillert & Jarl (1978)
+c                              load into therlm: Tc, B, p
+              therlm(1,k,lamin) = thermo(25,id)
+              therlm(2,k,lamin) = thermo(26,id)
+              therlm(3,k,lamin) = thermo(27,id)
 
            end do
 
@@ -10675,7 +10686,8 @@ c---------------------------------------------------------------------
 
       integer id
 
-      double precision hserfe, hsersi, crbcc, hserc, fefcc
+      double precision hserfe, hsersi, crbcc, hserc, fefcc, febcc
+      double precision gtmp
 
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
@@ -10879,6 +10891,31 @@ c                                 Fe7C3 after Djurkovic et al., 2011
      *            0.2975999679D3 * t * dlog(t) - 0.3148668241D-3 *
      *            t ** 2 + 0.1708400854D7 / t - 0.1762000881D9 /
      *            t ** 2 + 0.8000004D10 / t ** 3
+
+      else if (id.eq.643) then
+c                            Fe-hcp Dinsdale 1991
+         if (t.lt.1811d0) then
+            glacaz = -2480.08d0 + 136.725d0*t - 24.6643d0*t*dlog(t)
+     *          - .00375752d0*t**2 - 5.89269d-8*t**3 + 77358.5d0/t
+         else
+            glacaz = -29340.78d0 + 304.56206d0*t - 46d0*t*dlog(t)
+     *          + 2.78854d31/t**9
+         end if
+
+      else if (id.eq.654) then
+c                            FCC Fe for use with FCC FeH Helffrich '23
+         if (t.lt.1811d0) then
+            gtmp = -1462.4d0 + 8.282d0*t - 1.15d0*t*log(t)
+     *           + 6.4d-4*t**2
+         else
+            gtmp = -1713.815d0 + 0.94001d0*t + 4.9251d30/t**9
+         end if
+         glacaz = gtmp + febcc(t)
+
+      else
+
+         write (*,*) 'what the **** am i doing here in glacaz?'
+         call errpau
 
       end if
 
@@ -22052,9 +22089,9 @@ c                                 holland and powell bragg-williams model
             call lambw (dg,lmda(id))
             gval = gval + dg
 
-         else if (ltyp(id).eq.7) then
+         else if (ltyp(id).eq.8) then
 c                                 George's Hillert & Jarl magnetic transition model
-            if (lct(id).gt.1) write(0,*)'**>1 type = 7 trans.!?'
+            if (lct(id).gt.1) write(0,*)'**>1 magnetic trans.!?'
             tc = therlm(1,1,lmda(id))
             b = therlm(2,1,lmda(id))
             pee = therlm(3,1,lmda(id))
