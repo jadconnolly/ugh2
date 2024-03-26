@@ -1,0 +1,559 @@
+| comments are preceded by the "|" character
+
+| MC_inverter, the mode and expected format of the *.imc file is 
+| determined by the following flag:
+
+T      | invxpt, T => invert experimental data, F => inverse thermobarometry
+F      | random, T => generate a new seed for random number generation each time the
+       | program is run. F => for reproducible sequence (e.g., for debugging).
+
+| Monte-Carlo logistical variables:
+
+1000    | ntry, number of starting guesses used to find a best fit model
+00     | nunc, number of iteration to evaluate uncertainities. set nunc = 0 
+       | to suppress uncertainty evaluation.
+
+       | time cost is proportional to nunc + 1, i.e., the program will 
+       | do (nunc + 1) * ntry Nelder-Meade minimizations.
+
+       | Each Nelder-Meade minimization is allowed to do a maximum of kcount
+       | free energy minimization calculations plus a few extra (~10-50) if
+       | the minimum is to be fit to a surface (iquad = 1). I see 
+       | little value to the surface fitting, who cares if it's at a true 
+       | minimum? The result is still useful if it's better than the other 
+       | results.
+
+| Nelder-Meade MINIM algorithm variables
+
+5d3    | oktol, threshold at which a failed minim result will be considered a legitimate result
+1d-7   | tol, by trial and error
+1d-6   | simplx, trial and error
+0.1    | frac, fractional step size
+10     | conchk, how often to check for convergence
+0      | iprint, 0 => normal print, < 0 => silent, > 0 => verbose
+1      | iquad, 1 => fit surface to minimum, 0 => don't fit 
+1000   | kcount, max # of objective evaluations per try, recommended nparm*1024
+
+| Nelder-Meade Objective function weights
+
+1d0    | wcomp, compositional residual weight
+1d1    | wextra, extra phase amount residual weight
+1d1    | wmiss, missing phase residual weight
+
+| endmembers and solutions with free parameters
+
+begin_phase_free_parameters
+
+hcrd                              | compounds must be specified by a make definition from one or more real entities;
+                                  | the free parameters define the DQF = a + b*T + c*P for the make definition
+parameter a                      
+range        -6e3  0
+parameter b                      
+range        -10 70
+end_list
+
+
+crd                              | compounds must be specified by a make definition from one or more real entities;
+                                 | the free parameters define the DQF = a + b*T + c*P for the make definition
+parameter a                      
+range        3000  9000
+parameter b                      
+range        20 100
+end_list
+
+
+
+fcrd                              | compounds must be specified by a make definition from one or more real entities;
+                                 | the free parameters define the DQF = a + b*T + c*P for the make definition
+parameter a                      
+range        4000 10000
+parameter b                      
+range        -30 50
+end_list
+
+
+|phl                              | compounds must be specified by a make definition from one or more real entities;
+                                 | the free parameters define the DQF = a + b*T + c*P for the make definition
+|parameter a                      
+|range        -1e5  1e5
+|end_list
+
+
+|ann                              | compounds must be specified by a make definition from one or more real entities;
+                                 | the free parameters define the DQF = a + b*T + c*P for the make definition
+|parameter a                      
+|range        -1e5  1e5
+|end_list
+
+|east                             | compounds must be specified by a make definition from one or more real entities;
+                                 | the free parameters define the DQF = a + b*T + c*P for the make definition
+|parameter a                      
+|range        -1e5  1e5
+|end_list
+
+end_phase_free_parameters
+
+
+begin_exp
+
+loz1
+
+3800    200   | pressure (bar)
+913      20   | temperature (K)
+
+begin_bulk
+SiO2 10.047 1.0
+Al2O3 1.905 0.5
+FeO 0.877 0.5
+MgO 1.392 0.5
+K2O 0.497 0.5
+Na2O 0.237 0.2
+CaO 0.385 0.2
+H2    1.2 0
+O2    0.6  0
+C     1 0
+end_bulk
+
+COH-Fluid
+
+begin_comp
+H2  0.99851 0
+O2  0.49905  0
+C   0.14074 0
+end_comp
+
+Bio(TCC)
+
+begin_comp
+SiO2 5.41 0.1
+Al2O3 1.755 0.05
+FeO 1.92 0.1
+MgO 2.4 0.1
+K2O 0.935 0.05
+Na2O 0.02 0.05
+CaO 0 0.02
+H2  2 0.2
+O2  1 0.2
+end_comp
+
+Mica(CF)
+
+begin_comp
+SiO2 6.02 0.1
+Al2O3 2.865 0.05
+FeO 0.1 0.05
+MgO 0.16 0.05
+K2O 0.92 0.05
+Na2O 0.055 0.05
+H2  2 0.2
+O2  1 0.2
+end_comp
+
+Crd(W)
+
+begin_comp
+SiO2 4.95 0.1
+Al2O3 2.015 0.1
+FeO 0.59 0.02
+MgO 1.39 0.02
+Na2O 0.03 0.01
+H2    0.7 0.2
+O2    0.35 0.2
+end_comp
+
+San
+
+begin_comp
+SiO2 2.95 0.02
+Al2O3 0.52 0.02
+K2O 0.46 0.01
+Na2O 0.055 0.01
+end_comp
+
+Pl(h)
+
+begin_comp
+SiO2 2.5 0.02
+Al2O3 0.745 0.02
+K2O 0.005 0.01
+Na2O 0.255 0.01
+CaO 0.245 0.01
+end_comp
+
+q
+
+gph
+
+end_exp
+
+
+
+begin_exp
+
+loz5
+
+3300    200   | pressure (bar)
+888      20   | temperature (K)
+
+begin_bulk
+SiO2 10.047 1.0
+Al2O3 1.905 0.5
+FeO 0.877 0.5
+MgO 1.392 0.5
+K2O 0.497 0.5
+Na2O 0.237 0.2
+CaO 0.385 0.2
+H2    1.2 0
+O2    0.6  0
+C     1 0
+end_bulk
+
+COH-Fluid
+
+begin_comp
+H2  0.99851 0
+O2  0.49905  0
+C   0.14074 0
+end_comp
+
+Bio(TCC)
+
+begin_comp
+SiO2 2.705 0.1
+Al2O3 1.755 0.05
+FeO 1.78 0.1
+MgO 2.50 0.1
+K2O 0.935 0.05
+Na2O 0.02 0.05
+CaO 0 0.02
+H2  2 0.2
+O2  1 0.2
+end_comp
+
+Mica(CF)
+
+begin_comp
+SiO2 3.03 0.1
+Al2O3 2.85 0.05
+FeO 0.05 0.05
+MgO 0.11 0.05
+K2O 0.89 0.05
+Na2O 0.07 0.05
+H2  2 0.2
+O2  1 0.2
+end_comp
+
+Crd(W)
+
+begin_comp
+SiO2 4.95 0.1
+Al2O3 2.015 0.1
+FeO 0.57 0.02
+MgO 1.38 0.02
+Na2O 0.03 0.01
+H2    0.7 0.2
+O2    0.35 0.2
+end_comp
+
+San
+
+begin_comp
+SiO2 2.95 0.02
+Al2O3 0.52 0.02
+K2O 0.44 0.01
+Na2O 0.060 0.01
+end_comp
+
+Pl(h)
+
+begin_comp
+SiO2 2.5 0.02
+Al2O3 0.745 0.02
+K2O 0.005 0.01
+Na2O 0.260 0.01
+CaO 0.240 0.01
+end_comp
+
+q
+
+gph
+
+end_exp
+
+begin_exp
+
+loz110
+
+3300    200   | pressure (bar)
+
+882      20   | temperature (K)
+
+begin_bulk
+SiO2 10.047 1.0
+Al2O3 1.905 0.5
+FeO 0.877 0.5
+MgO 1.392 0.5
+K2O 0.497 0.5
+Na2O 0.237 0.2
+CaO 0.385 0.2
+H2    1.2 0
+O2    0.6  0
+C     1 0
+end_bulk
+
+COH-Fluid
+
+begin_comp
+H2  0.99851 0
+O2  0.49905  0
+C   0.14074 0
+end_comp
+
+Bio(TCC)
+
+begin_comp
+SiO2 2.705 0.1
+Al2O3 1.755 0.05
+FeO 2.05 0.1
+MgO 2.71 0.1
+K2O 0.935 0.05
+Na2O 0.02 0.05
+CaO 0 0.02
+H2  2 0.2
+O2  1 0.2
+end_comp
+
+Mica(CF)
+
+begin_comp
+SiO2 3.02 0.1
+Al2O3 2.83 0.05
+FeO 0.05 0.05
+MgO 0.08 0.05
+K2O 0.915 0.05
+Na2O 0.065 0.05
+H2  2 0.2
+O2  1 0.2
+end_comp
+
+Crd(W)
+
+begin_comp
+SiO2 4.95 0.1
+Al2O3 2.015 0.1
+FeO 0.57 0.02
+MgO 1.35 0.02
+Na2O 0.03 0.01
+H2    0.7 0.2
+O2    0.35 0.2
+end_comp
+
+San
+
+begin_comp
+SiO2 2.95 0.02
+Al2O3 0.52 0.02
+K2O 0.46 0.01
+Na2O 0.055 0.01
+end_comp
+
+Pl(h)
+
+begin_comp
+SiO2 2.5 0.02
+Al2O3 0.745 0.02
+K2O 0.005 0.01
+Na2O 0.265 0.01
+CaO 0.235 0.01
+end_comp
+
+q
+
+gph
+
+end_exp
+
+begin_exp
+
+loz121
+
+3300    200   | pressure (bar)
+
+860      20   | temperature (K)
+
+begin_bulk
+SiO2 10.047 1.0
+Al2O3 1.905 0.5
+FeO 0.877 0.5
+MgO 1.392 0.5
+K2O 0.497 0.5
+Na2O 0.237 0.2
+CaO 0.385 0.2
+H2    1.2 0
+O2    0.6  0
+C     1 0
+end_bulk
+
+COH-Fluid
+
+begin_comp
+H2  0.99851 0
+O2  0.49905  0
+C   0.14074 0
+end_comp
+
+Bio(TCC)
+
+begin_comp
+SiO2 2.705 0.1
+Al2O3 1.755 0.05
+FeO 2.16 0.1
+MgO 2.36 0.1
+K2O 0.935 0.05
+Na2O 0.02 0.05
+CaO 0 0.02
+H2  2 0.2
+O2  1 0.2
+end_comp
+
+Mica(CF)
+
+begin_comp
+SiO2 3.04 0.1
+Al2O3 2.84 0.05
+FeO 0.055 0.05
+MgO 0.075 0.05
+K2O 0.92 0.05
+Na2O 0.05 0.05
+H2  2 0.2
+O2  1 0.2
+end_comp
+
+Crd(W)
+
+begin_comp
+SiO2 4.95 0.1
+Al2O3 2.015 0.1
+FeO 0.68 0.02
+MgO 1.29 0.02
+Na2O 0.03 0.01
+H2    0.7 0.2
+O2    0.35 0.2
+end_comp
+
+San
+
+begin_comp
+SiO2 2.95 0.02
+Al2O3 0.52 0.02
+K2O 0.45 0.01
+Na2O 0.050 0.01
+end_comp
+
+Pl(h)
+
+begin_comp
+SiO2 2.5 0.02
+Al2O3 0.745 0.02
+K2O 0.005 0.01
+Na2O 0.315 0.01
+CaO 0.185 0.01
+end_comp
+
+q
+
+gph
+
+end_exp
+
+begin_exp
+
+loz117
+
+3300    200   | pressure (bar)
+835      20   | temperature (K)
+
+begin_bulk
+SiO2 10.047 1.0
+Al2O3 1.905 0.5
+FeO 0.877 0.5
+MgO 1.392 0.5
+K2O 0.497 0.5
+Na2O 0.237 0.2
+CaO 0.385 0.2
+H2    1.2 0
+O2    0.6  0
+C     1 0
+end_bulk
+
+COH-Fluid
+
+begin_comp
+H2  0.99851 0
+O2  0.49905  0
+C   0.14074 0
+end_comp
+
+Bio(TCC)
+
+begin_comp
+SiO2 2.705 0.1
+Al2O3 1.755 0.05
+FeO 2.15 0.1
+MgO 2.17 0.1
+K2O 0.935 0.05
+Na2O 0.02 0.05
+CaO 0 0.02
+H2  2 0.2
+O2  1 0.2
+end_comp
+
+Mica(CF)
+
+begin_comp
+SiO2 3.00 0.1
+Al2O3 2.87 0.05
+FeO 0.05 0.05
+MgO 0.065 0.05
+K2O 0.905 0.05
+Na2O 0.05 0.05
+H2  2 0.2
+O2  1 0.2
+end_comp
+
+Crd(W)
+
+begin_comp
+SiO2 4.95 0.1
+Al2O3 2.015 0.1
+FeO 0.69 0.02
+MgO 1.27 0.02
+Na2O 0.03 0.01
+H2    0.7 0.2
+O2    0.35 0.2
+end_comp
+
+San
+
+begin_comp
+SiO2 2.95 0.02
+Al2O3 0.52 0.02
+K2O 0.45 0.01
+Na2O 0.050 0.01
+end_comp
+
+Pl(h)
+
+begin_comp
+SiO2 2.5 0.02
+Al2O3 0.745 0.02
+K2O 0.005 0.01
+Na2O 0.235 0.01
+CaO 0.165 0.01
+end_comp
+
+q
+
+gph
+
+end_exp
