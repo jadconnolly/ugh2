@@ -1878,6 +1878,7 @@ c----------------------------------------------------------------
 
       write (*,1000) 
       read (*,'(a)') file
+      if (file.eq.' ') return
 1000  format ('Enter file name for the plot_extra_data option:')
 
       open (n8,file=file,status='old',iostat=ier)
