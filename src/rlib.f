@@ -6463,10 +6463,10 @@ c----------------------------------------------------------------------
 c                                 redlich kistler is a special case
 c                                     wk(1) = w0 cst
 c                                     wk(2) = wT coefficient on T
-c                                     wk(3) = wP some term in brosh's murnaghan-like excess term
+c                                     wk(3) = wP0 some term in brosh's murnaghan-like excess term
 c                                     wk(4) = wP1 some term in brosh's murnaghan-like excess term
 c                                     wk(5) = wP2 some term in brosh's murnaghan-like excess term
-c                                     wk(6) = wP0 coefficient on P
+c                                     wk(6) = wP coefficient on P
          do i = 1, jterm(id)
             do j = 1, rko(i,id)
 
