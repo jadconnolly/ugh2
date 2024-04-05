@@ -10133,7 +10133,7 @@ c                                 like LAAR
                      end if
 
                      exces(l,iphct) = exces(l,iphct)
-     *                                + zpr * wkl(l,j,i,im)
+     *                                + zpr * wkl(h,j,i,im)
 
                   end do
 
