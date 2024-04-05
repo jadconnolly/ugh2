@@ -305,7 +305,7 @@ c                                 standard deviation
 
          end do
 
-         write (n7,'(20(g12.6,1x))') ss(1:nparm)
+         write (n7,'(20(1pg12.6,1x))') ss(1:nparm)
 
       end do
 
@@ -432,7 +432,8 @@ c                                 compute ss of parameter deviations
             ssp = 0d0
 
             do j = 1, n
-               ssp = ssp + ((x(j) - plow(j))/pdelta(j))**2
+               if (pdelta(j).ne.0d0)
+     *            ssp = ssp + ((x(j) - plow(j))/pdelta(j))**2
             end do 
 c                                 best "bayesian" score
             bay = ssp * objf
@@ -487,7 +488,7 @@ c                               print residuals for best model
       x(1:n) = bstx(1:n)
       oprt = .true.
 c                               write best model to *.bst
-      write (n7,'(20(g12.6,1x))') bstx(1:n), bstobj
+      write (n7,'(20(1pg12.6,1x))') bstx(1:n), bstobj
 
       call mcobj2 (x,objf,bad)
 
@@ -495,10 +496,10 @@ c                               write best model to *.bst
 
 1020  format (/,'Minimization FAILED, ifault = ',i3,', icount = ',i4,
      *          ', ntry = ',i4,', igood = ',i4,/)
-1030  format ('Final coordinates: ',20(g12.6,1x))
+1030  format ('Final coordinates: ',20(1pg12.6,1x))
 1050  format (/,'Number of function evaluations: ',i5,', igood = ',i3,/)
-1080  format ('Initial normalized coordinates: ',20(g12.6,1x))
-1085  format ('Initial coordinates: ',20(g12.6,1x))
+1080  format ('Initial normalized coordinates: ',20(1pg12.6,1x))
+1085  format ('Initial coordinates: ',20(1pg12.6,1x))
 1120  format (/,'Try ',i3,', successes so far = ',i3,/,
      *          'Objective function evaluations this try = ',i4,/,
      *          'Last objective function value this try OBJ = ',g12.6,/,
@@ -646,14 +647,14 @@ c-----------------------------------------------------------------------
 
       logical ok, bad, randm, done
 
-      integer i, j, k, nph, ier, id, ids
+      integer i, j, k, nph, ier, id, ids, nblen
 
       double precision err, pertrb, tot
 
       character key*22, val*3, nval1*12, nval2*12, nval3*12,
-     *          strg*40, strg1*40, char*1
+     *          strg*40, strg1*40, char*1, str(3)*8, name*14
 
-      external pertrb
+      external pertrb, nblen
 
       integer jspec
       common/ cxt8 /jspec(h9,m4)
@@ -687,6 +688,9 @@ c-----------------------------------------------------------------------
       integer length,com
       character chars*1
       common/ cst51 /length,com,chars(lchar)
+
+      integer ltyp,lct,lmda,idis
+      common/ cst204 /ltyp(k10),lct(k10),lmda(k10),idis(k10)
 c-----------------------------------------------------------------------
       if (iopt(2).eq.1) then
          write (*,*) 'resetting composition_phase option to mol'
@@ -736,9 +740,32 @@ c                                 read free parameters for compounds
                   mcpid(mccpd,mcpct(mccpd)) = 2
                else if (val.eq.'c') then 
                   mcpid(mccpd,mcpct(mccpd)) = 3
+               else if (val.eq.'K') then 
+                  mcpid(mccpd,mcpct(mccpd)) = 4
+               else if (val.eq.'K''') then 
+                  mcpid(mccpd,mcpct(mccpd)) = 5
+               else if (val.eq.'V0') then 
+                  mcpid(mccpd,mcpct(mccpd)) = 6
+               else if (val.eq.'HJT' .or. val.eq.'HJB') then 
+                  if (lct(-id).gt.1) then
+                     write(*,1020) tname,'multiple'
+                     call errpau
+                  else if (lct(-id).ne.1) then
+                     write(*,1020) tname,'no'
+                     call errpau
+                  else if (ltyp(-id).ne.8) then
+                     write(*,1010) tname,'has no H&J transition'
+                     call errpau
+                  end if
+                  if (val.eq.'HJT') then
+                     mcpid(mccpd,mcpct(mccpd)) = 7
+                  else
+                     mcpid(mccpd,mcpct(mccpd)) = 8
+                  end if
                else 
-                  call errdbg ('invalid parameter name for '//tname//
-     *                         ': '//val)
+                  call errdbg ('invalid parameter name for ' //
+     *                         tname(1:nblen(tname)) // ': "' //
+     *                         val(1:nblen(val)) // '"')
                end if
 c                                 read parameter range
                call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
@@ -765,10 +792,12 @@ c                                initialize coefficient counter
 c                                 read free excess terms for solutions
                call readcd (n8,ier,.true.)
 
+               print*,chars
                if (chars(1).eq.'e') exit
 
                if (chars(1).ne.'W') call errdbg ('invalid excess term'
      *                                           //' for '//tname)
+               print*,'call redtrm'
                call redtrm (bad)
 
                if (bad) then
@@ -777,6 +806,7 @@ c                                 and cycle
                   do
                      call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,
      *                            strg1)
+                     print*,'skip',strg,strg1
                      if (key.eq.'end_list') exit
                   end do
 
@@ -788,19 +818,35 @@ c                                 now check that it exists in the model:
 c                                 ------------------------------------------
 c                                 indices are now in isub(1,1:iord) look for 
 c                                 the term in the real model
+c                                 checks vary depending on type: extyp(id)
+c                                 = 0 margules; = 1 redlich-kister; = 2 van laar
+               print*,'jterm(id):',jterm(id)
                do j = 1, jterm(id)
 
-                  if (rko(j,id).ne.iord) cycle
+                  print*,'extyp(id),iord:',extyp(id),iord
+                  print*,'j,rko(j,id):',j,rko(j,id)
+                  if (extyp(id).ne.1 .and. rko(j,id).ne.iord) cycle
 
                   ok = .true.
 
                   do i = 1, iord
 c                                 now check the endmembers match, assume same
 c                                 ordering as in the solution model
-                     if (isub(1,i).ne.jend(id,2+jsub(i,j,id))) then
+                     call getnam (name,-isub(1,i))
+                     print*,'i,isub(1,i):',i,isub(1,i),name
+                     if (extyp(id).eq.1) then
+c                                 redlich-kister
+                        print*,'jsub(i,j,id):',jsub(i,j,id)
+                        ok = ok .and. jsub(i,j,id).eq.isub(1,i)
+                     else
+                        print*,'i,j,jsub(i,j,id):',i,j,jsub(i,j,id)
+                        print*,'jend(id,2+jsub(i,j,id)):',
+     *                     jend(id,2+jsub(i,j,id))
+                        if (isub(1,i).ne.jend(id,2+jsub(i,j,id))) then
 c                                 if .not.ok, no match on jth term
-                        ok = .false.
-                        exit
+                           ok = .false.
+                           exit
+                        end if
 
                      end if
 
@@ -812,6 +858,7 @@ c                                 if .not.ok, no match on jth term
               
                if (.not.ok) then
 c                                term does not exist in solution model
+                  print*,'term does not exist'
                   cycle 
                end if
 c                                the term exists:
@@ -829,6 +876,7 @@ c                                 key may be either "parameter"
 c                                 or the name of a new term "W(..." or
 c                                 "Wk(..." or "end_list"
 
+                  print*,'read',strg,strg1
                   if (key.eq.'end_list') then
                      if (mccoef(mcsol,mctrm(mcsol)).eq.0) call errdbg(
      *                                 'a term with no coefficients?')
@@ -920,17 +968,17 @@ c                                read name
 
          xptnam(mxpt) = key
 c                               read expt p,t
-         call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+         call rdstrg (n8,i,str,ier)
 
-         read (key,*) xptpt(mxpt,1)
-         read (val,*) err
+         read (str(1),*) xptpt(mxpt,1)
+         read (str(2),*) err
 
          if (randm) xptpt(mxpt,1) = pertrb (xptpt(mxpt,1),err)
 
-         call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+         call rdstrg (n8,i,str,ier)
 
-         read (key,*) xptpt(mxpt,2)
-         read (val,*) err
+         read (str(1),*) xptpt(mxpt,2)
+         read (str(2),*) err
 
          if (randm) xptpt(mxpt,2) = pertrb (xptpt(mxpt,2),err)
 c                               read bulk composition
@@ -1060,6 +1108,8 @@ c                                 next experiment
 1000  format (/,'warning ver502** observation: ',a,/,'has been rejecte',
      *          'd because it includes a component not specified in: ',
      *          a,//,80('-'))
+1010  format (/,a,1x,a)
+1020  format (/,a,1x,'has ',a,' magnetic transitions')
 
       end
 
@@ -1120,6 +1170,7 @@ c                                 data found
          iord = iord + 1
          if (iord.gt.m2) call error (49,wg(1,1),m2,name)
 
+         print*,'name:',name
          call matchj (name,id)
 
          if (id.eq.0) then
@@ -1129,6 +1180,7 @@ c                                 data found
             return
          end if
 
+         print*,'iord,isub(1,iord):',iord,-id
          isub(1,iord) = -id
 
       end do
@@ -1790,7 +1842,7 @@ c
       write(lout,1030) hstd
  1030 format(' rms of function values of last simplex =',g14.6)
       write(lout,1040)(p(i),i=1,nop)
- 1040 format(' centroid of last simplex =',4(/1x,6g13.5))
+ 1040 format(' centroid of last simplex =',4(/1x,1p6g13.5))
       write(lout,1050) func
  1050 format(' function value at centroid =',g14.6)
       return
@@ -1814,7 +1866,7 @@ c
       write(lout,1070) neval
  1070 format(//' minimum found after',i5,' function evaluations')
       write(lout,1080)(p(i),i=1,nop)
- 1080 format(' minimum at',4(/1x,6g13.6))
+ 1080 format(' minimum at',4(/1x,1p6g13.6))
       write(lout,1090) func
  1090 format(' function value at minimum =',g14.6)
   460 if(iquad.le.0) return
@@ -2360,9 +2412,15 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i, j, k, n, ids, jt
+      integer i, j, k, n, id, ids, jt
 
       double precision x(*)
+
+      integer eos
+      common/ cst303 /eos(k10)
+
+      double precision therdi, therlm
+      common/ cst203 /therdi(m8,m9),therlm(m7,m6,k9)
 c-----------------------------------------------------------------------
       n = 0
 c                                 compounds
@@ -2370,7 +2428,27 @@ c                                 compounds
 c                                 for each coefficient
          do j = 1, mcpct(i)
             n = n + 1
-            mdqf(make(mcid(i)),mcpid(i,j)) = x(n)
+            id = mcid(i)
+            ids = mcpid(i,j)
+            if (ids.le.3) then
+               mdqf(make(mcid(i)),ids) = x(n)
+            else if (ids.eq.4) then
+c                                 K - modified compound data directly
+               thermo(16,id) = x(n)
+            else if (ids.eq.5) then
+c                                 K' - modified compound data directly
+               thermo(18,id) = x(n)
+               if (lopt(4)) thermo(21,id) = abs(x(n))
+            else if (ids.eq.6) then
+c                                 V0 - modified compound data directly
+               thermo(3,id) = x(n)
+            else if (ids.eq.7) then
+c                                 Tc - modify compound data directly
+               therlm(1,1,id) = x(n)
+            else if (ids.eq.8) then
+c                                 B - modify compound data directly
+               therlm(2,1,id) = x(n)
+            end if
          end do
       end do
 c                                 solutions, this is only for margules
@@ -2386,7 +2464,12 @@ c                                 term id
 c                                 for each coefficient
             do k = 1, mccoef(i,j)
                n = n + 1
-               wgl(mccoid(ids,j,k),jt,ids) = x(n)
+               if (extyp(ids).eq.1) then
+                  print*,'RK coeff'
+c                 wkl(.,.,.,ids) = x(n)
+               else
+                  wgl(mccoid(ids,j,k),jt,ids) = x(n)
+               end if
             end do
 
          end do
