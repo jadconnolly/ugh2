@@ -567,6 +567,12 @@ c              write (*,'(a,g14.6)') 'from interpolator, g = ',a
 c              write (*,'(a,g14.6)') 'from interpolator, g = ',b
 c           end if
 
+         else
+
+            write (*,'(a,1x,i3)')
+     *         'what the **** am i doing here in gcpd for EOS',eos(id)
+            call errpau
+
          end if
 
       end if
@@ -942,6 +948,7 @@ c                               b13 on return
      *             thermo(23,id),
 c                               ref stuff
      *             tr,pr,r,eos(id))
+
 
       if (tr.eq.0d0) then
          thermo(1,id) = thermo(1,k10)
@@ -7091,7 +7098,7 @@ c                                 arbitrary expansion
             end do
 
          else
-c                                 redlich-kistler
+c                                 redlich-kister
             do k = 1, rkord(i)
                do j = 1, m16
                   wkl(j,k,i,im) = wk(j,k,i)
@@ -10687,7 +10694,9 @@ c---------------------------------------------------------------------
       integer id
 
       double precision hserfe, hsersi, crbcc, hserc, fefcc, febcc
-      double precision gtmp
+      double precision hserh2, gtmp
+
+      external hserh2, hsersi, crbcc, hserc, fefcc, febcc
 
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
@@ -10902,6 +10911,68 @@ c                            Fe-hcp Dinsdale 1991
      *          + 2.78854d31/t**9
          end if
 
+      else if (id.eq.648) then
+c                            FCC FeH Helffrich '21
+         if (t.lt.1811d0) then
+            gtmp = -1462.4d0 + 8.282d0*t - 1.15d0*t*dlog(t)
+     *           + 6.4d-4*t**2
+         else
+            gtmp = -1713.815d0 + 0.94001d0*t + 4.9251d30/t**9
+         end if
+         glacaz = gtmp + febcc(t) + 0.5d0*hserh2(t)
+     *     + 25746.7209d0 + 48.1250165d0*t
+c    *     + 32171.069d0 + 43.509d0*t
+c    *     - 10556.19d0 + 29.42d0*t
+
+      else if (id.eq.649) then
+c                            liquid FeH(1) Helffrich '21
+         if (t.lt.1811d0) then
+            gtmp = 12040.17d0 - 6.55843d0 * t - 3.67516d-21 * t**7
+     *               + febcc(t)
+         else
+            gtmp = -10838.83d0 + 291.302d0 * t - 46d0 * t*dlog(t)
+         end if
+         glacaz = gtmp + 0.5d0*hserh2(t) + 28172.583d0 + 40.004166d0*t
+
+      else if (id.eq.650) then
+c                            BCC FeH Helffrich '21
+         if (t.lt.1811d0) then
+            glacaz = febcc(t) + 0.5d0*hserh2(t)
+c    *       + 71098.3995d0 - 986.034062d0*t + 155.942278d0*t*dlog(t)
+c    *       - 0.0894166963d0*t**2
+     *       + 48986.67d0 - 183.6735d0*t + 33.3078d0*t*log(t)
+     *       - 0.01682617*t**2
+         else
+c           glacaz = 80393.95d0 + 16.72144d0*t
+            glacaz = 112509.5112d0 + 32.8105280102615d0*t
+         end if
+
+      else if (id.eq.651) then
+c                            HCP FeH Helffrich '21
+         if (t.lt.1811d0) then
+            gtmp = -3705.78d0 + 12.591d0*t - 1.15d0*t*dlog(t)
+     *       + 6.4d-4*t**2
+         else
+            gtmp = -3957.199d0 + 5.24951d0*t + 4.9251d30/t**9
+         end if
+         glacaz = gtmp + febcc(t) + 0.5d0*hserh2(t)
+c        Zinkevich'02 original
+c    *      + 34000d0 + 42.7d0*t
+c        antonov.R fit
+c    *      + 17269d0 + 61.28d0*t
+c        guess S similar to FCC FeHx
+     *      - 10000d0 + 88.0d0*t
+
+      else if (id.eq.653) then
+c                            HCP Fe for use with HCP FeH Helffrich '23
+         if (t.lt.1811d0) then
+            gtmp = -3705.78d0 + 12.591d0*t - 1.15d0*t*log(t)
+     *           + 6.4d-4*t**2
+         else
+            gtmp = -3957.199d0 + 5.24951d0*t + 4.9251d30/t**9
+         end if
+         glacaz = gtmp + febcc(t)
+
       else if (id.eq.654) then
 c                            FCC Fe for use with FCC FeH Helffrich '23
          if (t.lt.1811d0) then
@@ -10914,7 +10985,8 @@ c                            FCC Fe for use with FCC FeH Helffrich '23
 
       else
 
-         write (*,*) 'what the **** am i doing here in glacaz?'
+         write (*,'(a,1x,i3)')
+     *      'what the **** am i doing here in glacaz for EOS',id
          call errpau
 
       end if
@@ -20303,7 +20375,7 @@ c----------------------------------------------------------------------
       else if (extyp(ids).eq.1) then 
 
           deriv(ids) = .false.
-          reason = 'redlich-kistler ex'
+          reason = 'redlich-kister ex'
 
       else if (.not.equimo(ids)) then
 
