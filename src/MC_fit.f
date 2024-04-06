@@ -778,6 +778,13 @@ c                                 read parameter range
             end do
 
          else if (id.gt.0) then
+c                                 read free parameters for solutions
+c                                 for Redlich-Kister models, the syntax is
+c                                 parameter 1 = w0 value,
+c                                 parameter 2 = wT value,
+c                                 parameter 3 = wP (even though this would
+c                                    be the index of the Brosh wP0 parameter,
+c                                    it is fudged later on).
 
             if (.not.bad) mcsol = mcsol + 1
             mcids(mcsol) = id
@@ -792,12 +799,10 @@ c                                initialize coefficient counter
 c                                 read free excess terms for solutions
                call readcd (n8,ier,.true.)
 
-               print*,chars
                if (chars(1).eq.'e') exit
 
                if (chars(1).ne.'W') call errdbg ('invalid excess term'
      *                                           //' for '//tname)
-               print*,'call redtrm'
                call redtrm (bad)
 
                if (bad) then
@@ -806,7 +811,6 @@ c                                 and cycle
                   do
                      call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,
      *                            strg1)
-                     print*,'skip',strg,strg1
                      if (key.eq.'end_list') exit
                   end do
 
@@ -820,11 +824,8 @@ c                                 indices are now in isub(1,1:iord) look for
 c                                 the term in the real model
 c                                 checks vary depending on type: extyp(id)
 c                                 = 0 margules; = 1 redlich-kister; = 2 van laar
-               print*,'jterm(id):',jterm(id)
                do j = 1, jterm(id)
 
-                  print*,'extyp(id),iord:',extyp(id),iord
-                  print*,'j,rko(j,id):',j,rko(j,id)
                   if (extyp(id).ne.1 .and. rko(j,id).ne.iord) cycle
 
                   ok = .true.
@@ -832,22 +833,13 @@ c                                 = 0 margules; = 1 redlich-kister; = 2 van laar
                   do i = 1, iord
 c                                 now check the endmembers match, assume same
 c                                 ordering as in the solution model
-                     call getnam (name,-isub(1,i))
-                     print*,'i,isub(1,i):',i,isub(1,i),name
                      if (extyp(id).eq.1) then
 c                                 redlich-kister
-                        print*,'jsub(i,j,id):',jsub(i,j,id)
-                        ok = ok .and. jsub(i,j,id).eq.isub(1,i)
+                        ok = ok .and. jend(id,2+i).eq.isub(1,i)
                      else
-                        print*,'i,j,jsub(i,j,id):',i,j,jsub(i,j,id)
-                        print*,'jend(id,2+jsub(i,j,id)):',
-     *                     jend(id,2+jsub(i,j,id))
-                        if (isub(1,i).ne.jend(id,2+jsub(i,j,id))) then
-c                                 if .not.ok, no match on jth term
-                           ok = .false.
-                           exit
-                        end if
-
+c                                 margules, try match on jth term
+                        ok = ok .and.
+     *                     isub(1,i).eq.jend(id,2+jsub(i,j,id))
                      end if
 
                   end do
@@ -876,7 +868,6 @@ c                                 key may be either "parameter"
 c                                 or the name of a new term "W(..." or
 c                                 "Wk(..." or "end_list"
 
-                  print*,'read',strg,strg1
                   if (key.eq.'end_list') then
                      if (mccoef(mcsol,mctrm(mcsol)).eq.0) call errdbg(
      *                                 'a term with no coefficients?')
@@ -1170,7 +1161,6 @@ c                                 data found
          iord = iord + 1
          if (iord.gt.m2) call error (49,wg(1,1),m2,name)
 
-         print*,'name:',name
          call matchj (name,id)
 
          if (id.eq.0) then
@@ -1180,7 +1170,6 @@ c                                 data found
             return
          end if
 
-         print*,'iord,isub(1,iord):',iord,-id
          isub(1,iord) = -id
 
       end do
@@ -2416,11 +2405,17 @@ c-----------------------------------------------------------------------
 
       double precision x(*)
 
+      character name*14
+
       integer eos
       common/ cst303 /eos(k10)
 
       double precision therdi, therlm
       common/ cst203 /therdi(m8,m9),therlm(m7,m6,k9)
+
+      integer jterm, jord, extyp, rko, jsub
+      common/ cxt2i /jterm(h9),jord(h9),extyp(h9),rko(m1,h9),
+     *               jsub(m2,m1,h9)
 c-----------------------------------------------------------------------
       n = 0
 c                                 compounds
@@ -2465,10 +2460,20 @@ c                                 for each coefficient
             do k = 1, mccoef(i,j)
                n = n + 1
                if (extyp(ids).eq.1) then
-                  print*,'RK coeff'
-c                 wkl(.,.,.,ids) = x(n)
-               else
+c                                 for rk coefficients, funny handling of wP
+                  if (k.lt.3) then
+                     wkl(k,j,jt,ids) = x(n)
+                  else
+                     wkl(6,j,jt,ids) = x(n)
+                  end if
+               else if (extyp(ids).eq.0) then
+c                                 for margules coefficients
                   wgl(mccoid(ids,j,k),jt,ids) = x(n)
+               else
+                  call getnam (name,ids)
+                  call errdbg ('unimplemented solution type '//
+     *                             'for '//name)
+                  
                end if
             end do
 
