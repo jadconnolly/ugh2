@@ -634,8 +634,8 @@ c                                  extent for label.
 
                      if (iap(igrd(ii,jj)).eq.ipoly) then
                         i = i + 1
-                        x = x + dfloat(ii/jinc)
-                        y = y + dfloat(jj/jinc)
+                        x = x + dfloat((ii-1)/jinc)
+                        y = y + dfloat((jj-1)/jinc)
                      end if
 
                   end do
