@@ -653,7 +653,10 @@ c                                 for grid spacing jinc. JADC
                jj = 1 + nint(y/i)*jinc
 
                if (igrd(ii,jj).eq.0) then
-                  write (*,*) 'can this be?',ii,jj
+                  write (*,*) 'for ',
+     *               text(1:nblen(text)),', can this be?',ii,jj,
+     *               xmin + dfloat((ii-1)/jinc)*dx,
+     *               ymin + dfloat((jj-1)/jinc)*dy 
                   cycle
                end if
 c                                  in the money this time -- agrees?
