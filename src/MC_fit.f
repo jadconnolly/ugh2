@@ -221,10 +221,10 @@ c                               new starting point
 
 1080  format ('Initial normalized coordinates: ',
      *        5(g12.6,1x))
-1090  format (10x,'initial potentials: ',5(g12.6,1x))
+1090  format (10x,'initial potentials: ',5(g13.6,1x))
 1020  format ('Minimization failed IFAULT = ',i3,' igood = ',i3)
-1030  format ('Final coordinates: ',5(g12.6,1x))
-1040  format ('Final potentials: ',5(g12.6,1x))
+1030  format ('Final coordinates: ',5(g13.6,1x))
+1040  format ('Final potentials: ',5(g13.6,1x))
 1050  format ('Number of function evaluations: ',i5,
      *        ' igood = ',i3,' icount = ',i5)
 1000  format (/,'Interactively enter bulk compositions (y/n)?',/,
@@ -496,12 +496,12 @@ c                               write best model to *.bst
 
 1020  format (/,'Minimization FAILED, ifault = ',i3,', icount = ',i4,
      *          ', ntry = ',i4,', igood = ',i4,/)
-1030  format ('Final coordinates: ',20(1pg12.6,1x))
+1030  format ('Final coordinates: ',20(1pg13.6,1x))
 1050  format (/,'Number of function evaluations: ',i5,', igood = ',i3,/)
 1080  format ('Initial normalized coordinates: ',20(1pg12.6,1x))
-1085  format ('Initial coordinates: ',20(1pg12.6,1x))
+1085  format ('Initial coordinates: ',20(1pg13.6,1x))
 1120  format (/,'Try ',i3,', successes so far = ',i3,/,
-     *          'Objective function evaluations this try = ',i4,/,
+     *          'Objective function evaluations this try = ',i5,/,
      *          'Last objective function value this try OBJ = ',g12.6,/,
      *          'Best OBJ so far = ',g12.6,
      *          ' obtained on try ',i3,/)
@@ -1827,7 +1827,7 @@ c
       ifault=1
       if(iprint.lt.0) return
       write(lout,1020) max
- 1020 format(' no. of function evaluations exceeds',i5)
+ 1020 format(' no. of function evaluations exceeds ',i5)
       write(lout,1030) hstd
  1030 format(' rms of function values of last simplex =',g14.6)
       write(lout,1040)(p(i),i=1,nop)
@@ -1853,7 +1853,7 @@ c
   450 if(abs(savemn-hmean).ge.stopcr) go to 440
       if(iprint.lt.0) go to 460
       write(lout,1070) neval
- 1070 format(//' minimum found after',i5,' function evaluations')
+ 1070 format(//' minimum found after ',i5,' function evaluations')
       write(lout,1080)(p(i),i=1,nop)
  1080 format(' minimum at',4(/1x,1p6g13.6))
       write(lout,1090) func
