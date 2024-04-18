@@ -432,8 +432,12 @@ c                                 compute ss of parameter deviations
             ssp = 0d0
 
             do j = 1, n
-               if (pdelta(j).ne.0d0)
-     *            ssp = ssp + ((x(j) - plow(j))/pdelta(j))**2
+c                                 center "bayesian" score in interval
+               if (pdelta(j).ne.0d0) then
+c                 ssp = ssp + ((x(j) - plow(j))/pdelta(j))**2
+                  ssp = ssp +
+     *               ((2*(x(j) - plow(j) - pdelta(j)/2))/pdelta(j))**2
+               end if
             end do 
 c                                 best "bayesian" score
             bay = ssp * objf
@@ -2528,11 +2532,13 @@ c                                map the search coordinates to thermodynamic
 c                                parameters
       call x2ther (x)
 c                                 compositional residual weight
-      wcomp  = 1d0
+c                                 explicit assignments removed because already
+c                                 set in common by call to opnimc
+c     wcomp  = 1d0
 c                                 extra phase amount residual weight
-      wextra = 1d1
+c     wextra = 1d1
 c                                 missing phase residual weight
-      wmiss  = 1d1
+c     wmiss  = 1d1
 
       obj = 0d0
 c                                 loop through observations
@@ -2559,7 +2565,7 @@ c                                 compute the observation objective function
          imout(1:ntot) = .true.
          used = .false.
          imin(1:mphase) = .false.
-         kct = 0
+c        kct = 0
          ksol = 0
 
          do i = 1, ntot
