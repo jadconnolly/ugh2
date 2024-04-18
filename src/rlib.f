@@ -740,9 +740,6 @@ c---------------------------------------------------------------------
       integer iam
       common/ cst4 /iam
 
-      integer idspe,ispec
-      common/ cst19 /idspe(2),ispec
-
       integer ihy, ioh
       double precision gf, epsln, epsln0, adh, msol
       common/ cxt37 /gf, epsln, epsln0, adh, msol, ihy, ioh
@@ -3730,9 +3727,6 @@ c----------------------------------------------------------------------
 
       integer ids,isct,icp1,isat,io2
       common/ cst40 /ids(h5,h6),isct(h5),icp1,isat,io2
-
-      integer idspe,ispec
-      common/ cst19 /idspe(2),ispec
 
       integer ifct,idfl
       common/ cst208 /ifct,idfl
@@ -18616,9 +18610,6 @@ c----------------------------------------------------------------------
       integer ihy, ioh
       double precision gf, epsln, epsln0, adh, msol
       common/ cxt37 /gf, epsln, epsln0, adh, msol, ihy, ioh
-
-      integer idspe,ispec
-      common/ cst19 /idspe(2),ispec
 c-----------------------------------------------------------------------
 c                               initialization for each data set
 c                               for k10 endmembers
@@ -18646,13 +18637,14 @@ c                               transformations, read make definitions.
       call topn2 (0)
 c                               general input data for main program
 
-c                               reorder thermodynamic components
-c                               if the saturated phase components are 
-c                               present
+c                               reorder thermodynamic components if 
+c                               they include special components, this 
+c                               is archaic
       if (lopt(7)) then
 
          do k = 1, ispec 
-                             
+c                               check for special components in the the
+c                               thermodynamic composition space.
             do i = 1, icp
 
                if (cname(i).eq.cmpnt(idspe(k))) then 

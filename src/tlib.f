@@ -4362,9 +4362,6 @@ c----------------------------------------------------------------------
       double precision ctrans
       common/ cst207 /ctrans(k0,k0),ictr(k0),itrans
 
-      integer idspe,ispec
-      common/ cst19 /idspe(2),ispec
-
       integer ikind,icmpn,icout,ieos
       double precision comp,tot
       common/ cst43 /comp(k0),tot,icout(k0),ikind,icmpn,ieos
@@ -5822,9 +5819,6 @@ c----------------------------------------------------------------------
       integer ikind,icmpn,icout,ieos
       double precision comp,tot
       common/ cst43 /comp(k0),tot,icout(k0),ikind,icmpn,ieos
-
-      integer idspe,ispec
-      common/ cst19 /idspe(2),ispec
 c-----------------------------------------------------------------------
 c                                 recombine components:
       do 
@@ -6006,9 +6000,6 @@ c----------------------------------------------------------------------
       integer length,com
       character chars*1
       common/ cst51 /length,com,chars(lchar)
-
-      integer idspe,ispec
-      common/ cst19 /idspe(2),ispec
 
       integer ipot,jv,iv1,iv2,iv3,iv4,iv5
       common/ cst24 /ipot,jv(l2),iv1,iv2,iv3,iv4,iv5
@@ -11770,9 +11761,6 @@ c-----------------------------------------------------------------------
       integer ikind,icmpn,icout,ieos
       double precision comp,tot
       common/ cst43 /comp(k0),tot,icout(k0),ikind,icmpn,ieos
-
-      integer idspe,ispec
-      common/ cst19 /idspe(2),ispec
 
       integer cl
       character cmpnt*5, dname*80

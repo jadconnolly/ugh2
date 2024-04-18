@@ -1,0 +1,80 @@
+ctransf.dat     thermodynamic data file                                                                                                     
+no_print | print generates print output
+plot     | obsolete 6.8.4+
+solution_model.dat     | solution model file, blank = none                                                                                                                                                                                                      
+K 5 bar                                          
+perplex_option.dat     | Perple_X option file                                                                                                                                                                                                                   
+    5 calculation type: 0- composition, 1- Schreinemakers, 3- Mixed, 4- swash, 5- gridded min, 7- 1d fract, 8- gwash, 9- 2d fract, 10- 7 w/file input, 11- 9 w/file input, 12- 0d infiltration
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 number component transformations
+   21 number of components in the data base
+    0 component amounts, 0 - mole, 1 mass
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 05
+   14 ifug EoS for saturated phase
+    2 gridded minimization dimension (1 or 2)
+    0 special dependencies: 0 - P and T independent, 1 - P(T), 2 - T(P)
+ 0.00000      0.00000      0.00000      0.00000      0.00000     Geothermal gradient polynomial coeffs.
+
+begin thermodynamic component list
+MgO   2 1.00000      1.0000      0.00000     molar amount
+CaO   2 3.0000       3.00000      0.00000     molar amount
+car   2 4.7000        4.70000       0.00000     molar amount
+FeO   2 0.7000        0.7000       0.00000     molar amount
+O2    2 5.466      5.466      0.00000     molar amount | 4.7 (co2) + 1.5/2 (h2O) + 0.016 (o2)
+SiO2  2 2.550000      2.550000      0.00000     molar amount
+Na2O  2 0.36000      0.00100      0.00000     molar amount
+K2O  2 0.00100      0.36000      0.00000     molar amount
+hyd   2 1.500000      1.500000      0.00000     molar amount
+Al2O3 2 0.4000      0.400000      0.00000     molar amount
+end thermodynamic component list
+
+
+begin saturated component list
+end saturated component list
+
+
+begin saturated phase component list
+end saturated phase component list
+
+
+begin independent potential/fugacity/activity list
+end independent potential list
+
+
+begin excluded phase list
+naph
+dol
+ank
+end excluded phase list
+
+
+begin solution phase list
+cAmph(G)
+Omph(GHP) 
+O(HP)     
+oCcM(EF)   
+Sp_II(WPC)  
+COH-Fluid
+Pl(I1,HP)
+Fsp(C1)
+Bi(W)
+Neph(FB)
+Ep(HP11)
+Chl(W)
+end solution phase list
+
+   5000.00        1073.00        0.00000        0.00000        0.00000     max p, t, xco2, mu_1, mu_2
+   5000.00        773.000        0.00000        0.00000        0.00000     min p, t, xco2, mu_1, mu_2
+   0.00000        0.00000        0.00000        0.00000        0.00000     unused place holder post 06
+
+ 2  1  4  5  3   indices of 1st & 2nd independent & sectioning variables

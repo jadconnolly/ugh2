@@ -2985,7 +2985,7 @@ c                                 ouput grid data
 10    if (outprt) call outgrd (loopx,loopy,1,n4,0)
 
 1030  format (f5.1,'% done with low level grid.',a,$)
-1050  format (/,'Beginning grid refinement stage.',/)
+1050  format (//,'Beginning grid refinement stage.',/)
 1060  format (i6,' grid cells to be refined at grid level ',i1)
 1070  format (7x,'refinement at level ',i1,' involved ',i6,
      *        ' minimizations')
