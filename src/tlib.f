@@ -4322,7 +4322,7 @@ c                                 tags for thermo data i/o
 c     data estrg/'eG0','eS0','eV0','ec1','ec2','ec3','ec4','ec5','ec6',
 c    *           'ec7','eb1','eb2','eb3','eb4','eb5','eb6','eb7','eb8'/
 c                                 tags for interaction coefficients (Redlich-Kister polynomial)
-      data wstrg/'w0 ','wT ','wP ','wP1','wP2','wP0'/
+      data wstrg/'w0 ','wT ','wP0','wP1','wP2','wP '/
 c                                 fluid eos species
       data specie /
      *      'H2O ','CO2 ','CO  ','CH4 ','H2  ','H2S ','O2  ',
