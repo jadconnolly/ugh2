@@ -67,10 +67,10 @@ c                                 read problem type flag
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
       if (key.ne.'T'.and.key.ne.'t') invprb = .false.
 c                                 make new seed for random number generator
-      random = .true.
-
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
-      if (key.ne.'T'.and.key.ne.'t') random = .false.
+      ier = index('TtFfGg',key(1:1))
+      if (ier.eq.0) stop '***Bad problem type, check random value'
+      random(1) = (ier-1)/2
 c                                 number of starting guesses used for each
 c                                 Nelder-Meade inverse problem
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
@@ -101,6 +101,16 @@ c                                 read Nelder-Meade parameters
       read (key,*) wextra
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
       read (key,*) wmiss
+
+      if (
+     *   wmiss.gt.oktol .or.
+     *   wextra.gt.oktol .or.
+     *   wcomp.gt.oktol
+     *   ) then
+        write(*,'(2a,/,a)')
+     *     '**warning** oktol value in MC inversion parameters',
+     *     ' is probably too small -','  check wcomp, wextra, wmiss'
+      end if
 
       end
 
@@ -256,7 +266,7 @@ c                                 best model statistics for error evaluation
       call mertxt (tfname,prject,'.bst',0)
       open (n7,file=tfname)
 c                                 initialize drand
-      if (random) call random_seed
+      if (random(1).eq.0) call random_seed
 c                                 get best model, 1st argument sets 
 c                                 random perturbation off, 2nd sets 
 c                                 output of all sucessful optimizations
@@ -319,8 +329,8 @@ c                                 standard deviation
 1080  format ('Initial normalized coordinates: ',5(g12.6,1x))
 1085  format ('Initial coordinates: ',5(g12.6,1x))
 1100  format (i3,' Successes in ',i4,' tries.')
-1120  format ('ntry = ',i3,', igood = ',i3,', icount = ',i3,
-     *        ', obj = ',g12.6,', ibest = ',i3,', bestobj = ',g12.6)
+1120  format ('ntry = ',i7,', igood = ',i7,', icount = ',i7,
+     *        ', obj = ',g12.6,', ibest = ',i7,', bestobj = ',g12.6)
 
       end 
 
@@ -332,7 +342,7 @@ c----------------------------------------------------------------------
       include 'perplex_parameters.h'
 
       integer i, n, conchk, kcount, icount, ifault, iprint,
-     *        iquad, j, k, igood, ntry, ibest, id, jbest
+     *        iquad, j, k, igood, ntry, ibest, id, jbest, pnum(l2+k5)
 
       logical readyn, bad, randm, n6out
 
@@ -358,6 +368,7 @@ c                                 read experimental data and inversion candidate
 c                                 if randm, then experimental data is perturbed within
 c                                 its uncertainty.
       call mcxpt (randm)
+      if (random(1).eq.2) ntry = random(3)-1
 c                                 parameter max - min
       n = 0
 c                                 compounds
@@ -367,7 +378,7 @@ c                                 for each coefficient
             n = n + 1
             plow(n) = cprng(i,j,1)
             pdelta(n) = cprng(i,j,2) - cprng(i,j,1)
-c           pcent(n) = (cprng(i,j,2) + cprng(i,j,1))/2d0
+            pnum(n) = nint(cprng(i,j,3))
          end do
       end do
 c                                 solutions
@@ -379,14 +390,18 @@ c                                 for each coefficient
                n = n + 1
                plow(n) = sprng(i,j,k,1)
                pdelta(n) = sprng(i,j,k,2) - sprng(i,j,k,1)
-c              pcent(n) = (sprng(i,j,k,2) + sprng(i,j,k,1))/2d0
+               pnum(n) = nint(sprng(i,j,k,3))
             end do
          end do
       end do
 c                                 unscaled step size for search
       step(1:n) = frac*pdelta(1:n)
 c                                 initialize scaled coordinate
-      sx(1:n) = 0.5d0
+      if (random(1).ne.2) then
+         sx(1:n) = 0.5d0
+      else
+         sx(1:n) = 0d0
+      end if
 
       ibest = 0
       igood = 0
@@ -415,15 +430,19 @@ c                                 unscale sx
 c                                 initialize icount in case of failure
          icount = 0
 
-         call minim (x, step, n, objf, kcount, iprint, tol, 
+         if (random(1).ne.2) then
+            call minim (x, step, n, objf, kcount, iprint, tol, 
      *               conchk, iquad, simplx, var, mcobj2, icount, 
      *               ifault, oktol)
+         else
+            ifault = 0
+         end if
 
          call mcobj2 (x,objf,bad)
 
          if (ifault.gt.2.or.(ifault.gt.0.and.objf.gt.oktol)) then
 
-            write (*,1020) ifault, icount, igood, ntry
+            write (*,1020) ifault, icount, igood, i
 
          else
 
@@ -456,19 +475,27 @@ c                                 save max likelihood result
                bstvar = var
             end if
 
-            write (*,1120) i, igood, icount, objf, bstobj, ibest
-            write (*,1130) ssp, bay, bstbay, jbest
-            write (*,1080) sx(1:n)
-            write (*,1085) x0(1:n)
-            write (*,1030) x(1:n)
+            if (random(1).eq.2) then
+               write (*,'(a,i7,1h/,i7,1x,a,2(1x,1pg12.6),a,$)')
+     *            'Try',i,random(3),'best:',bstobj,bstbay,char(13)
+            else
+               write (*,1120) i, igood, icount, objf, bstobj, ibest
+               write (*,1130) ssp, bay, bstbay, jbest
+               write (*,1080) sx(1:n)
+               write (*,1085) x0(1:n)
+               write (*,1030) x(1:n)
+               write (*,'(80(''-''))')
+            end if
 
-            if (n6out) then
+            if (n6out .and.
+     *         (random(1).ne.2 .or. i.eq.ibest .or. i.eq.jbest)
+     *      ) then
 
                write (n6,1120) i, igood, icount, objf, bstobj, ibest
                write (n6,1130) ssp, bay, bstbay, jbest
                write (n6,1085) x0(1:n)
                write (n6,1030) x(1:n)
-               write (n6,'(/,a,i3,a,/)') 'Scores for try = ',i,
+               write (n6,'(/,a,i7,a,/)') 'Scores for try = ',i,
      *                                   ' follow:'
                do id = 1, mxpt
                   write (n6,'(i3,1x,a,g12.6,1x)') 
@@ -481,11 +508,21 @@ c                                 save max likelihood result
 
          end if
 
-         write (*,'(80(''-''))')
-c                               new starting point
-         do j = 1, n
-            call random_number (sx(j))
-         end do
+         if (random(1).ne.2) then
+c                               new random starting point
+            do j = 1, n
+               call random_number (sx(j))
+            end do
+         else
+c                               new grid search point
+            icount = random(2)
+            random(2) = icount + 1
+            
+            do j = 1, n
+               sx(j) = dble(mod(icount,pnum(j)))/(pnum(j)-1)
+               icount = icount / pnum(j)
+            end do
+         end if
 
       end do
 c                               print residuals for best model
@@ -499,20 +536,20 @@ c                               write best model to *.bst
       if (n6out) close (n6)
 
 1020  format (/,'Minimization FAILED, ifault = ',i3,', icount = ',i4,
-     *          ', ntry = ',i4,', igood = ',i4,/)
+     *          ', igood = ',i4,', ntry = ',i7,/)
 1030  format ('Final coordinates: ',20(1pg13.6,1x))
 1050  format (/,'Number of function evaluations: ',i5,', igood = ',i3,/)
 1080  format ('Initial normalized coordinates: ',20(1pg12.6,1x))
 1085  format ('Initial coordinates: ',20(1pg13.6,1x))
-1120  format (/,'Try ',i3,', successes so far = ',i3,/,
+1120  format (/,'Try ',i7,', successes so far = ',i7,/,
      *          'Objective function evaluations this try = ',i5,/,
      *          'Last objective function value this try OBJ = ',g12.6,/,
      *          'Best OBJ so far = ',g12.6,
-     *          ' obtained on try ',i3,/)
+     *          ' obtained on try ',i7,/)
 1130  format (/,'Scaled parameter SSP = ',g12.6,/,
      *          'Bayes score SSP * OBJF = ',g12.6,/,
      *          'Best Bayes score so far = ',g12.6,
-     *          ' obtained on try ',i3,/)
+     *          ' obtained on try ',i7,/)
 
       end 
 
@@ -552,6 +589,9 @@ c                                 my_project.imc
          write (*,*) 'resetting composition_phase option to mol'
          iopt(2) = 0d0
       end if
+
+      if (random(1).ge.2) call errdbg
+     *   ('can''t use grid search option (yet)')
 
       mphase = 0
 
@@ -652,6 +692,8 @@ c-----------------------------------------------------------------------
       logical ok, bad, randm, done
 
       integer i, j, k, nph, ier, id, ids, nblen
+
+      integer*8 ngrid
 
       double precision err, pertrb, tot
 
@@ -771,13 +813,18 @@ c                                 read free parameters for compounds
      *                         tname(1:nblen(tname)) // ': "' //
      *                         val(1:nblen(val)) // '"')
                end if
-c                                 read parameter range
+c                                 read parameter range and grid search count
                call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
 
                if (key.ne.'range') call errdbg ('expecting '//
      *                    'range tag for '//tname//' found '//key)
                read (strg1,*) cprng(mccpd,mcpct(mccpd),1),
      *                        cprng(mccpd,mcpct(mccpd),2)
+               read (strg1,*,iostat=ier) err,err,
+     *                        cprng(mccpd,mcpct(mccpd),3)
+               if (ier.ne.0)  cprng(mccpd,mcpct(mccpd),3) = 2d0
+               if (cprng(mccpd,mcpct(mccpd),3).le.2d0) 
+     *                        cprng(mccpd,mcpct(mccpd),3) = 2d0
 
             end do
 
@@ -894,11 +941,21 @@ c                                 backspace the input to use redtrm
 c                                 count the coefficient
                   mccoef(mcsol,mctrm(mcsol)) = 
      *                   mccoef(mcsol,mctrm(mcsol)) + 1
-c
+c                                 read the coefficient range and grid numbers
                   read (strg1,*) 
      *           mccoid(mcsol,mctrm(mcsol),mccoef(mcsol,mctrm(mcsol))),
      *           sprng(mcsol,mctrm(mcsol),mccoef(mcsol,mctrm(mcsol)),1),
      *           sprng(mcsol,mctrm(mcsol),mccoef(mcsol,mctrm(mcsol)),2)
+                  read (strg1,*,iostat=ier) i,err,err,
+     *           sprng(mcsol,mctrm(mcsol),mccoef(mcsol,mctrm(mcsol)),3)
+                  if (ier.ne.0) 
+     *           sprng(mcsol,mctrm(mcsol),mccoef(mcsol,mctrm(mcsol)),3)
+     *               = 2d0
+                  if (
+     *           sprng(mcsol,mctrm(mcsol),mccoef(mcsol,mctrm(mcsol)),3)
+     *               .le.1d0)
+     *           sprng(mcsol,mctrm(mcsol),mccoef(mcsol,mctrm(mcsol)),3)
+     *               = 2d0
 
                end do
 c                                 flag to make gall recalculate
@@ -929,6 +986,26 @@ c                                 for each term
       end do
 
       if (nparm.eq.0) call errdbg ('no free parameters! no free lunch!')
+
+c                                 if grid search, set up counts
+      if (random(1).eq.2) then
+         ngrid = 1
+         do i = 1, mccpd
+            ngrid = ngrid*nint(cprng(i,mcpct(i),3))
+         end do
+         do i = 1, mcsol
+            do j = 1, mctrm(i)
+               do k = 1, mccoef(i,j) 
+                  ngrid = ngrid*nint(sprng(i,j,k,3))
+               end do
+            end do
+         end do
+         if (ngrid.ge.2d0**32) 
+     *      call errdbg ('Excessive grid search combinations, coarsen')
+         random(2) = 0
+         random(3) = ngrid
+         write(*,*) 'Grid search will explore ',ngrid,' combinations.'
+      end if
 c                                 number of xpts
       mxpt = 0
 c                                 number of phase compositions
@@ -1068,24 +1145,32 @@ c                                 get solution composition
                if (.not.ok) bad = .true.
 
                read (strg1,*) xptc(cxpt+i), err
+               xpte(cxpt+i) = err 
 
                if (randm) xptc(cxpt+i) = pertrb (xptc(cxpt+i),err)
 
             end do
 c                                 normalize bulk
-            tot = 0d0
+c           tot = 0d0
+            k = 0
 
             do i = 1, icp
-               tot = tot + xptc(cxpt+i)
+               if (xpte(cxpt+i).eq.0d0) k = k + 1
+c              tot = tot + xptc(cxpt+i)
             end do
+            if (k.gt.1 .and. k.ne.icp) then
+               write(*,1030) xptnam(mxpt)
+               exit
+            end if
 
-            do i = 1, icp
-               xptc(cxpt+i) = xptc(cxpt+i)/tot
-            end do
+c           do i = 1, icp
+c              xptc(cxpt+i) = xptc(cxpt+i)/tot
+c           end do
 c                                 pointer to the composition of phase nph in expt mexpt 
             xptptr(mxpt,nph) = cxpt
 
             xptnph(mxpt) = nph
+            xpterr(mxpt) = k
 c                                 increment composition pointer
             if (.not.bad) cxpt = cxpt + icp
 
@@ -1105,6 +1190,9 @@ c                                 next experiment
      *          a,//,80('-'))
 1010  format (/,a,1x,a)
 1020  format (/,a,1x,'has ',a,' magnetic transitions')
+1030  format (/,'warning ver502** observation: ',a,/,'has been ',
+     *          'rejected because it has more than one bulk ',
+     *          'composition with zero uncertainty')
 
       end
 
@@ -2373,10 +2461,14 @@ c
 c-----------------------------------------------------------------------
 c a function to evaluate the distance between oberved and candidate 
 c compositions for MC
+c parameters are:
+c     kd - phase indicator
+c     id - experiment number
+c     j  - phase number in experiment
 c-----------------------------------------------------------------------
       include 'perplex_parameters.h'
 
-      integer id, kd, j, l
+      integer id, kd, j, k, l, m
 
       double precision total
 
@@ -2385,16 +2477,41 @@ c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
       total = 0d0
       score = 0d0
-c                                 normalization
+c                                 normalization depends on whether any
+c                                 compositional uncertainty given
       do l = 1, icomp
          total = total + pcomp(l,kd)
-      end do
-c                                 residual
-      do l = 1, icomp
-         score = score + (pcomp(l,kd)/total - 
-     *                    xptc(xptptr(id,j)+l))**2
+         if (xpte(xptptr(id,j)+l).eq.0d0) m = l
       end do
 
+      if (xpterr(id).eq.0) then
+c                                 no uncertainty - calculate residual
+         do l = 1, icomp
+            score = score + (pcomp(l,kd)/total - 
+     *                       xptc(xptptr(id,j)+l))**2
+         end do
+      else if (xpterr(id).eq.icomp) then
+c                                 all have uncertainty - calculate weighted
+c                                 residual
+         do l = 1, icomp
+            k = xptptr(id,j)+l
+            score = score +
+     *         ((pcomp(l,kd)/total - xptc(k)) / xpte(k))**2
+         end do
+      else if (xpterr(id).eq.1) then
+c                                 only one has no uncertainty - normalize
+c                                 to it, calculate weighted residual
+         total = xptc(m) / pcomp(m,kd)
+         do l = 1, icomp
+            if (l.eq.m) cycle
+            k = xptptr(id,j)+l
+            score = score +
+     *         ((pcomp(l,kd)*total - xptc(k)) / xpte(k))**2
+         end do
+      else
+         print *,'**bad score call: id, xpterr',id,xpterr(id)
+         score = 1d99
+      end if
       end
 
       subroutine x2ther (x)
