@@ -763,6 +763,14 @@ c                                 phase name
          read (key,'(a)') tname
 c                                 check name
          call matchj (tname,id)
+         if (id.eq.0) then
+            write(*,1040) tname(1:nblen(tname))
+            do
+               call redcd1(n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+               if (ier.ne.0 .or. key.eq.'end_list') exit
+            end do
+            cycle
+         end if
 
          if (id.lt.0) then
 
@@ -1193,6 +1201,8 @@ c                                 next experiment
 1030  format (/,'warning ver502** observation: ',a,/,'has been ',
      *          'rejected because it has more than one bulk ',
      *          'composition with zero uncertainty')
+1040  format (/,'**warning ver502** parameter ',a,' skipped - ',
+     *          'not a compound or solution',//,80('-'))
 
       end
 
