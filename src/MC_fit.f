@@ -448,7 +448,7 @@ c                                 initialize icount in case of failure
 
             igood = igood + 1
 c                                 compute ss of parameter deviations
-            ssp = 0d0
+            ssp = 1d0
 
             do j = 1, n
 c                                 center "bayesian" score in interval
