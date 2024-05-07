@@ -2480,7 +2480,7 @@ c-----------------------------------------------------------------------
 
       integer id, kd, j, k, l, m
 
-      double precision total
+      double precision total, term
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
@@ -2497,16 +2497,26 @@ c                                 compositional uncertainty given
       if (xpterr(id).eq.0) then
 c                                 no uncertainty - calculate residual
          do l = 1, icomp
-            score = score + (pcomp(l,kd)/total - 
-     *                       xptc(xptptr(id,j)+l))**2
+            term = pcomp(l,kd)/total - xptc(xptptr(id,j)+l)
+            if (term .lt. 1d0) then
+               term = term**2
+            else
+               term = abs(term)
+            end if 
+            score = score + term
          end do
       else if (xpterr(id).eq.icomp) then
 c                                 all have uncertainty - calculate weighted
 c                                 residual
          do l = 1, icomp
             k = xptptr(id,j)+l
-            score = score +
-     *         ((pcomp(l,kd)/total - xptc(k)) / xpte(k))**2
+            term = (pcomp(l,kd)/total - xptc(k)) / xpte(k)
+            if (term .lt. 1d0) then
+               term = term**2
+            else
+               term = abs(term)
+            end if 
+            score = score + term
          end do
       else if (xpterr(id).eq.1) then
 c                                 only one has no uncertainty - normalize
@@ -2515,8 +2525,13 @@ c                                 to it, calculate weighted residual
          do l = 1, icomp
             if (l.eq.m) cycle
             k = xptptr(id,j)+l
-            score = score +
-     *         ((pcomp(l,kd)*total - xptc(k)) / xpte(k))**2
+            term = (pcomp(l,kd)*total - xptc(k)) / xpte(k)
+            if (term .lt. 1d0) then
+               term = term**2
+            else
+               term = abs(term)
+            end if 
+            score = score + term
          end do
       else
          print *,'**bad score call: id, xpterr',id,xpterr(id)
