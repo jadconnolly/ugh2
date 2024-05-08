@@ -2636,11 +2636,13 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical bad, ok, imout(k5), imin(k5), used(k5)
+      logical bad, ok, imout(k5), imin(k5), used(k5), debug 
 
       integer id, jd, ids, i, j, kct(k5), ksol(k5,k5), ibest
 
       double precision x(*), lobj, mpred, obj, score, best, res
+
+      character name*14
 
       external score
 
@@ -2662,6 +2664,8 @@ c-----------------------------------------------------------------------
 
       double precision props,psys,psys1,pgeo,pgeo1
       common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),pgeo1(i8)
+
+      parameter (debug = .false.)
 c-----------------------------------------------------------------------
       do i = 1, nparm
          if (x(i).lt.-1d99.or.x(i).gt.1d99) then
@@ -2702,8 +2706,6 @@ c        call calpr0 (6)
 c                                 compute the observation objective function
          kct(1:xptnph(id)) = 0
 
-         ok = .false. 
-
          imout(1:ntot) = .true.
          used = .false.
          imin(1:mphase) = .false.
@@ -2716,7 +2718,6 @@ c        kct = 0
 
                if (kkp(i).eq.xptids(id,j)) then
 
-                  ok = .true.
                   imout(i) = .false.
 
                   kct(j) = kct(j) + 1
@@ -2737,6 +2738,11 @@ c                                 first extraneous phases:
 c                                 residual is wextra * mass_fraction^2
                lobj = lobj + 
      *                wextra * (props(17,i)*props(16,i)/psys(17))**2
+               if (debug) then
+                  call getnam (name,kkp(i))
+                  print '(i2,2(1x,a),f8.1)',id,'extraneous: ',name,
+     *                wextra * (props(17,i)*props(16,i)/psys(17))**2
+               end if
 
             end if
 
@@ -2807,12 +2813,32 @@ c                                 set used to avoid double counting
 c                                 residual is wextra * mass_fraction^2
                lobj = lobj + wextra * 
      *                      (props(17,jd)*props(16,jd)/psys(17))**2
-
+               if (debug) then
+                  call getnam (name,jd)
+                  print '(i2,2(1x,a),f8.1)',id,'extra phase:',name,
+     *                wextra * (props(17,jd)*props(16,jd)/psys(17))**2
+               end if
             end do
 
          end do
 c                                 missing phase residual
          lobj = lobj + wmiss * (1d0 - mpred/xptnph(id))
+         if (debug .and. int(mpred) .ne. xptnph(id)) then
+            print '(2(i2,1x),a,1x,i2,1x,a,$)',
+     *         id,xptnph(id)-int(mpred),'of',xptnph(id),
+     *         'phases missing:'
+            do j = 1, xptnph(id)
+               if (kct(j).eq.0) cycle
+
+               do i = 1,kct(j)
+                  jd = ksol(j,i)
+                  if (used(jd)) cycle
+                  call getnam(name,kkp(jd))
+                  print '(a,$)',' ',name
+               end do
+            end do
+            print *,wmiss * (1d0 - mpred/xptnph(id))
+         end if
 c                                 accumulate scores
          obj = obj + lobj
 
