@@ -116,7 +116,7 @@ c pspygr - with gray scale fill.
  
       call psolin (rline,width)
       call psoclr
-      call psofil (1)
+      call psrfil (rfill)
       call psotrn
       call psopts (x,y,npts)
  
