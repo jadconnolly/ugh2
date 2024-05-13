@@ -588,7 +588,8 @@ c                                 LP workspace into common
      *               cprng(k5,3,3),sprng(k5,m1,m3,3), wcomp, wextra,
      *               wmiss, oktol, scores(l11), 
 c                                  integer
-     *               mccpd, mcsol, mxpt, cxpt, nparm, nunc, mctrm(k5),
+     *               mccpd, mcsol, mxpt, cxpt, nparm, nunc(2),
+     *               mctrm(k5),
      *               xptids(l11,k5), xptptr(l11,k5), xptnph(l11),
      *               mcid(k5), mcids(k5), msolct(l11,h9), 
      *               msloc(l11,k5), mcpct(k5), mcpid(k5,3),

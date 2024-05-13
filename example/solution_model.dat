@@ -1,0 +1,121 @@
+670 DO NOT DELETE THIS LINE
+
+                             FOR MODEL DEFINITIONS AND REFERENCES REFER TO THE GLOSSARY AT:
+
+                             www.perplex.ethz.ch/perplex_documentation.html#SOLUTION_MODEL_GLOSSARY
+
+                             DO NOT USE TABS IN PERPLE_X DATA FILES, TAB CHARACTERS ARE NOT INTERPRETED AS BLANK SPACES 
+                             AND CAUSE FORMATTING ERRORS.
+
+                             Solution model type flags are:
+
+                             0  - internal (fluid) EoS
+                             1  - simple microscopic formulation (bragg-williams fractions)
+                             2  - simple macroscopic formulation (endmember fractions)
+                             5  - simple macroscopic formulation plus 1 arbitrary dependent endmember
+                             6  - macroscopic formulation with speciation.
+                             7  - macroscopic formulation reciprocal solution with dependent endmembers.
+                             8  - macroscopic formulation reciprocal solution with dependent endmembers and speciation.
+
+                             Special models:
+
+                             23    - Toops-Samis melt model
+                             24    - Holland & Powell Haplogranite melt model 
+                             25    - Ghirso pMELTS/MELTS model
+                             26    - Haefner H2O-CO2-NaCl
+                             27    - Silicate vapor (ideal)
+                             28    - High T silicate melt
+                             29    - BCC Fe-Si alloy, Lacaze & Sundman 1990.
+                             30-33 - FeSiC alloys (BCC/FCC/CBCC/HCP), Lacaze & Sundman 1990.
+                             40    - Silicate fluid (MRK)
+                             41    - COH fluid (hybrid MRK)
+
+                             For non-ideal solutions, microscopic models assume Margules type excess functions; 
+                             macroscopic models may be posed in terms of Margules (See model "Bio(HP)" for a commented
+                             example) or Van Laar (e.g., Holland and Powell, CMP 2003; See model Fsp(C1) for a commented 
+                             example) excess functions. The format of model type 1 is described in detail in the Perple_X 
+                             program documentation (vdoc.pdf).
+                           
+                             The format for all other model types is not yet documented, but may be deduced from the commentary
+                             within the models included herein. Character data is format free in all models except model type 1.
+
+                             comments can be placed between models provided, nothing is written in the first 10 columns. Comments 
+                             may be placed after data if it is separated from the data by a '|' marker.
+                      --------------------------------------------------------
+begin_model                
+                                      olivine solution
+O(fei)                                                                               
+2                                     model type: Margules, macroscopic
+
+2                                     2 endmembers
+fo       fa            
+  0  0                     | endmember flags
+0. 1.0  0.1  0             | subdivision range, imod = 0 -> cartesian subdivision
+
+begin_excess_function
+|W(fo fa)   6322.6 -5.6175 0. |fit
+|W(fa fo)   6322.6 -5.6175 0. |fit
+W(fo fa)   0 0 0              | MC_fit
+|W(fo fa)    500  0   0.01    |Frost
+|W(fa fo)   4000  0   0.01    |Frost
+|W(fo fa)    14400            |Stixrude
+end_excess_function 
+
+1                                     1 site entropy model
+
+2 2.                                  2 species, site multiplicity = 2.
+z(mg) = 1 fo
+
+end_of_model               
+                      --------------------------------------------------------
+begin_model               
+                                    Wadleysite solution
+Wad(fei)                                                                               
+2                          | model type: Margules, macroscopic
+
+2                          | 2 endmembers
+wad       fwad            
+  0  0                     | endmember flags
+0. 1. .1    0              | subdivision range, imod = 0 -> cartesian subdivision
+begin_excess_function
+|W(wad fwad)  17465. -17.2675 0. | fit
+|W(fwad wad)  17465. -17.2675 0. | fit
+W(wad fwad)  0 0 0               | MC_fit
+|W(wad fwad)  1375  0  0         | Frost
+|W(fwad wad) 15000  0  0         | Frost
+|W(wad fwad)  3000               | Stixrude
+end_excess_function 
+
+1                                     1 site entropy model
+
+2 2.                                  2 species, site multiplicity = 2.
+z(mg) = 1 wad
+
+end_of_model               
+                      --------------------------------------------------------
+begin_model                
+                                      Ringwoodite solution
+Ring(fei)                                                                               
+2                                     model type: Margules, macroscopic
+
+2                                     2 endmembers
+ring       fring            
+  0  0                     | endmember flags
+
+0. 1. .1   0               | subdivision range, imod = 0 -> cartesian subdivision
+
+begin_excess_function
+|W(ring fring)  -1871.2 -3.5925 0. |fit
+|W(fring ring)  -1871.2 -3.5925 0. |fit
+W(ring fring)  0 0 0               | MC_fit
+|W(ring fring)  1040  0  0         |Frost
+|W(fring ring)  8320  0  0         |Frost
+|W(ring fring)  7800               |Stixrude
+end_excess_function 
+
+1                                     1 site entropy model
+
+2 2.                                  2 species, site multiplicity = 2.
+z(mg) = 1 ring
+
+end_of_model               

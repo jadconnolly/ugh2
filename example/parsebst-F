@@ -1,0 +1,18 @@
+TC=${1:-1400}
+awk 'BEGIN{TC='${TC}'}
+   NF == 4{obj = 0 + $(NF)
+      for(i=1;i<=NF-1;i++) v[i] = $(i) + 0
+      if (NF == 4) {         # no WT, WV term
+         ALPHA = sprintf("ALPHA W(fo fa) %.1f",v[1])
+         BETA = sprintf("BETA W(wad fwad) %.1f",v[2])
+         GAMMA = sprintf("GAMMA W(ring fring) %.1f 0 0",v[3])
+      } else if (NF == 7) { # WV term
+         ALPHA = sprintf("ALPHA W(fo fa) %.1f 0 %.4f",v[1],v[2])
+         BETA = sprintf("BETA W(wad fwad) %.1f 0 %.4f",v[3],v[4])
+         GAMMA = sprintf("GAMMA W(ring fring) %.1f 0 %.4f",v[5],v[6])
+      } else {
+         print "***Bad .bst file format"
+         exit(1)
+      }
+      printf "%.6g %s, %s, %s\n",obj,ALPHA,BETA,GAMMA
+   }'

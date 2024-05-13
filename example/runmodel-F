@@ -1,0 +1,222 @@
+OLD= APP=_ TC=${1:-1400}
+TK=$(($TC + 273))
+awk 'BEGIN{q="\""; nn=0}
+{obj = $1; rest=$2; for(i=3;i<=NF;i++) rest = rest " " $(i)
+   n = split(rest,v,",")
+   for(i=1;i<=n;i++) {
+      m = split(v[i],f)
+      val = f[2]; for(j=3;j<=m;j++) {
+         if (substr(f[j],1,2) == "W(") ch = "\n"; else ch = " "
+         val = val ch f[j]
+      }
+      if (f[1] == "ALPHA") ALPHA = val
+      if (f[1] == "BETA") BETA = val
+      if (f[1] == "GAMMA") GAMMA = val
+   }
+   fn = sprintf("/tmp/pars%03d",nn++)
+   printf "ALPHA=%s%s%s\n",q,ALPHA,q > fn
+   printf "BETA=%s%s%s\n",q,BETA,q >> fn
+   printf "GAMMA=%s%s%s\n",q,GAMMA,q >> fn
+   print obj,fn
+   close(fn)
+}' | while read obj fn ; do
+#  echo "obj ${obj}; file ${fn}" | cat - ${fn}
+   if [ "${OLD}" = "${obj}" ] ; then
+      APP=$(echo $APP |
+         awk '{n=index("abcdefg",$1); print substr("abcdefg",n+1,1)}')
+      obj="${obj}${APP}"
+   else
+      OLD="${obj}" APP=_
+   fi
+   . ${fn}                   # get solution model values
+   cat << EOF >| MC_solution_model.dat
+670 DO NOT DELETE THIS LINE
+
+                             FOR MODEL DEFINITIONS AND REFERENCES REFER TO THE GLOSSARY AT:
+
+                             www.perplex.ethz.ch/perplex_documentation.html#SOLUTION_MODEL_GLOSSARY
+
+                             DO NOT USE TABS IN PERPLE_X DATA FILES, TAB CHARACTERS ARE NOT INTERPRETED AS BLANK SPACES 
+                             AND CAUSE FORMATTING ERRORS.
+
+                             Solution model type flags are:
+
+                             0  - internal (fluid) EoS
+                             1  - simple microscopic formulation (bragg-williams fractions)
+                             2  - simple macroscopic formulation (endmember fractions)
+                             5  - simple macroscopic formulation plus 1 arbitrary dependent endmember
+                             6  - macroscopic formulation with speciation.
+                             7  - macroscopic formulation reciprocal solution with dependent endmembers.
+                             8  - macroscopic formulation reciprocal solution with dependent endmembers and speciation.
+
+                             Special models:
+
+                             23    - Toops-Samis melt model
+                             24    - Holland & Powell Haplogranite melt model 
+                             25    - Ghirso pMELTS/MELTS model
+                             26    - Haefner H2O-CO2-NaCl
+                             27    - Silicate vapor (ideal)
+                             28    - High T silicate melt
+                             29    - BCC Fe-Si alloy, Lacaze & Sundman 1990.
+                             30-33 - FeSiC alloys (BCC/FCC/CBCC/HCP), Lacaze & Sundman 1990.
+                             40    - Silicate fluid (MRK)
+                             41    - COH fluid (hybrid MRK)
+
+                             For non-ideal solutions, microscopic models assume Margules type excess functions; 
+                             macroscopic models may be posed in terms of Margules (See model "Bio(HP)" for a commented
+                             example) or Van Laar (e.g., Holland and Powell, CMP 2003; See model Fsp(C1) for a commented 
+                             example) excess functions. The format of model type 1 is described in detail in the Perple_X 
+                             program documentation (vdoc.pdf).
+                           
+                             The format for all other model types is not yet documented, but may be deduced from the commentary
+                             within the models included herein. Character data is format free in all models except model type 1.
+
+                             comments can be placed between models provided, nothing is written in the first 10 columns. Comments 
+                             may be placed after data if it is separated from the data by a '|' marker.
+                      --------------------------------------------------------
+begin_model                
+                                      olivine solution
+O(fei)                                                                               
+2                                     model type: Margules, macroscopic
+
+2                                     2 endmembers
+fo       fa            
+  0  0                     | endmember flags
+0. 1.0  0.1  0             | subdivision range, imod = 0 -> cartesian subdivision
+
+begin_excess_function
+${ALPHA}
+end_excess_function 
+
+1                                     1 site entropy model
+
+2 2.                                  2 species, site multiplicity = 2.
+z(mg) = 1 fo
+
+end_of_model               
+                      --------------------------------------------------------
+begin_model               
+                                    Wadleysite solution
+Wad(fei)                                                                               
+2                          | model type: Margules, macroscopic
+
+2                          | 2 endmembers
+wad       fwad            
+  0  0                     | endmember flags
+0. 1. .1    0              | subdivision range, imod = 0 -> cartesian subdivision
+begin_excess_function
+${BETA}
+end_excess_function 
+
+1                                     1 site entropy model
+
+2 2.                                  2 species, site multiplicity = 2.
+z(mg) = 1 wad
+
+end_of_model               
+                      --------------------------------------------------------
+begin_model                
+                                      Ringwoodite solution
+Ring(fei)                                                                               
+2                                     model type: Margules, macroscopic
+
+2                                     2 endmembers
+ring       fring            
+  0  0                     | endmember flags
+
+0. 1. .1   0               | subdivision range, imod = 0 -> cartesian subdivision
+
+begin_excess_function
+${GAMMA}
+end_excess_function 
+
+1                                     1 site entropy model
+
+2 2.                                  2 species, site multiplicity = 2.
+z(mg) = 1 ring
+
+end_of_model               
+EOF
+################################################################################
+   cat << EOF >| MC_trial.dat
+stx08ver.dat      thermodynamic data file                                                                                                   
+no_print | print generates print output
+plot     | no_plot suppresses plot output
+MC_solution_model.dat     solution model file, blank = none                                                                                                                                                                                                        
+Frost (2003) Olivine phase diagram (${obj})
+olivine-KI_popts.dat    computational option file                                                                                                                                                                                                                     
+    5 calculation type: 0 - composition, 1 - Schreinemakers, 3 - Mixed, 4 - gwash, 5 - gridded min, 7 - 1d fract, 8 - gwash 9 - 2d fract, 10 - 7 w/file input
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 number component transformations
+   16 number of components in the data base
+    0 component amounts, 0 - molar, 1 weight
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 05
+    0 ifug EoS for saturated phase
+    2 gridded minimization dimension (1 or 2)
+    0 special dependencies: 0 - P and T independent, 1 - P(T), 2 - T(P)
+    0 0 0 0 0 0     T(P) polynomial coeffs.
+
+begin thermodynamic component list
+MGO   2  2.00000      0.00000      0.00000     molar  amount
+FEO   2  0.00000      2.00000      0.00000     molar  amount
+SIO2  2  1.00000      1.00000      0.00000     molar  amount
+end thermodynamic component list
+
+
+begin saturated component list
+end saturated component list
+
+
+begin saturated phase component list
+end saturated phase component list
+
+
+begin independent potential/fugacity/activity list
+end independent potential list
+
+
+begin excluded phase list
+wus
+per
+q
+coe
+stv
+aki
+faki
+seif
+maj
+perov
+fperov
+ppv
+fppv
+end excluded phase list
+
+
+begin solution phase list
+O(fei)
+Wad(fei)
+Ring(fei)
+end solution phase list
+
+23e4         ${TK}      0.00000000  0.0000      0.0000     max p, t, xco2, u1, u2
+ 3e4         ${TK}      0.00000000  0.0000      0.0000     min p, t, xco2, u1, u2
+ 0.0000      0.0000     0.00000000  0.0000      0.0000     unused place holder post 06
+
+ 1  2  4  5  3   indices of 1st & 2nd independent & sectioning variables
+EOF
+################################################################################
+   (echo MC_trial; echo n) | ../src/vertex
+   (echo MC_trial; echo n; echo olivine-pxpts${TC}.dat) | ../src/pssect
+   cp -f MC_trial.ps /tmp/MC_${TC}_${obj}.ps
+   rm ${fn}
+done

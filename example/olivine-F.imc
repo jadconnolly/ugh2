@@ -1,0 +1,317 @@
+| comments are preceded by the "|" character
+
+| MC_inverter, the mode and expected format of the *.imc file is
+| determined by the following flag:
+
+T      | invxpt, T => invert experimental data, F => inverse thermobarometry
+G F    | random, select Monte Carlo or grid-search
+       | T => new random number generation each time the program is run;
+       | F => for reproducible sequence (e.g., for debugging);
+       | G => grid search over all range; after a blank, T or F means use
+       |      random / reproducible search for minimum to evaluate uncertainty
+
+| Monte-Carlo logistical variables:
+
+5      | ntry, number of starting guesses used to find a best fit model
+5 0    | nunc: 1 or 2 numbers affecting uncertainty evaluation.
+       | 1st number (required), number of iterations to evaluate uncertainities
+       | after minimum found; 2nd number (optional, defaults to zero), number
+       | of subdivisions (n) of P/T uncertainty for each datum to explore for
+       | experiment scoring.  If zero, only P & T of experiment is used to
+       | evaluate a score; if > 0, then uncertainty range is explored in units
+       | of 1/n.  Use a small number here, < 5, or else there will be a
+       | combinatorial explosion..  For a grid search, 2nd number should be
+       | zero for faster searching.
+       | set nunc = 0 to suppress uncertainty evaluation.
+       |
+       | schema to understand how P/T uncertainty affects scoring
+       |
+       |                          P / T
+       |    <--------- -unc ----- value ----- +unc -------->
+       |   |-----|-----...-----|----X----|---...-----|------|
+       | -n/n -(n-1)/n ...   -1/n      +1/n  ... +(n-1)/n +n/n
+       | *unc  *unc          *unc      *unc        *unc   *unc
+       |
+       | For each datum, P or T is given as a nominal value X +/- an uncertainty
+       | (which may be zero).  If unc > 0, and the second nunc value (n) is
+       | also nonzero, then scores at P/T conditions X - 1/n*unc, X + 1/n*unc,
+       | X - 2/n*unc, X + 2/n*unc, ... X - n/n*unc, X + n/n*unc will be made,
+       | with the lowest score taken.  Hence there will be 1 + 2*n minimization
+       | problems solved for each datum.  This explains why n should be small.
+
+       | time cost is proportional to nunc + 1, i.e., the program will
+       | do (nunc + 1) * ntry Nelder-Mead minimizations.
+
+       | Each Nelder-Mead minimization is allowed to do a maximum of kcount
+       | free energy minimization calculations plus a few extra (~10-50) if
+       | the minimum is to be fit to a surface (iquad = 1). I see
+       | little value to the surface fitting, who cares if it's at a true
+       | minimum? The result is still useful if it's better than the other
+       | results.
+
+| Nelder-Mead MINIM algorithm variables
+
+5d6    | oktol, threshold at which a failed minim result will be considered
+       | a legitimate result
+1d-5   | tol, by trial and error
+1d-6   | simplx, trial and error
+0.2    | frac, fractional step size
+10     | conchk, how often to check for convergence
+0      | iprint, 0 => normal print, < 0 => silent, > 0 => verbose
+0      | iquad, 1 => fit surface to minimum, 0 => don't fit
+3000   | kcount, max # of objective evaluations per try, recommended nparm*1024;
+       | ignored for grid-search option
+
+| Nelder-Mead Objective function weights
+
+1d0    | wcomp, compositional residual weight:
+       |    penalty = wcomp * (X[obs]-X[calc])/err[obs]
+1d4    | wextra, extra phase amount residual weight:
+       |    penalty = wextra * (phase mass / system mass)
+1d4    | wmiss, missing phase residual weight
+       |    penalty = wmiss * (# expected - # observed)/(# expected phases)
+
+| endmembers and solutions with free parameters
+
+begin_phase_free_parameters
+|-8628.35     -26098.6     -15051.1      10142.2    | 1st grid search result
+
+O(fei)                           | solution
+W(fo fa)           
+parameter 1  -15e3     0 16      | 1st grid search nunc = 5 0
+|parameter 1 -10e3 -5e3  6        | 2nd refinement: nunc = 0 2; 3rd nunc = 5 5
+
+end_list                         | end of parameter list
+
+Wad(fei)                         | solution
+W(wad fwad)       
+parameter 1 -30e3  -15e3 16      | 1st grid search: nunc = 5 0
+|parameter 1 -28e3 -25e3 4        | 2nd refinement: nunc = 0 2; 3rd nunc = 5 5
+
+end_list                         | end of parameter list
+
+Ring(fei)                        | solution
+W(ring fring)
+parameter 1  -20e3 -10e3 11      | 1st grid search: nunc = 5 0
+|parameter 1  -17e3 -15e3 3       | 2nd refinement: nunc = 0 2; 3rd nunc = 5 5
+
+end_list                         | end of parameter list
+
+end_phase_free_parameters
+
+| These are data from Frost (2003), EPSL v.216, 313-328, Table 2 & Fig. 4.
+| P uncertainty is 0.5 GPa in all cases.  Analytical uncertainty is not given,
+| so estimated to be +/- 1 mol%.  SiO2 uncertainty is zero, indicating that
+| each composition is normalized to SiO2 = 1.  Hence for olivine composition,
+| MgO + FeO = 2.  Bulk composition is midway between reported MgO & FeO
+| compositions.
+begin_exp
+
+ag1400-11.0
+11e4   0.5e4
+1673  0
+
+begin_bulk
+MGO 1.125 0
+FEO 0.875 0
+SIO2 1 0
+end_bulk
+
+O(fei)
+begin_comp
+MGO 1.410 0.020
+FEO 0.590 0.020
+SIO2 1 0
+end_comp
+Ring(fei)
+begin_comp
+MGO 0.840 0.020
+FEO 1.160 0.020
+SIO2 1 0
+end_comp
+
+end_exp
+begin_exp
+
+abg-1-1400-12.5
+12.5e4   0.5e4
+1673  0
+
+begin_bulk
+MGO 1.500 0
+FEO 0.500 0
+SIO2 1 0
+end_bulk
+
+O(fei)
+begin_comp
+MGO 1.626 0.020
+FEO 0.374 0.020
+SIO2 1 0
+end_comp
+
+Wad(fei)
+begin_comp
+MGO 1.394 0.020
+FEO 0.606 0.020
+SIO2 1 0
+end_comp
+
+end_exp
+begin_exp
+
+abg-2-1400-12.5
+12.5e4   0.5e4
+1673  0
+
+begin_bulk
+MGO 1.300 0
+FEO 0.700 0
+SIO2 1 0
+end_bulk
+
+Wad(fei)
+begin_comp
+MGO 1.394 0.020
+FEO 0.606 0.020
+SIO2 1 0
+end_comp
+
+Ring(fei)
+begin_comp
+MGO 1.190 0.020
+FEO 0.810 0.020
+SIO2 1 0
+end_comp
+
+end_exp
+begin_exp
+
+ab1400-12.8
+12.8e4   0.5e4
+1673  0
+
+begin_bulk
+MGO 1.459 0
+FEO 0.541 0
+SIO2 1 0
+end_bulk
+
+O(fei)
+begin_comp
+MGO 1.588 0.020
+FEO 0.412 0.020
+SIO2 1 0
+end_comp
+Wad(fei)
+begin_comp
+MGO 1.330 0.020
+FEO 0.670 0.020
+SIO2 1 0
+end_comp
+
+end_exp
+begin_exp
+
+ab1400-13.0
+13e4   0.5e4
+1673  0
+
+begin_bulk
+MGO 1.600 0
+FEO 0.400 0
+SIO2 1 0
+end_bulk
+
+O(fei)
+begin_comp
+MGO 1.702 0.020
+FEO 0.298 0.020
+SIO2 1 0
+end_comp
+Wad(fei)
+begin_comp
+MGO 1.498 0.020
+FEO 0.502 0.020
+SIO2 1 0
+end_comp
+
+end_exp
+begin_exp
+
+ab1400-14.0
+14e4   0.5e4
+1673  0
+
+begin_bulk
+MGO 1.797 0
+FEO 0.203 0
+SIO2 1 0
+end_bulk
+
+O(fei)
+begin_comp
+MGO 1.848 0.020
+FEO 0.152 0.020
+SIO2 1 0
+end_comp
+Wad(fei)
+begin_comp
+MGO 1.746 0.020
+FEO 0.254 0.020
+SIO2 1 0
+end_comp
+
+end_exp
+begin_exp
+
+ab1400-14.0
+14e4   0.5e4
+1673  0
+
+begin_bulk
+MGO 1.700 0
+FEO 0.300 0
+SIO2 1 0
+end_bulk
+
+O(fei)
+begin_comp
+MGO 1.770 0.020
+FEO 0.230 0.020
+SIO2 1 0
+end_comp
+Wad(fei)
+begin_comp
+MGO 1.630 0.020
+FEO 0.370 0.020
+SIO2 1 0
+end_comp
+
+end_exp
+begin_exp
+
+bg1400-16.0
+16e4   0.5e4
+1673  0
+
+begin_bulk
+MGO 1.582 0
+FEO 0.418 0
+SIO2 1 0
+end_bulk
+
+Wad(fei)
+begin_comp
+MGO 1.662 0.020
+FEO 0.338 0.020
+SIO2 1 0
+end_comp
+Ring(fei)
+begin_comp
+MGO 1.502 0.020
+FEO 0.498 0.020
+SIO2 1 0
+end_comp
+
+end_exp

@@ -71,13 +71,30 @@ c                                 make new seed for random number generator
       ier = index('TtFfGg',key(1:1))
       if (ier.eq.0) stop '***Bad problem type, check random value'
       random(1) = (ier-1)/2
+      if (val.ne.' ') then
+         ier = index('TtFf',val(1:1))
+         if (ier.eq.0) stop '***Bad problem type, check random value'
+         ier = (ier-1)/2
+         random(1) = random(1) + 10*ier
+      end if
 c                                 number of starting guesses used for each
 c                                 Nelder-Meade inverse problem
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
       read (key,*) ntry
 c                                 error evaluation loop counter
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
-      read (key,*) nunc
+      read (key,*) nunc(1)
+      if (val.ne.' ') then
+         read (val,*) nunc(2)
+         if (nunc(2).gt.5) then
+            write(*,'(2a,/,a)')
+     *     '**warning** 2nd nunc value in MC inversion parameter',
+     *     ' is probably too big -','  will slow search; set to 5'
+           nunc(2) = 5
+         end if
+      else
+         nunc(2) = 0
+      end if
 c                                 read Nelder-Meade parameters
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
       read (key,*) oktol
@@ -257,7 +274,7 @@ c----------------------------------------------------------------------
       integer i, conchk, kcount, iprint,
      *        iquad, j, k, ntry
 
-      logical invprb
+      logical invprb, pdat
 
       double precision tol, simplx, frac, bstx(l2+k5), 
      *                 x(200,l2+k5), sx(l2+k5), ss(l2+k5)
@@ -276,13 +293,20 @@ c                                 output of all sucessful optimizations
       x(1,1:nparm) = bstx(1:nparm)
 
       oprt = .false.
+      pdat = .true.
 
-      do i = 1, nunc
+      do i = 1, nunc(1)
 
          call opnimc (invprb,ntry,tol,simplx,frac,conchk,iprint,iquad,
      *                kcount)
+c                                 suppress any grid search at this point
+         if (random(1).ge.2) then
+            random(1) = random(1)/10
+            if (random(1).eq.0 .and. i.eq.1) call random_seed
+            pdat = .false.
+         end if
 
-         call bstmod (.true.,.false.,ntry,tol,simplx,frac,conchk,iprint,
+         call bstmod (pdat,.false.,ntry,tol,simplx,frac,conchk,iprint,
      *                iquad, kcount, bstx)
 
          x(1+i,1:nparm) = bstx(1:nparm)
@@ -323,15 +347,6 @@ c                                 standard deviation
 
       stop
 
-1020  format (/,'Minimization FAILED, ifault = ',i3,', icount = ',i3,/)
-1030  format ('Final coordinates: ',5(g12.6,1x))
-1050  format (/,'Number of function evaluations: ',i5,', igood = ',i3,/)
-1080  format ('Initial normalized coordinates: ',5(g12.6,1x))
-1085  format ('Initial coordinates: ',5(g12.6,1x))
-1100  format (i3,' Successes in ',i4,' tries.')
-1120  format ('ntry = ',i7,', igood = ',i7,', icount = ',i7,
-     *        ', obj = ',g12.6,', ibest = ',i7,', bestobj = ',g12.6)
-
       end 
 
       subroutine bstmod (randm,n6out,ntry,tol,simplx,frac,conchk,iprint,
@@ -368,7 +383,7 @@ c                                 read experimental data and inversion candidate
 c                                 if randm, then experimental data is perturbed within
 c                                 its uncertainty.
       call mcxpt (randm)
-      if (random(1).eq.2) ntry = random(3)-1
+      if (random(1).ge.2) ntry = random(3)-1
 c                                 parameter max - min
       n = 0
 c                                 compounds
@@ -397,7 +412,7 @@ c                                 for each coefficient
 c                                 unscaled step size for search
       step(1:n) = frac*pdelta(1:n)
 c                                 initialize scaled coordinate
-      if (random(1).ne.2) then
+      if (random(1).lt.2) then
          sx(1:n) = 0.5d0
       else
          sx(1:n) = 0d0
@@ -430,12 +445,12 @@ c                                 unscale sx
 c                                 initialize icount in case of failure
          icount = 0
 
-         if (random(1).ne.2) then
+         if (random(1).ge.2) then
+            ifault = 0
+         else
             call minim (x, step, n, objf, kcount, iprint, tol, 
      *               conchk, iquad, simplx, var, mcobj2, icount, 
      *               ifault, oktol)
-         else
-            ifault = 0
          end if
 
          call mcobj2 (x,objf,bad)
@@ -475,7 +490,7 @@ c                                 save max likelihood result
                bstvar = var
             end if
 
-            if (random(1).eq.2) then
+            if (random(1).ge.2) then
                write (*,'(a,i7,1h/,i7,1x,a,2(1x,1pg12.6),a,$)')
      *            'Try',i,random(3),'best:',bstobj,bstbay,char(13)
             else
@@ -488,7 +503,7 @@ c                                 save max likelihood result
             end if
 
             if (n6out .and.
-     *         (random(1).ne.2 .or. i.eq.ibest .or. i.eq.jbest)
+     *         (random(1).lt.2 .or. i.eq.ibest .or. i.eq.jbest)
      *      ) then
 
                write (n6,1120) i, igood, icount, objf, bstobj, ibest
@@ -508,7 +523,7 @@ c                                 save max likelihood result
 
          end if
 
-         if (random(1).ne.2) then
+         if (random(1).lt.2) then
 c                               new random starting point
             do j = 1, n
                call random_number (sx(j))
@@ -996,7 +1011,7 @@ c                                 for each term
       if (nparm.eq.0) call errdbg ('no free parameters! no free lunch!')
 
 c                                 if grid search, set up counts
-      if (random(1).eq.2) then
+      if (random(1).ge.2) then
          ngrid = 1
          do i = 1, mccpd
             ngrid = ngrid*nint(cprng(i,mcpct(i),3))
@@ -2656,8 +2671,6 @@ c-----------------------------------------------------------------------
 
       external xptscr
 
-      parameter (neg = 2)
-
 c-----------------------------------------------------------------------
       do i = 1, nparm
          if (abs(x(i)).gt.1d99) then
@@ -2666,6 +2679,7 @@ c-----------------------------------------------------------------------
             return
          end if
       end do
+      neg = nunc(2)
 c                                 map the search coordinates to thermodynamic
 c                                 parameters
       call x2ther (x)
@@ -2692,8 +2706,11 @@ c                                 get score for this p, t, x
          value = xptscr(id)
 c                                 if a missing or extra phase, widen search
 c                                 within p, t uncertainty range
-         if ((xptpt(id,3).ne.0d0 .or. xptpt(id,4).ne.0d0) .and.
-     *       value.gt.wmiss .or. value.gt.wextra/xptnph(id)) then
+         if (
+     *       neg.gt.0 .and.
+     *       (xptpt(id,3).ne.0d0 .or. xptpt(id,4).ne.0d0) .and.
+     *       value.gt.wmiss .or. value.gt.wextra/xptnph(id)
+     *   ) then
             do i = 1, neg
                if (xptpt(id,3).ne.0d0) then
                   call mcstb2 (id, -i, 0, neg)
