@@ -1835,6 +1835,8 @@ c                                 default for fractionation is isochemical
 c                                 bulk, may be changed by varich.
          icont = 1
 
+         if (icopt.eq.9) icopt = 11
+
          if (readyn()) then
 
             fileio = .true.

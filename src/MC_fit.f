@@ -318,9 +318,9 @@ c                                 standard deviation
 1050  format (/,'Number of function evaluations: ',i5,', igood = ',i3,/)
 1080  format ('Initial normalized coordinates: ',5(g12.6,1x))
 1085  format ('Initial coordinates: ',5(g12.6,1x))
-1100  format (i3,' Successes in ',i4,' tries.')
-1120  format ('ntry = ',i3,', igood = ',i3,', icount = ',i3,
-     *        ', obj = ',g12.6,', ibest = ',i3,', bestobj = ',g12.6)
+1100  format (i3,' Successes in ',i5,' tries.')
+1120  format ('ntry = ',i5,', igood = ',i3,', icount = ',i3,
+     *        ', obj = ',g12.6,', ibest = ',i5,', bestobj = ',g12.6)
 
       end 
 
@@ -463,7 +463,7 @@ c                                 save max likelihood result
                write (n6,1130) ssp, bay, bstbay, jbest
                write (n6,1085) x0(1:n)
                write (n6,1030) x(1:n)
-               write (n6,'(/,a,i3,a,/)') 'Scores for try = ',i,
+               write (n6,'(/,a,i5,a,/)') 'Scores for try = ',i,
      *                                   ' follow:'
                do id = 1, mxpt
                   write (n6,'(i3,1x,a,g12.6,1x)') 
@@ -494,20 +494,20 @@ c                               write best model to *.bst
       if (n6out) close (n6)
 
 1020  format (/,'Minimization FAILED, ifault = ',i3,', icount = ',i4,
-     *          ', ntry = ',i4,', igood = ',i4,/)
+     *          ', ntry = ',i5,', igood = ',i4,/)
 1030  format ('Final coordinates: ',20(g12.6,1x))
 1050  format (/,'Number of function evaluations: ',i5,', igood = ',i3,/)
 1080  format ('Initial normalized coordinates: ',20(g12.6,1x))
 1085  format ('Initial coordinates: ',20(g12.6,1x))
-1120  format (/,'Try ',i3,', successes so far = ',i3,/,
+1120  format (/,'Try ',i5,', successes so far = ',i3,/,
      *          'Objective function evaluations this try = ',i4,/,
      *          'Last objective function value this try OBJ = ',g12.6,/,
      *          'Best OBJ so far = ',g12.6,
-     *          ' obtained on try ',i3,/)
+     *          ' obtained on try ',i5,/)
 1130  format (/,'Scaled parameter SSP = ',g12.6,/,
      *          'Bayes score SSP * OBJF = ',g12.6,/,
      *          'Best Bayes score so far = ',g12.6,
-     *          ' obtained on try ',i3,/)
+     *          ' obtained on try ',i5,/)
 
       end 
 
