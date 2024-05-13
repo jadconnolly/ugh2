@@ -646,14 +646,14 @@ c-----------------------------------------------------------------------
 
       logical ok, bad, randm, done
 
-      integer i, j, k, nph, ier, id, ids
+      integer i, j, k, nph, ier, id, ids, nblen
 
       double precision err, pertrb, tot
 
       character key*22, val*3, nval1*12, nval2*12, nval3*12,
      *          strg*40, strg1*40, char*1
 
-      external pertrb
+      external pertrb, nblen
 
       integer jspec
       common/ cxt8 /jspec(h9,m4)
@@ -713,6 +713,14 @@ c                                 phase name
          read (key,'(a)') tname
 c                                 check name
          call matchj (tname,id)
+         if (id.eq.0) then
+            write(*,1040) tname(1:nblen(tname))
+            do
+               call redcd1(n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+               if (ier.ne.0 .or. tname.eq.'end_list') exit
+            end do
+            cycle
+         end if
 
          if (id.lt.0) then
 
@@ -1060,6 +1068,8 @@ c                                 next experiment
 1000  format (/,'warning ver502** observation: ',a,/,'has been rejecte',
      *          'd because it includes a component not specified in: ',
      *          a,//,80('-'))
+1040  format (/,'warning ver502** parameter ',a,' skipped -',/,
+     *          'not a compound or solution')
 
       end
 
