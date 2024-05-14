@@ -18,13 +18,13 @@ Hence there are 3 parameters to be determined, symmetric Margules coefficients
 for each solid solution.
 
 The file olivine-F.imc is the MC_fit input.  It references the file
-olivine-F.dat, which, in turn, references stx08ver.dat and solution_model.dat.
-The target parameters affec the solution models O(fei), Wad(fei) and Ring(fei),
-and, so, in solution_model.dat, the W values are zero.  Frost's (2003)
-experimental results were turned into MC_fit input by digitizing the data
-given in Fig. 4 and normalizing all compositions to 1 SiO2 molecule; hence the
-uncertainty for SiO2 is zero.  This feature (zero uncertainty) causes MC_fit to
-recast any calculated compositions to moles of SiO2 = 1, and hence all
+olivine-F.dat, which, in turn, references stx08ver.dat, solution_model.dat, and
+olivine-F_popts.dat.  The target parameters involve the solution models O(fei),
+Wad(fei) and Ring(fei), and, so, in solution_model.dat, the W values are zero.
+Frost's (2003) experimental results were turned into MC_fit input by digitizing
+the data given in Fig. 4 and normalizing all compositions to 1 SiO2 molecule;
+hence the uncertainty for SiO2 is zero.  This feature (zero uncertainty) causes
+MC_fit to recast any calculated compositions to moles of SiO2 = 1, and hence all
 uncertainty is in MgO and FeO analyses.  The bulk composition is faked to lie
 midway between the analyzed MgO and FeO values and so has no associated
 uncertainty.  MC_fit, in its present form, does nothing with the bulk
@@ -34,7 +34,9 @@ Since the T for each experiment is fixed, its uncertainty is 0.  Frost (2003)
 suggests P uncertainty is 0.5 GPa.  The scatter of the data, given the Stixrude
 EOS, shows that 0.5 GPa is probably an underestimate; some data points are
 mutually inconsistent.  The pssect plot annotation file, olivine-pxpts1400.dat,
-contains the data points in the format they can be included in a plot.
+contains the data points in the format they can be included in a plot. The
+file olivine-F_popts.dat contains computational options used by MC_fit and
+vertex that affect the EOS used and the P and X resolution.
 
 The first run is a relatively coarse search over the likely set of values.
 To make it fast, nunc = 5 0, which causes no extra objective function
