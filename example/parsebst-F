@@ -1,6 +1,7 @@
 TC=${1:-1400}
 awk 'BEGIN{TC='${TC}'}
-   NF == 4{obj = 0 + $(NF)
+   NF == 4 || NF == 7{
+      obj = 0 + $(NF)
       for(i=1;i<=NF-1;i++) v[i] = $(i) + 0
       if (NF == 4) {         # no WT, WV term
          ALPHA = sprintf("ALPHA W(fo fa) %.1f",v[1])
@@ -15,4 +16,9 @@ awk 'BEGIN{TC='${TC}'}
          exit(1)
       }
       printf "%.6g %s, %s, %s\n",obj,ALPHA,BETA,GAMMA
+      next
+   }
+   NF != 3 && NF != 6{
+      print "***Bad .bst file format"
+      exit(1)
    }'
