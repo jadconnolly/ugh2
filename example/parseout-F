@@ -1,0 +1,26 @@
+TC=${1:-1400}
+awk 'BEGIN{TC='${TC}'}
+   /^Try /{ntry = substr($0,4,4)}
+   /^Last objective/{obj = 0 + $(NF)}
+   /^Final coordinates:/{
+      for(i=3;i<=NF;i++) v[i-2] = $(i) + 0
+      if (NF == 8) {         # no WS term
+         ALPHA = sprintf("ALPHA W(fo fa) %.1f 0 %.4f",v[1],v[2])
+         BETA = sprintf("BETA W(wad fwad) %.1f 0 %.4f",v[3],v[4])
+         GAMMA = sprintf("GAMMA W(ring fring) %.1f 0 %.4f",v[5],v[6])
+      } else if (NF == 11) { # WS term
+         ALPHA = sprintf("ALPHA W(fo fa) %.1f %.2f %.4f",v[1],v[2],v[3])
+         BETA = sprintf("BETA W(wad fwad) %.1f %.2f %.4f",v[4],v[5],v[6])
+         GAMMA = sprintf("GAMMA W(ring fring) %.1f %.2f %.4f",v[7],v[8],v[9])
+      } else if (NF == 5) { # no WS,WV term
+         ALPHA = sprintf("ALPHA W(fo fa) %.1f",v[1])
+         BETA = sprintf("BETA W(wad fwad) %.1f",v[2])
+         GAMMA = sprintf("GAMMA W(ring fring) %.1f",v[3])
+      } else {
+         print "***Bad .out file format"
+         exit(1)
+      }
+     #if (obj < 1000) {
+         printf "%.6g %s, %s, %s\n",obj,ALPHA,BETA,GAMMA
+     #}
+   }'

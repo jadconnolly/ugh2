@@ -664,6 +664,7 @@ BP002.dat
 maxkcmas_auto_refine.txt
 
 *.txt
+!example/README.txt
 
 fort.7
 

@@ -2867,6 +2867,37 @@ c                                 fugacities.
   
       end
 
+      function csrkp(xi)
+c-----------------------------------------------------------------------
+c subroutine to help calculate the CSRK volumes using Newton-Raphson
+
+      implicit none
+
+      double precision p,t,xco2,u1,u2,tr,pr,rbar,ps
+      common/ cst5  /p,t,xco2,u1,u2,tr,pr,rbar,ps
+
+      double precision csrkp, xi, num, den
+
+      double precision frtob, faost, brtsqt, a8, fosqtb
+      common/ csrkcm /frtob, faost, brtsqt, a8, fosqtb
+
+      num =  p
+     *    - frtob*xi/(1.d0-xi)**3 * (1.d0 + xi + xi**2 - xi**3)
+     *    + faost*xi**2/(1.d0+4.d0*xi)
+
+      den = -fosqtb/((4.d0*xi+1.d0)**2 * (xi-1.d0)**4) * (
+     *    brtsqt*(
+     *       16.d0*xi**6 - 56.d0*xi**5 + 33.d0*xi**4 + 92.d0*xi**3 +
+     *       52.d0*xi**2 + 12.d0*xi + 1.d0
+     *    )
+     *    - a8*xi*(
+     *       2.d0*xi**5 - 7.d0*xi**4 + 8.d0*xi**3 - 2.d0*xi**2 -
+     *       2.d0*xi + 1.d0
+     *    )
+     *)
+      csrkp = -num / den
+      end
+
       subroutine mrkpur (ins, isp)
 c-----------------------------------------------------------------------
 c subroutine to calculate the log fugacities and volume of single
@@ -2910,8 +2941,9 @@ c-----------------------------------------------------------------------
  
       double precision f(nsp),ev(3),dsqrtt,rt,
      *                 d1,d2,d4,bx,v1,v2,aij,c1,c2,c3,pdv,r
+      double precision csrkp,hserh2,xi,gt,z,gam
 
-      integer ins(*), isp, k, iroots, i, ineg, ipos 
+      integer ins(*), isp, k, iroots, i, ineg, ipos, j
  
       double precision p,t,xco2,u1,u2,tr,pr,rbar,ps
       common/ cst5  /p,t,xco2,u1,u2,tr,pr,rbar,ps
@@ -2927,6 +2959,9 @@ c-----------------------------------------------------------------------
 
       double precision a, b
       common/ rkab /a(nsp),b(nsp)
+
+      double precision frtob, faost, brtsqt, a8, fosqtb
+      common/ csrkcm /frtob, faost, brtsqt, a8, fosqtb
  
       save r
                              
@@ -2944,42 +2979,69 @@ c----------------------------------------------------------------------
          aij = a(i)
          bx = b(i)
 
-         c1 = -rt/p
-         c3 = -aij*bx/p/dsqrtt
-         c2 = c1*bx + aij/dsqrtt/p - bx*bx
-c                                 v2 is the max root, v1 the min
-         call roots3 (c1,c2,c3,ev,v1,v2,iroots,ineg,ipos)
+         if (i .eq. 5) then
+c           CSRK for H2 (taking out 10xR factor in RT)
+            frtob = 0.4*rt/bx
+            faost = 16.d0*aij/(dsqrtt*bx**2)
+            brtsqt = bx*rt*dsqrtt/10.d0
+            fosqtb = 4.d0/(dsqrtt*bx**2)
+            a8 = 8.d0*aij
+            xi = 0.5d0
+            z = 1.d0
+            do j = 1,50
+               if (abs(z) .le. 1e-9) exit
+               z = csrkp(xi)
+               xi = min(0.7404d0, max(0.d0, xi + z))
+            end do
+            if (j.ge.50) xi = 0.7404d0
+            v(i) = bx/(4.d0*xi)
+            z = 10.d0*p*v(i)/rt
+            gam = z - 3.d0 - dlog(z) - (xi**2 - 2.d0)/(1.d0 - xi)**2 -
+     *            aij/brtsqt * dlog(4*xi + 1.d0)
+c           RT log(gamma*p): volume part only
+c           f(i) = gam + dlog(p)
+c           G(T)/RT + log(gamma*p): no caloric & volume data in thermo data file
+            gt = hserh2(t)
+            f(i) = 1d1*gt/rt + gam + dlog(p)
+         else
 
-         if (iroots.eq.3.and.ineg.eq.0.and.v1.gt.bx) then
+            c1 = -rt/p
+            c3 = -aij*bx/p/dsqrtt
+            c2 = c1*bx + aij/dsqrtt/p - bx*bx
+c                                 v2 is the max root, v1 the min
+            call roots3 (c1,c2,c3,ev,v1,v2,iroots,ineg,ipos)
+
+            if (iroots.eq.3.and.ineg.eq.0.and.v1.gt.bx) then
 c                                choose the root with lowest gibbs energy
 c                                by evaluating p*delta(v) - int(pdv)
-            pdv = p*(v2-v1) - 
+               pdv = p*(v2-v1) - 
      *            dlog((v2-bx)/(v1-bx))  * rt - 
      *            dlog((v2+bx)/(bx+v1)*v1/v2) * aij/bx/dsqrtt
 
-           if (pdv.gt.0d0) then
-              vol = v1
-           else 
-              vol = v2
-           end if 
+              if (pdv.gt.0d0) then
+                 vol = v1
+              else 
+                 vol = v2
+              end if 
 
-         else if (iroots.eq.3) then
+            else if (iroots.eq.3) then
 
-            vol = v2
+               vol = v2
 
-         else
+            else
 c                                 assume only one positive real root,
 c                                 could check for no positive or 2 positive
-            vol = ev(ipos)
+               vol = ev(ipos)
 
-         end if
+            end if
 c                                 compute fugacities.
-         d1 = vol + bx
-         d2 = dlog(d1/vol)
-         d4 = vol - bx
+            d1 = vol + bx
+            d2 = dlog(d1/vol)
+            d4 = vol - bx
 
-         v(i) = vol
-         f(i) = bx/d4 - (1d0/d1 + d2/bx)*aij/rt/dsqrtt + dlog(rt/d4)
+            v(i) = vol
+            f(i) = bx/d4 - (1d0/d1 + d2/bx)*aij/rt/dsqrtt + dlog(rt/d4)
+         end if
 
          if (i.lt.3) fg(i) = f(i)
          g(i) = dexp(f(i))/p 
@@ -5869,7 +5931,7 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
  
-      double precision brk(nsp), ark(nsp)
+      double precision brk(nsp), ark(nsp), tc, pc
 
       integer ins(*), isp, i, k
 
@@ -5940,7 +6002,7 @@ c                                 see mrk_water.mws.
 c                                 MRK dispersion term for CO2
             a(2) =  92935540d0 + t*(-82130.73d0 + 21.29d0*t)
 
-c         else if (i.eq.5) then 
+         else if (i.eq.5) then 
 c                                 MRK fit to NIS table for H2 at 10 kbar
 c                                 400-1000 K.
 c            b(5) = 12.81508162d0
@@ -5948,6 +6010,12 @@ c            a(5) = 0.391950132949994654D8
 c     *           + t * (-0.881231157499978144D5) 
 c     *           + t**2 * 0.890185987380923081D2 
 c     *           + t**3 * (-0.286881183333320412D-1)
+c           CSRK parameters for H2 fitting data of Presnall (1969)
+            tc = 41.2d0
+            pc = 21.1d0
+            b(5) = 1.533943d0 * tc/pc * (tc/t)**(3d0/18d0)
+            a(5) = (10.2277d0*tc + 10.7632d0*t - 561.2307d0*tc**2/t) *
+     *             tc**1.5/pc
 
 
          else if (i.eq.14) then 
