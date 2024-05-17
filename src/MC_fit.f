@@ -713,13 +713,18 @@ c                                 phase name
          read (key,'(a)') tname
 c                                 check name
          call matchj (tname,id)
+
          if (id.eq.0) then
+
             write(*,1040) tname(1:nblen(tname))
+
             do
                call redcd1(n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
                if (ier.ne.0 .or. tname.eq.'end_list') exit
             end do
+
             cycle
+
          end if
 
          if (id.lt.0) then
