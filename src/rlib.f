@@ -12006,6 +12006,13 @@ c-----------------------------------------------------------------------
       double precision x3, caq
       common/ cxt16 /x3(k5,h4,mst,msp),caq(k5,l10),na1,na2,na3,nat,kd
 
+      integer kkp,np,ncpd,ntot
+      double precision cp3,amt
+      common/ cxt15 /cp3(k0,k19),amt(k19),kkp(k19),np,ncpd,ntot
+
+      integer iam
+      common/ cst4 /iam
+
       save badct
       data badct/0/
 c----------------------------------------------------------------------
@@ -12031,7 +12038,14 @@ c                                 values
 
          end do
 
+      else if (iam.eq.1) then 
+c                                 fractionation with simple back-calc
+         do i = 1, ns
+            ysp(i,jd) = pa3(jd,i)
+         end do
+
       end if
+
 c                                 set feos = .true. because can't be
 c                                 sure that the last solvent calculation was
 c                                 at the present p-t condition.
@@ -12061,6 +12075,31 @@ c                                 back calculated bulk composition
          return
 
       end if
+
+      if (iam.eq.1) then
+c                                 aqrxdo is being called by VERTEX this is only done
+c                                 for fractionation calculations when lagged speciation is
+c                                 off. In this case AQRXDO computes a 
+c                                 pseudo composition by simple back-calculation
+c                                 to be fractionated. The resulting calculations
+c                                 will not conserve mass, additionally all other
+c                                 phase properties will be those of the pure solvent.
+
+c                                 want molar composition in units of moles/mol-solvent-species
+c                                 cp3(j,jd) is already loaded with solvent composition
+c                                 msol is the mass of 1 mole of pure solvent computed 
+c                                 by slvnt3, ergo
+         do i = 1, aqct
+c                                 total solute molality
+            do j = 1, kbulk
+               cp3(j,jd) = cp3(j,jd) + msol*mo(i)*aqcp(j,i)
+            end do
+
+         end do
+
+         return
+
+      end if
 c                                 compute charge balance error
       err = 0d0
 
@@ -12069,12 +12108,10 @@ c                                 compute charge balance error
       end do
 c                                 neutral pH
       ph0 = -lnkw/2d0/2.302585d0
-
-      do i = 1, kbulk
-         blk(i) = 0d0
-      end do
 c                                 total molality
       smot = 0d0
+
+      blk(1:kbulk) = 0d0
 c                                 compute mole fractions, total moles first
       do i = 1, ns
 c                                 moles/kg-solvent
@@ -12644,7 +12681,7 @@ c                                 no solution model found:
 c                                 turn off lagged speciation just to be sure
          lopt(32) = .false.
 
-        if (.not.lopt(25)) aqct = 0
+         if (.not.lopt(25)) aqct = 0
 
 c                                 else look for H2O
          do i = 1, ipoint
@@ -12677,6 +12714,28 @@ c                                refine_endmembers to true.
          end if 
 
       end if
+
+      if (lopt(67).and.icopt.gt.6) then
+
+         if (aqct.eq.0) then
+            lopt(25) = .false.
+            lopt(67) = .false.
+         end if
+c                                aq_fractionation_simpl is T, then for 
+c                                fractionation calculations shut off 
+c                                lagged speciation
+         if (lagged.and.lopt(67)) then
+
+            call warn (99,0d0,0,'aq_lagged_speciation is inconsistent w'
+     *            //'ith aq_fractionation_simple and will be disabled'//
+     *              ' (AQIDST)')
+
+            if (lopt(56)) call wrnstp
+
+         end if
+
+      end if
+
 c                                open a bad point file for lagged and
 c                                back-calculated speciation calculations
       if (lagged.and.iam.le.2) then

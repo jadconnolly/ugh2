@@ -3578,6 +3578,9 @@ c                                 do fractionation
 c                                 the phase to be fractionated
 c                                 is present, remove from bulk
                      there(i) = .true.
+c                                 simple back calculated speciation
+c                                 is being used for fractionation:
+                     if (lopt(67)) call aqrxdo (j,-1)
 
                      if (amt(j).lt.0d0) amt(j) = 0d0
 

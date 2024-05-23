@@ -36,9 +36,9 @@ c----------------------------------------------------------------------
       integer n
 
       write (n,'(/,a,//,a)') 
-     *     'Perple_X release 7.1.6, Jan 21, 2024.',
+     *     'Perple_X release 7.1.7b May 23, 2024.',
 
-     *     'Copyright (C) 1986-2023 James A D Connolly '//
+     *     'Copyright (C) 1986-2024 James A D Connolly '//
      *     '<www.perplex.ethz.ch/copyright.html>.'
 
       end
@@ -568,6 +568,8 @@ c                                 fluid_shear_modulus
       lopt(65) = .true.
 c                                 compute_FD_increments for MINFRC
       lopt(66) = .false.
+c                                 aq_fractionation_simpl
+      lopt(67) = .true.
 c                                 phi_d
       nopt(65) = 0.36
 c                                 initialize mus flag lagged speciation
@@ -646,6 +648,10 @@ c                                 phase composition key
          else if (key.eq.'aq_lagged_speciation') then 
 
             if (val.eq.'T') lopt(32) = .true.
+
+         else if (key.eq.'aq_fractionation_simpl') then 
+
+            if (val.eq.'F') lopt(67) = .false.
 
          else if (key.eq.'aq_oxide_components') then 
 
@@ -1902,7 +1908,7 @@ c                                 generic thermo parameters:
      *                  nopt(12),nopt(20),lopt(8),lopt(4),nopt(5),
      *                  iopt(21),nopt(10),lopt(63),
      *                  iopt(25),iopt(26),iopt(27),
-     *                  lopt(32),lopt(44),lopt(36),lopt(46),
+     *                  lopt(32),lopt(67),lopt(44),lopt(36),lopt(46),
      *                  nopt(38),nopt(34)
 c                                 for meemum add fd stuff
          if (iam.eq.2) write (n,1017) nopt(31),nopt(26),nopt(27)
@@ -2054,6 +2060,7 @@ c                                 generic thermo options
      *        4x,'hybrid_EoS_CO2          ',i1,9x,'[4] 0-4, 7',/,
      *        4x,'hybrid_EoS_CH4          ',i1,9x,'[0] 0-1, 7',/,
      *        4x,'aq_lagged_speciation    ',l1,9x,'[F] T',/,
+     *        4x,'aq_fractionation_simple ',l1,9x,'[T] F',/,
      *        4x,'aq_ion_H+               ',l1,9x,'[T] F => use OH-',/,
      *        4x,'aq_oxide_components     ',l1,9x,'[F] T',/,
      *        4x,'aq_solvent_solvus       ',l1,9x,'[T] F',/,

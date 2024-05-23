@@ -704,7 +704,7 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical ok, bad, randm, done
+      logical ok, bad, randm, done, eof
 
       integer i, j, k, nph, ier, id, ids, nblen
 
@@ -1068,7 +1068,7 @@ c                                read name
 
          xptnam(mxpt) = key
 c                               read expt p,t, save any error
-         call rdstrg (n8,i,str,ier)
+         call rdstrg (n8,i,str,eof)
 
          read (str(1),*) xptpt(mxpt,1)
          read (str(2),*) err
@@ -1076,7 +1076,7 @@ c                               read expt p,t, save any error
 
          if (randm) xptpt(mxpt,1) = pertrb (xptpt(mxpt,1),err)
 
-         call rdstrg (n8,i,str,ier)
+         call rdstrg (n8,i,str,eof)
 
          read (str(1),*) xptpt(mxpt,2)
          read (str(2),*) err
