@@ -763,7 +763,7 @@ c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
       if (iopt(2).eq.1) then
          write (*,*) 'resetting composition_phase option to mol'
-         iopt(2) = 0d0
+         iopt(2) = 0
       end if
 c                                 read solutions and compounds to be perturbed
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
