@@ -129,6 +129,9 @@ c-----------------------------------------------------------------------
 c----------------------------------------------------------------------- 
 c                                 iam is a flag indicating the Perple_X program
       iam = 4
+c                                 perplexwrap.f flags
+      getInput = .true.
+      sWarn = .false.
 c                                 version info
       call vrsion (6)
 c                                 initialize strings (necessary for some OS). 

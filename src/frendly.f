@@ -54,6 +54,9 @@ c------------------------------------------------------------------------
 c----------------------------------------------------------------------- 
 c                                 iam flag indicates the Perple_X program
       iam = 5
+c                                 perplexwrap.f flags
+      getInput = .true.
+      sWarn = .false.
 c                                 version info
       call vrsion (6)
 c                                 assign data files
