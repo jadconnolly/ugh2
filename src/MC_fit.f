@@ -513,8 +513,14 @@ c                                 save max likelihood result
                write (n6,'(/,a,i7,a,/)') 'Scores for try = ',i,
      *                                   ' follow:'
                do id = 1, mxpt
-                  write (n6,'(i3,1x,a,g12.6,1x)') 
-     *                   id, xptnam(id)//' score =',scores(id)
+                  if (xptpt(id,5).eq.1d0) then
+                     write (n6,1010)
+     *                   id, xptnam(id),' score =',scores(id)
+                  else
+                     write (n6,1010)
+     *                   id, xptnam(id),' score =',scores(id),
+     *                   xptpt(id,5)
+                  end if
                end do
 
                write (n6,'(/80(''-''))')
@@ -541,6 +547,7 @@ c                               new grid search point
 
       end do
 c                               print residuals for best model
+      if (random(1).ge.2) write(*,*)
       x(1:n) = bstx(1:n)
       oprt = .true.
 c                               write best model to *.bst
@@ -550,6 +557,7 @@ c                               write best model to *.bst
 
       if (n6out) close (n6)
 
+1010  format (i3,1x,2a,g12.6,:,3h * ,g8.3)
 1020  format (/,'Minimization FAILED, ifault = ',i3,', icount = ',i4,
      *          ', igood = ',i4,', ntry = ',i7,/)
 1030  format ('Final coordinates: ',20(1pg13.6,1x))
@@ -846,7 +854,7 @@ c                                 read parameter range and grid search count
                read (strg1,*,iostat=ier) err,err,
      *                        cprng(mccpd,mcpct(mccpd),3)
                if (ier.ne.0)  cprng(mccpd,mcpct(mccpd),3) = 2d0
-               if (cprng(mccpd,mcpct(mccpd),3).le.2d0) 
+               if (cprng(mccpd,mcpct(mccpd),3).le.0d0) 
      *                        cprng(mccpd,mcpct(mccpd),3) = 2d0
 
             end do
@@ -976,7 +984,7 @@ c                                 read the coefficient range and grid numbers
      *               = 2d0
                   if (
      *           sprng(mcsol,mctrm(mcsol),mccoef(mcsol,mctrm(mcsol)),3)
-     *               .le.1d0)
+     *               .le.0d0)
      *           sprng(mcsol,mctrm(mcsol),mccoef(mcsol,mctrm(mcsol)),3)
      *               = 2d0
 
@@ -1077,6 +1085,9 @@ c                               read expt p,t, save any error
          read (str(2),*) err
          xptpt(mxpt,4) = err
 
+c                               weight
+         xptpt(mxpt,5) = 1d0
+
          if (randm) xptpt(mxpt,2) = pertrb (xptpt(mxpt,2),err)
 c                               read bulk composition
          call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
@@ -1106,6 +1117,17 @@ c                               read bulk composition
             if (randm) xptblk(mxpt,i) = pertrb (xptblk(mxpt,i),err)
 
          end do
+
+c                                 read optional weight
+         call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+
+         if (ier.eq.0 .and. key.eq.'weight') then
+            read (val, *, iostat=ier) xptpt(mxpt,5)
+            if (ier.ne.0 .or. xptpt(mxpt,5).lt.0d0)
+     *         call errdbg ('bad weight: '//val)
+         else
+            backspace(n8)
+         end if
 
          nph = 0
          ok = .true.
@@ -2733,7 +2755,7 @@ c                                 within p, t uncertainty range
 
          scores(id) = value
 
-         obj = obj + value
+         obj = obj + value*xptpt(id,5)
 
 c        write (*,'(i3,1x,2(g12.6,1x,a))') id, value, xptnam(id)
 
