@@ -938,7 +938,7 @@ c                                 margules, try match on jth term
               
                if (.not.ok) then
 c                                term does not exist in solution model
-                  print*,'term does not exist'
+                  print*,(chars(i),i=1,com),'term does not exist'
                   cycle 
                end if
 c                                the term exists:
@@ -1079,7 +1079,8 @@ c                                 Redlich-Kister names always pairwise
 c                                 Margules names depend on order of solution
                   strg = ' '
                   do k = 1, rko(j,id)
-                     strg(1+nblen(strg):) = ' ' // names(jend(id,2+k))
+                     strg(1+nblen(strg):) = ' ' //
+     *               names(jend(id,2+jsub(k,j,id)))
                   end do
                   strg = strg(2:)
                else if (extyp(id).eq. 2) then
