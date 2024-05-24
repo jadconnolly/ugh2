@@ -1072,7 +1072,9 @@ c                                 grunt work to count and name the term
 c                                 echo parameters to output
                if (extyp(id).eq.1) then
 c                                 Redlich-Kister names always pairwise
-                  strg = names(jend(id,2+1))//' '//names(jend(id,2+2))
+                  k = jend(id,2+1)
+                  strg = names(k)(1:nblen(names(k))) //
+     *               ' ' // names(jend(id,2+2))
                else if (extyp(id).eq.0) then
 c                                 Margules names depend on order of solution
                   strg = ' '
@@ -1086,16 +1088,14 @@ c                 nothing yet for van Laar - who knows how to input them?
 
                do k = 1, mccoef(i,j)
 c                                 which parameters are getting varied?
-c                                 in future, show order of term, e.g.
-c                                 0Lab, 1Lab, 2Lab for Redlich-Kister a-b - how?
                   if (random(1).lt.2) then
                      write(n6,1060) nparm+k, fname(id),
-     *                  val(1:nblen(val)), strg(1:nblen(strg)),
+     *                  val(1:nblen(val)), strg(1:nblen(strg)), j,
      *                  mccoid(i,j,k),
      *                  sprng(i,j,k,1), sprng(i,j,k,2)
                   else
                      write(n6,1060) nparm+k, fname(id),
-     *                  val(1:nblen(val)), strg(1:nblen(strg)),
+     *                  val(1:nblen(val)), strg(1:nblen(strg)), j,
      *                  mccoid(i,j,k),
      *                  sprng(i,j,k,1), sprng(i,j,k,2),
      *                  int(sprng(i,j,k,3))
@@ -1340,7 +1340,7 @@ c                                 next experiment
 1040  format (/,'**warning ver502** parameter ',a,' skipped - ',
      *          'not a compound or solution',//,80('-'))
 1050  format (i2,2(1x,a),2(1x,1pg12.5),1x,i3)
-1060  format (i2,1x,a,1x,a,1h(,a,1h),' parameter',i2,2(1x,1pg12.5),
+1060  format (i2,1x,a,1x,a,1h(,a,1h),i2,' parameter',i2,2(1x,1pg12.5),
      *        1x,i3)
 
       end
