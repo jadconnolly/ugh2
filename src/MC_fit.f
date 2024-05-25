@@ -551,7 +551,7 @@ c                               print residuals for best model
       x(1:n) = bstx(1:n)
       oprt = .true.
 c                               write best model to *.bst
-      write (n7,'(20(1pg12.6,1x))') bstx(1:n), bstobj
+      write (n7,'(20(1pg13.6,1x))') bstx(1:n), bstobj
 
       call mcobj2 (x,objf,bad)
 
