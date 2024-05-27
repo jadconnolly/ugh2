@@ -382,10 +382,20 @@ c----------------------------------------------------------------------
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
 c----------------------------------------------------------------------- 
+
+      if (n6out) then 
+c                                 output file
+         call mertxt (tfname,prject,'.out',0)
+         open (n6,file=tfname)
+
+         write (n6,*) 'tol/frac/simplx',tol, frac, simplx
+         write (n6,'(80(''-''))')
+
+      end if 
 c                                 read experimental data and inversion candidates
 c                                 if randm, then experimental data is perturbed within
 c                                 its uncertainty.
-      call mcxpt (randm)
+      call mcxpt (n6out,randm)
       if (random(1).ge.2) ntry = random(3)-1
 c                                 parameter max - min
       n = 0
@@ -427,16 +437,6 @@ c                                 initialize scaled coordinate
       oprt = .false.
       bstbay = 1d99
       jbest = 0
-
-      if (n6out) then 
-c                                 output file
-         call mertxt (tfname,prject,'.out',0)
-         open (n6,file=tfname)
-
-         write (n6,*) 'tol/frac/simplx',tol, frac, simplx
-         write (n6,'(80(''-''))')
-
-      end if 
 
       do i = 1, ntry
 c                                 unscale sx
@@ -516,8 +516,14 @@ c                                 save max likelihood result
                write (n6,'(/,a,i7,a,/)') 'Scores for try = ',i,
      *                                   ' follow:'
                do id = 1, mxpt
-                  write (n6,'(i3,1x,a,g12.6,1x)') 
-     *                   id, xptnam(id)//' score =',scores(id)
+                  if (xptpt(id,5).eq.1d0) then
+                     write (n6,1010)
+     *                   id, xptnam(id),' score =',scores(id)
+                  else
+                     write (n6,1010)
+     *                   id, xptnam(id),' score =',scores(id),
+     *                   xptpt(id,5)
+                  end if
                end do
 
                write (n6,'(/80(''-''))')
@@ -537,22 +543,24 @@ c                               new grid search point
             random(2) = icount + 1
             
             do j = 1, n
-               sx(j) = dble(mod(icount,pnum(j)))/(pnum(j)-1)
+               sx(j) = dble(mod(icount,pnum(j)))/max(1,pnum(j)-1)
                icount = icount / pnum(j)
             end do
          end if
 
       end do
 c                               print residuals for best model
+      if (random(1).ge.2) write(*,*)
       x(1:n) = bstx(1:n)
       oprt = .true.
 c                               write best model to *.bst
-      write (n7,'(20(1pg12.6,1x))') bstx(1:n), bstobj
+      write (n7,'(20(1pg13.6,1x))') bstx(1:n), bstobj
 
       call mcobj2 (x,objf,bad)
 
       if (n6out) close (n6)
 
+1010  format (i3,1x,2a,g12.6,:,3h * ,g8.3)
 1020  format (/,'Minimization FAILED, ifault = ',i3,', icount = ',i4,
      *          ', igood = ',i4,', ntry = ',i7,/)
 1030  format ('Final coordinates: ',20(1pg13.6,1x))
@@ -698,16 +706,19 @@ c
 
       end 
 
-      subroutine mcxpt (randm)
+      subroutine mcxpt (n6out, randm)
 c-----------------------------------------------------------------------
 c a subprogram to read auxilliary input file for MC inversion of exptal
 c data.
+c parameters:
+c     n6out - echo parameter output to n6
+c     randm - randomly perturb bulk compositions before inversion
 c-----------------------------------------------------------------------
       implicit none
 
       include 'perplex_parameters.h'
 
-      logical ok, bad, randm, done, eof
+      logical ok, bad, randm, n6out, done, eof
 
       integer i, j, k, nph, ier, id, ids, nblen
 
@@ -728,6 +739,9 @@ c-----------------------------------------------------------------------
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
+
+      character fname*10, aname*6, lname*22
+      common/ csta7 /fname(h9),aname(h9),lname(h9)
 
       character cname*5
       common/ csta4  /cname(k5)
@@ -758,7 +772,7 @@ c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
       if (iopt(2).eq.1) then
          write (*,*) 'resetting composition_phase option to mol'
-         iopt(2) = 0d0
+         iopt(2) = 0
       end if
 c                                 read solutions and compounds to be perturbed
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
@@ -854,7 +868,7 @@ c                                 read parameter range and grid search count
                read (strg1,*,iostat=ier) err,err,
      *                        cprng(mccpd,mcpct(mccpd),3)
                if (ier.ne.0)  cprng(mccpd,mcpct(mccpd),3) = 2d0
-               if (cprng(mccpd,mcpct(mccpd),3).le.2d0) 
+               if (cprng(mccpd,mcpct(mccpd),3).le.0d0) 
      *                        cprng(mccpd,mcpct(mccpd),3) = 2d0
 
             end do
@@ -932,7 +946,7 @@ c                                 margules, try match on jth term
               
                if (.not.ok) then
 c                                term does not exist in solution model
-                  print*,'term does not exist'
+                  print*,(chars(i),i=1,com),'term does not exist'
                   cycle 
                end if
 c                                the term exists:
@@ -984,7 +998,7 @@ c                                 read the coefficient range and grid numbers
      *               = 2d0
                   if (
      *           sprng(mcsol,mctrm(mcsol),mccoef(mcsol,mctrm(mcsol)),3)
-     *               .le.1d0)
+     *               .le.0d0)
      *           sprng(mcsol,mctrm(mcsol),mccoef(mcsol,mctrm(mcsol)),3)
      *               = 2d0
 
@@ -1002,19 +1016,109 @@ c                                 staticredt compounds
       end do
 c                                 holy schmoly! if you followed that mess
 c                                 you deserve a medal. count the parameters
+c                                 and echo them if requested
+      if (n6out) write(n6,*) 'Inverted parameters:'
       nparm = 0 
 c                                 first for endmembers
       do i = 1, mccpd
-c                                 not so bad
+         if (n6out) then
+c                                 echo parameters to output
+            id = mcid(i)
+            do j = 1, mcpct(i)
+               k = mcpid(i,j)
+               if (k .eq. 1) then
+                  key = 'delta-G'
+               else if (k .eq. 2) then
+                  key = 'delta-S'
+               else if (k .eq. 3) then
+                  key = 'delta-V'
+               else if (k .eq. 4) then
+                  key = 'K'
+               else if (k .eq. 5) then
+                  key = 'K'''
+               else if (k .eq. 6) then
+                  key = 'V0'
+               else if (k .eq. 7) then
+                  key = 'H&J-T'
+               else if (k .eq. 8) then
+                  key = 'H&J-B'
+               else
+                  call errdbg('**internal error** MCXPT encoding')
+               end if
+               if (random(1).lt.2) then
+                  write(n6,1050) nparm+j,names(id),key(1:nblen(key)),
+     *               cprng(i,j,1), cprng(i,j,2)
+               else
+                  write(n6,1050) nparm+j,names(id),key(1:nblen(key)),
+     *               cprng(i,j,1), cprng(i,j,2), int(cprng(i,j,3))
+               end if
+            end do
+            
+         end if
+c                                 not so hard to count
          nparm = nparm + mcpct(i)
+
       end do
 c                                 now solutions
       do i = 1, mcsol
-c                                 for each term
+c                                 for each term, classify type
+         id = mcids(i)
+         if (extyp(id).eq. 0) then
+            val = 'W'
+         else if (extyp(id).eq. 1) then
+            val = 'Wk'
+         else if (extyp(id).eq. 2) then
+            call errdbg('**internal error** no van Laar solns yet')
+            val = 'WV'
+         else
+            call errdbg('**internal error** MCXPT extyp(.) invalid')
+         end if
+
          do j = 1, mctrm(i) 
+c                                 grunt work to count and name the term
+            if (n6out) then
+c                                 echo parameters to output
+               if (extyp(id).eq.1) then
+c                                 Redlich-Kister names always pairwise
+                  k = jend(id,2+1)
+                  strg = names(k)(1:nblen(names(k))) //
+     *               ' ' // names(jend(id,2+2))
+               else if (extyp(id).eq.0) then
+c                                 Margules names depend on order of solution
+                  strg = ' '
+                  do k = 1, rko(j,id)
+                     strg(1+nblen(strg):) = ' ' //
+     *               names(jend(id,2+jsub(k,j,id)))
+                  end do
+                  strg = strg(2:)
+               else if (extyp(id).eq. 2) then
+c                 nothing yet for van Laar - who knows how to input them?
+               end if
+
+               do k = 1, mccoef(i,j)
+c                                 which parameters are getting varied?
+                  if (random(1).lt.2) then
+                     write(n6,1060) nparm+k, fname(id),
+     *                  val(1:nblen(val)), strg(1:nblen(strg)), j,
+     *                  mccoid(i,j,k),
+     *                  sprng(i,j,k,1), sprng(i,j,k,2)
+                  else
+                     write(n6,1060) nparm+k, fname(id),
+     *                  val(1:nblen(val)), strg(1:nblen(strg)), j,
+     *                  mccoid(i,j,k),
+     *                  sprng(i,j,k,1), sprng(i,j,k,2),
+     *                  int(sprng(i,j,k,3))
+                  end if
+               end do
+
+            end if
+
             nparm = nparm +  mccoef(i,j)
+
          end do
       end do
+
+      if (n6out) write (n6,'(80(''-''))')
 
       if (nparm.eq.0) call errdbg ('no free parameters! no free lunch!')
 
@@ -1022,7 +1126,9 @@ c                                 if grid search, set up counts
       if (random(1).ge.2) then
          ngrid = 1
          do i = 1, mccpd
-            ngrid = ngrid*nint(cprng(i,mcpct(i),3))
+            do j = 1, mcpct(i)
+               ngrid = ngrid*nint(cprng(i,j,3))
+            end do
          end do
          do i = 1, mcsol
             do j = 1, mctrm(i)
@@ -1085,6 +1191,9 @@ c                               read expt p,t, save any error
          read (str(2),*) err
          xptpt(mxpt,4) = err
 
+c                               weight
+         xptpt(mxpt,5) = 1d0
+
          if (randm) xptpt(mxpt,2) = pertrb (xptpt(mxpt,2),err)
 c                               read bulk composition
          call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
@@ -1114,6 +1223,17 @@ c                               read bulk composition
             if (randm) xptblk(mxpt,i) = pertrb (xptblk(mxpt,i),err)
 
          end do
+
+c                                 read optional weight
+         call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+
+         if (ier.eq.0 .and. key.eq.'weight') then
+            read (val, *, iostat=ier) xptpt(mxpt,5)
+            if (ier.ne.0 .or. xptpt(mxpt,5).lt.0d0)
+     *         call errdbg ('bad weight: '//val)
+         else
+            backspace(n8)
+         end if
 
          nph = 0
          ok = .true.
@@ -1228,6 +1348,9 @@ c                                 next experiment
      *          'composition with zero uncertainty')
 1040  format (/,'**warning ver502** parameter ',a,' skipped - ',
      *          'not a compound or solution',//,80('-'))
+1050  format (i2,2(1x,a),2(1x,1pg12.5),1x,i3)
+1060  format (i2,1x,a,1x,a,1h(,a,1h),i2,' parameter',i2,2(1x,1pg12.5),
+     *        1x,i3)
 
       end
 
@@ -2741,7 +2864,7 @@ c                                 within p, t uncertainty range
 
          scores(id) = value
 
-         obj = obj + value
+         obj = obj + value*xptpt(id,5)
 
 c        write (*,'(i3,1x,2(g12.6,1x,a))') id, value, xptnam(id)
 

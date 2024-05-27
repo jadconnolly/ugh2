@@ -1,14 +1,19 @@
 Example run of MC_fit in grid search mode.  G. Helffrich, ELSI/Titech, May 2024.
 
-This is a sample dataset showing how to run MC_fit in grid search mode to find
-best-fitting solution model parameters for the Mg(2)SiO(4) - Fe(2)SiO(4) system
-from the experiments of Frost (2003).  Though Frost uses his own Murnaghan-based
-EOS, thermophysical properties and thermodynamic properties, here I use
-Stixrude's (2008) database (documented in Xu et al. (2008) EPSL v.275, 70-79)
-because it is conveniently available and gives a good approximation to the
-end-member olivine transition pressures at 1400 C.  Consequently, the
-calculated phase diagram differs from Frost (2003), though the EOS is arguably
-more appropriate for transition zone pressures.
+This directory contains sample datasets to show how to run MC_fit in grid search
+mode.  There are two examples: one to find solution model parameters
+(olivine-F), and another to find compound properties (feh-melting).
+
+--------------------------------------------------------------------------------
+
+The best-fitting solution model example finds parameters for the Mg(2)SiO(4) -
+Fe(2)SiO(4) system from the experiments of Frost (2003).  Though Frost uses his
+own Murnaghan-based EOS, thermophysical properties and thermodynamic properties,
+here I use Stixrude's (2008) database (documented in Xu et al. (2008) EPSL
+v.275, 70-79) because it is conveniently available and gives a good
+approximation to the end-member olivine transition pressures at 1400 C.
+Consequently, the calculated phase diagram differs from Frost (2003), though
+the EOS is arguably more appropriate for transition zone pressures.
 
 The goal is to determine the solution model parameters for olivine, wadsleyite
 and ringwoodite from the experimental results.  Since the experiments are all at
@@ -81,3 +86,41 @@ parseout-F and altering the copies of olivine-F.dat and solution_model.dat
 based on that input; see use of and reference to shell variables "obj", "ALPHA",
 "BETA", and "GAMMA".  They get copied in the files, MC_trial.dat and
 MC_solution_model.dat, so will not interfere with a concurrent run of MC_fit.
+
+--------------------------------------------------------------------------------
+
+The second example involves thermophysical properties for liquid FeH.  These
+were experimentally investigated by Tagawa et al. (2022), GRL v.127,
+e2022JB024365 (https://doi.org/10.1029/2022JB024365).  The experiments
+constrain the liquid properties, given the thermodynamic data for FeH liquid and
+the EOS parameters for solid FeH.  (The experimental brackets, for plotting
+purposes with pssect, are in feh-meltingdata.dat.)  The magnetic properties of
+FeH are only weakly constrained, so they are also optimized here.
+
+MC_fit can optimize these properties for a compound:
+
+a    - an additional delta G (J)
+b    - an additional delta S (J/K)
+c    - an additional delta V (J/bar)
+K    - bulk modulus (bar)
+K'   - bulk modulus derivative (unitless)
+V0   - molar volume (J/bar)
+HJTc - Hillert & Jarl Curie/Neel temperature (K)
+HJB  - Hillert & Jarl magnetic enthalpy (unitless)
+
+V0, K, K', are varied for liquid FeH and HJT and HJB are varied for solid
+FCC-structured FeH.
+
+To run the grid search from the command line:
+
+(echo feh-melting; echo n) | ../src/MC_fit
+
+To process the grid search result, use the two shell scripts, parseout-feh and
+runmodel-feh.  They process feh-melting.out to harvest the parameter
+combinations that improve the overall fit.
+
+sh parseout-feh < feh-melting.out | tail -1 | sh runmodel-feh
+
+This will produce files called /tmp/MC_feh_XXXX.ps, where XXXX is the objective
+function score.  The lower the value XXXX, the better the fit.  Use a PostScript
+file viewer to see the fit result.

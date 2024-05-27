@@ -1,0 +1,5 @@
+initial_resolution    1d-2   | was 1d-3 >0, <1, default 1e-2
+seismic_data_file     F      | no seismic output
+Anderson-Gruneisen    T
+x_nodes   40 80      |80 150 | exploratory and autorefine (grid parameters keyword group)
+y_nodes   40 80      |80 150 | exploratory and autorefine (grid parameters keyword group)
