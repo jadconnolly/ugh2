@@ -69,11 +69,13 @@ c                                 read problem type flag
 
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
       if (key.ne.'T'.and.key.ne.'t') invprb = .false.
+
 c                                 make new seed for random number generator
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
       ier = index('TtFfGg',key(1:1))
       if (ier.eq.0) stop '***Bad problem type, check random value'
       random(1) = (ier-1)/2
+
       if (val.ne.' ') then
          ier = index('TtFf',val(1:1))
          if (ier.eq.0) stop '***Bad problem type, check random value'
@@ -182,26 +184,16 @@ c                                 computations are done solely in molar units.
 
       if (iwt.eq.1) amount = 'weight'
 c                                 read phase compositions
-         call mccomp
+      call mccomp
 
-         n = ipot+mphase-1
+      n = ipot + mphase - 1
 
-         x(1:n) = 0.5d0
+      x(1:n) = 0.5d0
 
-         tol = 1d-8
-         step(1:n) = 5d-1
-         conchk = 10
-         iprint = -1
-         iquad = 1
-         ibest = 0
-         igood = 0
-         bstobj = 1d99
-         simplx = 1d-8
-         ntry = 100
-c                                 max number of objf evaluations
-         kcount = 10000
-c                                 initialize drand
-         call random_seed
+      step(1:n) = 5d-1
+      ibest = 0
+      igood = 0
+      bstobj = 1d99
 
          do i = 1, ntry
 
@@ -589,7 +581,8 @@ c-----------------------------------------------------------------------
 
       integer i, j, ier
 
-      character c
+      character key*22, val*3, nval1*12, nval2*12, nval3*12,
+     *          strg*40, strg1*40, char*1, str(3)*8, name*14, c
 
       double precision total
 
@@ -613,23 +606,36 @@ c                                 my_project.imc
 
       if (iopt(2).eq.1) then
          write (*,*) 'resetting composition_phase option to mol'
-         iopt(2) = 0d0
+         iopt(2) = 0
       end if
 
       if (random(1).ge.2) call errdbg
      *   ('can''t use grid search option (yet)')
 
+      call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+
+      if (key.ne.'begin_assemblage') call errdbg (
+     *   'expecting begin_assemblage keyword, found '\\key)
+
       mphase = 0
+      mccpd = 0
+      mcsol = 0
+
 
       do
+c                                 read data for each phase
+         call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
 
-         read (n8,'(a)',iostat=ier) tname
-c                                 presumed EOF
-         if (ier.ne.0) exit
-c                                 filter out comments
-         read (tname,'(a)') c
-         if (c.eq.'|'.or.c.eq.' ') cycle
-c                                 got a live one
+         if (key.eq.'end_assemblage'.and.mphase.gt.0) then
+c                                 done
+            exit
+         else if (key.eq.'end_assemblage'.or.ier.ne.0) then 
+            call errdbg ('No assemblage data, I quit!')
+         end if
+c                                 got a live one, 
+c                                 set the phase name
+         read (val,'(a)') tname
+c                                 count
          mphase = mphase + 1
 c                                 check name
          call matchj (tname,pids(mphase))
@@ -637,6 +643,62 @@ c                                 check name
          if (pids(mphase).eq.0) 
      *      call errdbg ('no such entity as: '//tname)
 c                                 all clear
+         call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+c                                 endmember phase
+         if (key.eq.'phase_mode') then
+c                                 modal data
+            pmode(mphase) = nval1
+            emode(mphase) = nval2
+            call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+
+         else
+c                                 no modal data, initialize
+            pmode(mphase) = -1d0
+            emode(mphase) = 0d0
+
+         end if
+
+         if (pids(mphase).lt.0) then
+c                                 endmember phase
+            mccpd = mccpd + 1
+            mcid(mccpd) = -pids(mphase)
+
+            if (key.eq.'phase_name') then
+
+               backspace (n8)
+               cycle
+
+            else if (key.eq.'end_assemblage') then
+
+               exit
+
+            else 
+
+               call errdbg ('expecting phase_name or end_assemblage '//
+     *                      'found: '//key)
+
+            end if
+
+         else
+c                                count
+            mcsol = mcsol + 1
+            mcids(mcsol) = id
+c                                solution phase, read composition
+            if (key.ne.'begin_comp') call errdbg (
+     *         'expecting begin_comp, found: '//key')
+
+            do
+c                                 read composition
+            call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+
+            if (key.eq.'end_exp') then
+               ok = .false.
+               exit
+            end if
+
+
+
+
          read (n8,*,iostat=ier) 
      *                        pmode(mphase), (pblk(mphase,j),j=1,kbulk),
      *                        emode(mphase), (eblk(mphase,j),j=1,kbulk)
@@ -724,7 +786,7 @@ c-----------------------------------------------------------------------
 
       integer*8 ngrid
 
-      double precision err, pertrb, tot
+      double precision err, pertrb
 
       character key*22, val*3, nval1*12, nval2*12, nval3*12,
      *          strg*40, strg1*40, char*1, str(3)*8, name*14
@@ -1311,6 +1373,7 @@ c           tot = 0d0
                if (xpte(cxpt+i).eq.0d0) k = k + 1
 c              tot = tot + xptc(cxpt+i)
             end do
+
             if (k.gt.1 .and. k.ne.icp) then
                write(*,1030) xptnam(mxpt)
                exit
@@ -1429,7 +1492,6 @@ c                                 data found
      *        'term will be rejected',/)
 
       end
-
 
       subroutine mcsetv (x)
 c-----------------------------------------------------------------------

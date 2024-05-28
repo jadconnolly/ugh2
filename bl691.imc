@@ -1,10 +1,96 @@
 | comments are preceded by the "|" character
-| 
-|vol %     H2O      MgO      Al2O3    K2O      CaO      TiO2     FeO      O2       Na2O     SiO2
-|
-Augite(G)    
--1       0.00000  0.35883  0.22493  0.00000  0.36535  0.00000  0.20648  0.04241  0.30974  2.00000
- 0       0        0.01     0.01     0        0.01     0        0.01     0.01     0.01     0.01
-Gt(W)        
--1       0.00000  0.82205  0.95544  0.00000  0.92334  0.00000  1.34374  0.02228  0.00000  3.00000
- 0       0        0.01     0.01     0        0.01     0        0.01     0.01     0.01     0.01
+
+| MC_fit, the type of inversion and expected format of the *.imc file is dependent 
+| on the following flag:
+
+F      | invxpt, T => invert experimental data, F => inverse thermobarometry
+
+F      | random, T => generate a new seed for random number generation each time the
+       | program is run. F => for reproducible sequence (e.g., for debugging).
+
+| Monte-Carlo logistical variables:
+
+10     | ntry, number of starting guesses used to find a best fit model
+00     | nunc, number of iteration to evaluate uncertainities. set nunc = 0 
+       | to suppress uncertainty evaluation.
+
+       | time cost is proportional to nunc + 1, i.e., the program will 
+       | do (nunc + 1) * ntry Nelder-Meade minimizations.
+
+       | Each Nelder-Meade minimization is allowed to do a maximum of kcount
+       | free energy minimization calculations plus a few extra (~10-50) if
+       | the minimum is to be fit to a surface (iquad = 1). I see 
+       | little value to the surface fitting, who cares if it's at a true 
+       | minimum? The result is still useful if it's better than the other 
+       | results.
+
+| Nelder-Meade MINIM algorithm variables
+
+1d3    | oktol
+1d-5   | tol, by trial and error
+1d-6   | simplx, trial and error
+0.1    | frac, fractional step size
+10     | conchk, how often to check for convergence
+0      | iprint, 0 => normal print, < 0 => silent, > 0 => verbose
+1      | iquad, 1 => fit surface to minimum, 0 => don't fit 
+1000   | kcount, max # of objective evaluations per try, recommended nparm*1024
+
+| Nelder-Meade Objective function weights
+
+1d0    | wcomp, compositional residual weight
+1d1    | wextra, extra phase amount residual weight
+1d1    | wmiss, missing phase residual weight
+
+| The beginning of the list of coexisting phases and their compositions is 
+| signalled by the begin_assemblage keyword. The list is terminated by the 
+| end_assemblage tag. Only one assemblage can be analyzed per MC_Fit 
+| calculation. Text (e.g., data for additional assemblages, comments, notes)
+| entered after the end_assemblage keyword is NOT read by MC_Fit.
+
+begin_assemblage
+
+| Phase names used here must correspond to the solution models specified in
+| the problem definition file or to endmember names in the thermodynamic data
+| file specified in that file.
+
+phase_name Augite(G)
+
+| Modes (phase_mode) are optional, if phase_mode is not specified or its 
+| value is < 0 the constraint is ignored. The first value of phase_mode 
+| is the volume fraction (<1) of the phase, the second number is the uncertainty
+| of the fraction. If phase modes are specified, then they indicate the 
+| fraction of the phase in the equilibrium assemblage, these fractions do NOT
+| correspond to bulk fractions unless the specified assemblage represents a 
+| bulk equilibrium.
+
+phase_mode -1 0
+
+| Component names used here must match those specified in the problem 
+| definition file. If the phase is an endmember its composition is not
+| read. 
+
+begin_comp
+SiO2    2.00000 0.01
+Al2O3   0.22493 0.01
+FeO     0.20648 0.01
+MgO     0.35883 0.01
+Na2O    0.30974 0.01
+CaO     0.36535 0.01
+O2      0.04241 0.01
+end_comp
+
+phase_name Augite(G)
+
+phase_mode -1 0
+
+begin_comp
+SiO2     3.00000 0.01
+Al2O3    0.95544 0.01
+FeO      1.34374 0.01
+MgO      0.82205 0.01
+CaO      0.92334 0.01
+O2       0.02228 0.01
+end_comp
+
+end_assemblage
+
