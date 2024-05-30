@@ -731,3 +731,5 @@ stinv_mf.imc
 stinv_mf.out
 
 stinv_perplex_option.dat
+
+src/old_MC_fit.f

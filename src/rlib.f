@@ -749,12 +749,6 @@ c---------------------------------------------------------------------
       integer ihy, ioh
       double precision gf, epsln, epsln0, adh, msol
       common/ cxt37 /gf, epsln, epsln0, adh, msol, ihy, ioh
-
-      double precision atwt
-      common/ cst45 /atwt(k0)
-
-      double precision fwt
-      common/ cst338 /fwt(k10)
 c---------------------------------------------------------------------
 
       if (id+1.gt.k10) call error (1,0d0,id+1,'k10')
@@ -4680,8 +4674,6 @@ c---------------------------------------------------------------------
       integer ixct,ifact
       common/ cst37 /ixct,ifact
 
-      character*8 exname,afname
-      common/ cst36 /exname(h8),afname(2)
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
@@ -11522,9 +11514,6 @@ c-----------------------------------------------------------------------
       common/ cxt7 /y(m4),z(m4),pa(m4),p0a(m4),x(h4,mst,msp),w(m1),
      *              wl(m17,m18),pp(m4)
 
-      double precision fwt
-      common/ cst338 /fwt(k10)
-
       integer jnd
       double precision aqg,q2,rt
       common/ cxt2 /aqg(m4),q2(m4),rt,jnd(m4)
@@ -11698,9 +11687,6 @@ c-----------------------------------------------------------------------
       double precision z, pa, p0a, x, w, y, wl, pp
       common/ cxt7 /y(m4),z(m4),pa(m4),p0a(m4),x(h4,mst,msp),w(m1),
      *              wl(m17,m18),pp(m4)
-
-      double precision fwt
-      common/ cst338 /fwt(k10)
 
       integer jnd
       double precision aqg,q2,rt
@@ -11945,9 +11931,6 @@ c-----------------------------------------------------------------------
       integer nq,nn,ns,ns1,sn1,nqs,nqs1,sn,qn,nq1,nsa
       common/ cst337 /nq,nn,ns,ns1,sn1,nqs,nqs1,sn,qn,nq1,nsa
 
-      character cname*5
-      common/ csta4  /cname(k5)
-
       integer ihy, ioh
       double precision gf, epsln, epsln0, adh, msol
       common/ cxt37 /gf, epsln, epsln0, adh, msol, ihy, ioh
@@ -11958,12 +11941,6 @@ c-----------------------------------------------------------------------
 
       double precision cp
       common/ cst12 /cp(k5,k10)
-
-      double precision fwt
-      common/ cst338 /fwt(k10)
-
-      double precision atwt
-      common/ cst45 /atwt(k0)
 
       integer jend
       common/ cxt23 /jend(h9,m14+2)
@@ -12847,18 +12824,12 @@ c-----------------------------------------------------------------------
       integer iasmbl
       common/ cst27  /iasmbl(j9)
 
-      character cname*5
-      common/ csta4  /cname(k5)
-
       integer cl
       character cmpnt*5, dname*80
       common/ csta5 /cl(k0),cmpnt(k0),dname
 
       integer ixct,ifact
       common/ cst37 /ixct,ifact
-
-      character*8 exname,afname
-      common/ cst36 /exname(h8),afname(2)
 
       double precision cp
       common/ cst12 /cp(k5,k10)
@@ -14476,9 +14447,6 @@ c                                 adaptive coordinates
       integer nq,nn,ns,ns1,sn1,nqs,nqs1,sn,qn,nq1,nsa
       common/ cst337 /nq,nn,ns,ns1,sn1,nqs,nqs1,sn,qn,nq1,nsa
 
-      character cname*5
-      common/ csta4  /cname(k5)
-
       integer ihy, ioh
       double precision gf, epsln, epsln0, adh, msol
       common/ cxt37 /gf, epsln, epsln0, adh, msol, ihy, ioh
@@ -14489,12 +14457,6 @@ c                                 adaptive coordinates
 
       double precision cp
       common/ cst12 /cp(k5,k10)
-
-      double precision fwt
-      common/ cst338 /fwt(k10)
-
-      double precision atwt
-      common/ cst45 /atwt(k0)
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
@@ -18674,9 +18636,6 @@ c----------------------------------------------------------------------
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp  
 
-      character cname*5
-      common/ csta4 /cname(k5)
-
       character name*8
       common/ csta6 /name
 
@@ -18704,18 +18663,12 @@ c----------------------------------------------------------------------
       integer ids,isct,icp1,isat,io2
       common/ cst40 /ids(h5,h6),isct(h5),icp1,isat,io2
 
-      double precision atwt
-      common/ cst45 /atwt(k0) 
-
       integer ixct,ifact
       common/ cst37 /ixct,ifact 
 
       integer ion, ichg, jchg
       double precision q, q2, qr
       common/ cstaq /q(l9),q2(l9),qr(l9),jchg(l9),ichg,ion
-
-      character*8 exname,afname
-      common/ cst36 /exname(h8),afname(2)
 
       integer ipoint,kphct,imyn
       common/ cst60 /ipoint,kphct,imyn
@@ -19716,11 +19669,13 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i, j, k, jst, irep, kd, jend, ier, iend
+      integer i, j, k, jst, irep, kd, jend, ier, iend, nblen
 
       logical kount, err
 
       character text*(lchar)
+
+      external nblen
 
       integer iam
       common/ cst4 /iam
@@ -19757,10 +19712,10 @@ c                                 open assemblage list for PSSECT
          open (n8, file = tfname, status = 'unknown', iostat = ier)
 
          write (*,'(a,a)') 'Assemblage list will be written to file: ',
-     *                     tfname
+     *                     tfname(1:nblen(tfname))
 
          if (ier.ne.0) then 
-            write (*,*) 'error cannot open: ',tfname
+            write (*,*) 'error cannot open: ',tfname(1:nblen(tfname))
             write (*,*) 'file is probably open in an editor'
             call errpau
          end if

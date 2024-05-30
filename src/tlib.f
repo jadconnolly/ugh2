@@ -1056,7 +1056,7 @@ c                                  686+ read second value as arf value
 
                if (ier.ne.0) then
 c                                  special backward compatibility msg
-                  write (*,1010) opname
+                  write (*,1010) opname(1:nblen(opname))
                   call errpau
 
                end if 
@@ -1459,9 +1459,9 @@ c                                 refinement points
 c                                 write and optional file choices
       if (iam.ne.14) then 
          if (jer.ne.0) then 
-            write (*,1120) opname
+            write (*,1120) opname(1:nblen(opname))
          else 
-            write (*,1130) opname
+            write (*,1130) opname(1:nblen(opname))
          end if
       end if 
 
@@ -1476,7 +1476,7 @@ c                                 vertex only files:
                tfname = 'not requested'
             end if 
 
-            write (*,1170) tfname
+            write (*,1170) tfname(1:nblen(tfname))
 
          end if 
 c                                 auto refine summary
@@ -1488,7 +1488,7 @@ c                                 auto refine summary
                tfname = 'not requested'
             end if 
 
-            write (*,1150) tfname
+            write (*,1150) tfname(1:nblen(tfname))
 
          end if
 
@@ -1502,7 +1502,8 @@ c                                 auto refine summary
             tfname = 'not requested'
          end if 
 
-         write (*,'(a)') 'Writing seismic data options to: '//tfname
+         write (*,'(a)') 'Writing seismic data options to: '//
+     *                   tfname(1:nblen(tfname))
 
       end if 
 c                                 pseudocompound glossary
@@ -1514,7 +1515,7 @@ c                                 pseudocompound glossary
             tfname = 'not requested'
          end if 
 
-         write (*,1140) tfname
+         write (*,1140) tfname(1:nblen(tfname))
 
       end if 
 c                                 computational options this is redundant
@@ -1533,7 +1534,7 @@ c                                 computational options this is redundant
             tfname = 'not requested'
          end if 
  
-         write (*,1160) tfname
+         write (*,1160) tfname(1:nblen(tfname))
 
       end if 
 c                                 -------------------------------------
@@ -1625,7 +1626,7 @@ c                                 file version, create the file name
             call outopt (n8)
             close (n8) 
 
-            write (*,1000) tfname
+            write (*,1000) tfname(1:nblen(tfname))
 
          end if 
 
@@ -3824,10 +3825,7 @@ c----------------------------------------------------------------------
       character tname*8, name*8, rec*(lchar), tag*3
 
       integer ixct,ifact
-      common/ cst37 /ixct,ifact 
-
-      character*8 exname,afname
-      common/ cst36 /exname(h8),afname(2)
+      common/ cst37 /ixct,ifact
 
       integer length,com
       character chars*1
@@ -4482,9 +4480,6 @@ c----------------------------------------------------------------------
       common/ cst56 /strgs(k4),mstrg(6),dstrg(m8),tstrg(m7),wstrg(m16),
      *               e16st(13)
 
-      double precision atwt
-      common/ cst45 /atwt(k0)
-
       integer ic
       common/ cst42 /ic(k0)
 
@@ -4976,9 +4971,6 @@ c----------------------------------------------------------------------
 
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5  /p,t,xco2,u1,u2,tr,pr,r,ps
-
-      double precision atwt
-      common/ cst45 /atwt(k0)
 
       character*80 commnt
       common/delet/commnt
@@ -5820,9 +5812,6 @@ c----------------------------------------------------------------------
       character cmpnt*5, dname*80
       common/ csta5 /cl(k0),cmpnt(k0),dname
 
-      double precision atwt
-      common/ cst45 /atwt(k0)
-
       integer ikind,icmpn,icout,ieos
       double precision comp,tot
       common/ cst43 /comp(k0),tot,icout(k0),ikind,icmpn,ieos
@@ -6000,9 +5989,6 @@ c----------------------------------------------------------------------
 
       character tcname*5,xcmpnt*5
       common/ csta9 /tcname(k0),xcmpnt(k0)
-
-      double precision atwt
-      common/ cst45 /atwt(k0)
 
       integer length,com
       character chars*1
@@ -7856,9 +7842,6 @@ c----------------------------------------------------------------
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
 
-      character cname*5
-      common/ csta4  /cname(k5)
-
       character fname*10, aname*6, lname*22
       common/ csta7 /fname(h9),aname(h9),lname(h9)
 
@@ -9241,9 +9224,6 @@ c-----------------------------------------------------------------------
       character fname*10, aname*6, lname*22
       common/ csta7 /fname(h9),aname(h9),lname(h9)
 
-      character*5 cname
-      common/ csta4 /cname(k5) 
-
       integer icp2
       common/ cst81 /icp2
 
@@ -9282,9 +9262,6 @@ c-----------------------------------------------------------------------
 
       integer ixct,ifact
       common/ cst37 /ixct,ifact
-
-      character*8 exname,afname
-      common/ cst36 /exname(h8),afname(2)
 
       integer ids,isct,icp1,isat,io2
       common/ cst40 /ids(h5,h6),isct(h5),icp1,isat,io2
@@ -10043,9 +10020,6 @@ c-----------------------------------------------------------------------
       integer ivfl
       common/ cst102 /ivfl
 
-      character*5 cname
-      common/ csta4 /cname(k5)
-
       integer ids,isct,icp1,isat,io2
       common/ cst40 /ids(h5,h6),isct(h5),icp1,isat,io2
 
@@ -10672,9 +10646,11 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i, ier, n
+      integer i, ier, n, nblen
 
       character string*(*)
+
+      external nblen
 c----------------------------------------------------------------------
 
       call mertxt (tfname,prject,string,0)
@@ -10684,7 +10660,8 @@ c----------------------------------------------------------------------
       open (n, file=string, status='replace', iostat=ier)
 
       if (ier.ne.0) call error (999,0d0,i,
-     *             'file '//tfname//' is in use by another application')
+     *             'file '//tfname(1:nblen(tfname))//
+     *             ' is in use by another application')
 
       end
 
@@ -11761,9 +11738,6 @@ c-----------------------------------------------------------------------
 
       integer ixct,ifact
       common/ cst37 /ixct,ifact
-
-      character*8 exname,afname
-      common/ cst36 /exname(h8),afname(2)
 
       integer ikind,icmpn,icout,ieos
       double precision comp,tot

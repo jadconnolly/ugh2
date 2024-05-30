@@ -19,7 +19,7 @@ c----------------------------------------------------------------------
       integer iam
       common/ cst4 /iam
 c----------------------------------------------------------------------- 
-c                                 MC_inv uses the MEEMUM iam flag value
+c                                 MC_fit uses the MEEMUM iam flag value
       iam = 2
 c                                 initialization, read files etc.
       call iniprp
@@ -64,14 +64,36 @@ c                                 open inversion problem file
 
       if (ier.ne.0) call errdbg 
      *   ('can''t open assemblage composition file: '//tfname)
+c                                 read compositional input units
+      call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+
+      if (key.eq.'molar'.or.key.eq.'mass') then
+
+         if (key.eq.'molar') then
+            iopt(2) = 0
+         else
+            iopt(2) = 1
+         end if
+
+      else
+
+        call errdbg ('expecting mass or molar composition flag, found: '
+     *               //key)
+
+      end if
 c                                 read problem type flag
       invprb = .true.
 
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
       if (key.ne.'T'.and.key.ne.'t') invprb = .false.
+c                                 read george toggle switch
+      grh = .true.
 
+      call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+      if (key.ne.'T'.and.key.ne.'t') grh = .false.
 c                                 make new seed for random number generator
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+
       ier = index('TtFfGg',key(1:1))
       if (ier.eq.0) stop '***Bad problem type, check random value'
       random(1) = (ier-1)/2
@@ -89,6 +111,7 @@ c                                 Nelder-Meade inverse problem
 c                                 error evaluation loop counter
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
       read (key,*) nunc(1)
+
       if (val.ne.' ') then
          read (val,*) nunc(2)
          if (nunc(2).gt.5) then
@@ -158,17 +181,11 @@ c----------------------------------------------------------------------
       double precision cptot,ctotal
       common/ cst78 /cptot(k19),ctotal,jdv(k19),npt
 
-      double precision atwt
-      common/ cst45 /atwt(k0) 
-
       double precision v,tr,pr,r,ps
       common/ cst5  /v(l2),tr,pr,r,ps
 
       integer ipot,jv,iv
       common / cst24 /ipot,jv(l2),iv(l2)
-
-      character*5 cname
-      common/ csta4 /cname(k5)
 
       integer is
       double precision a,b,c
@@ -579,18 +596,19 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i, j, ier
+      logical randm, bad
+
+      integer j, ier, nblen
 
       character key*22, val*3, nval1*12, nval2*12, nval3*12,
-     *          strg*40, strg1*40, char*1, str(3)*8, name*14, c
+     *          strg*40, strg1*40
 
-      double precision total
+      double precision comp(k5), ecomp(k5)
+
+      external nblen
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
-
-      double precision atwt
-      common/ cst45 /atwt(k0)
 
       character tname*10
       logical refine, lresub
@@ -602,12 +620,8 @@ c                                 my_project.imc
       open (n8,file=tfname,status='old',iostat=ier)
 
       if (ier.ne.0) call errdbg 
-     *   ('can''t open assemblage composition file: '//tfname)
-
-      if (iopt(2).eq.1) then
-         write (*,*) 'resetting composition_phase option to mol'
-         iopt(2) = 0
-      end if
+     *   ('can''t open assemblage composition file: '//
+     *   tfname(1:nblen(tfname)))
 
       if (random(1).ge.2) call errdbg
      *   ('can''t use grid search option (yet)')
@@ -615,12 +629,11 @@ c                                 my_project.imc
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
 
       if (key.ne.'begin_assemblage') call errdbg (
-     *   'expecting begin_assemblage keyword, found '\\key)
+     *   'expecting begin_assemblage keyword, found '//key)
 
       mphase = 0
       mccpd = 0
       mcsol = 0
-
 
       do
 c                                 read data for each phase
@@ -634,22 +647,23 @@ c                                 done
          end if
 c                                 got a live one, 
 c                                 set the phase name
-         read (val,'(a)') tname
+         read (strg,'(a)') tname
 c                                 count
          mphase = mphase + 1
 c                                 check name
          call matchj (tname,pids(mphase))
 
          if (pids(mphase).eq.0) 
-     *      call errdbg ('no such entity as: '//tname)
+     *      call errdbg ('no such phase: '//tname)
 c                                 all clear
          call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
 c                                 endmember phase
          if (key.eq.'phase_mode') then
 c                                 modal data
-            pmode(mphase) = nval1
-            emode(mphase) = nval2
             call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+
+            read (nval1,*) pmode(mphase)
+            read (nval2,*) emode(mphase)
 
          else
 c                                 no modal data, initialize
@@ -682,60 +696,26 @@ c                                 endmember phase
          else
 c                                count
             mcsol = mcsol + 1
-            mcids(mcsol) = id
-c                                solution phase, read composition
+            mcids(mcsol) = pids(mphase)
+c                                solution phase must have composition
             if (key.ne.'begin_comp') call errdbg (
-     *         'expecting begin_comp, found: '//key')
-
-            do
-c                                 read composition
-            call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
-
-            if (key.eq.'end_exp') then
-               ok = .false.
-               exit
-            end if
-
-
-
-
-         read (n8,*,iostat=ier) 
-     *                        pmode(mphase), (pblk(mphase,j),j=1,kbulk),
-     *                        emode(mphase), (eblk(mphase,j),j=1,kbulk)
-
-         if (ier.ne.0) call errdbg ('invalid data format for: '//tname)
-c                                 convert to molar if mass units
-         if (iwt.eq.1) then 
+     *         'expecting begin_comp, found: '//key)
+c                                read, normalize, and optionally perturb
+c                                composition
+            call gtcomp (comp,ecomp,randm,'comp',bad)
 
             do j = 1, icomp
-               pblk(mphase,j) = pblk(mphase,j)/atwt(j)
-               eblk(mphase,j) = eblk(mphase,j)/atwt(j)
-            end do 
+
+               pblk(mphase,j) = comp(j)
+               eblk(mphase,j) = ecomp(j)
+
+            end do
 
          end if
 
       end do
 
       if (mphase.lt.2) call errdbg ('input must specify > 1 phase')
-c                                 normalize to the icomp (>= icp) components
-      do i = 1, mphase
-
-         total = 0d0
-
-         do j = 1, icomp
-
-            total = total + pblk(i,j)
-
-         end do
-
-         do j = 1, icomp
-
-            pblk(i,j) = pblk(i,j) / total
-            eblk(i,j) = eblk(i,j) / total
-
-         end do
-
-      end do
 
       close (n8)
 
@@ -786,10 +766,10 @@ c-----------------------------------------------------------------------
 
       integer*8 ngrid
 
-      double precision err, pertrb
+      double precision err, pertrb, comp(k5), ecomp(k5)
 
       character key*22, val*3, nval1*12, nval2*12, nval3*12,
-     *          strg*40, strg1*40, char*1, str(3)*8, name*14
+     *          strg*40, strg1*40, str(3)*8
 
       external pertrb, nblen
 
@@ -804,12 +784,6 @@ c-----------------------------------------------------------------------
 
       character fname*10, aname*6, lname*22
       common/ csta7 /fname(h9),aname(h9),lname(h9)
-
-      character cname*5
-      common/ csta4  /cname(k5)
-
-      double precision atwt
-      common/ cst45 /atwt(k0)
 
       character tname*10
       logical refine, lresub
@@ -832,10 +806,6 @@ c-----------------------------------------------------------------------
       integer ltyp,lct,lmda,idis
       common/ cst204 /ltyp(k10),lct(k10),lmda(k10),idis(k10)
 c-----------------------------------------------------------------------
-      if (iopt(2).eq.1) then
-         write (*,*) 'resetting composition_phase option to mol'
-         iopt(2) = 0
-      end if
 c                                 read solutions and compounds to be perturbed
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
 
@@ -881,10 +851,12 @@ c                                 check name
             do
 c                                 read free parameters for compounds
                call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+
                if (key.eq.'end_list') exit
 
                if (key.ne.'parameter') call errdbg ('expecting '//
      *                    'parameter tag for '//tname//' found '//key)
+
                mcpct(mccpd) = mcpct(mccpd) + 1
 
                if (val.eq.'a') then 
@@ -1219,19 +1191,17 @@ c                                 loop to read observation data
 c                                 assume EOF on error
          if (ier.ne.0) exit
 
-         if (key.ne.'begin_exp') then
-            call errdbg ('invalid data, last read '//key)
-         end if
+         if (key.ne.'begin_exp') call errdbg (
+     *                           'expecting begin_exp, found '//key)
 c                                an experiment, only increment
-c                                counter if previous result 
-c                                was ok
+c                                counter if previous result was ok
          if (.not.bad) mxpt = mxpt + 1
 
          if (mxpt.gt.l11) call errdbg ('too many expts, increase l11')
-c
+c                                 reset bad, bad will be set to true
+c                                 if a bulk or phase composition includes
+c                                 a missing component. 
          bad = .false.
-c                                initialize bulk
-         xptblk(mxpt,1:icp) = 0
 c                                initialize solution counters
          msolct(mxpt,1:isoct) = 0
 c                                read name
@@ -1252,7 +1222,6 @@ c                               read expt p,t, save any error
          read (str(1),*) xptpt(mxpt,2)
          read (str(2),*) err
          xptpt(mxpt,4) = err
-
 c                               weight
          xptpt(mxpt,5) = 1d0
 
@@ -1260,32 +1229,15 @@ c                               weight
 c                               read bulk composition
          call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
 
-         if (key.ne.'begin_bulk') then
-            call errdbg ('invalid data, last read '//key)
-         end if
+         if (key.ne.'begin_bulk') call errdbg (
+     *                           'expecting begin_bulk, found '//key)
+c                                 read bulk composition, normalize, and
+c                                 purturb
+         call gtcomp (comp,ecomp,randm,'bulk',bad)
 
-         do
-
-            call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
-
-            if (key.eq.'end_bulk') exit
-
-            ok = .false.
-
-            do i = 1, icp
-               if (key.eq.cname(i)) then
-                  ok = .true.
-                  exit
-               end if
-            end do
-
-            if (.not.ok) bad = .true.
-
-            read (strg1,*) xptblk(mxpt,i), err
-            if (randm) xptblk(mxpt,i) = pertrb (xptblk(mxpt,i),err)
-
+         do i = 1, icp
+            xptblk(mxpt,i) = comp(i)
          end do
-
 c                                 read optional weight
          call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
 
@@ -1316,7 +1268,8 @@ c                                 check name
             call matchj (tname,ids)
 
             xptids(mxpt,nph) = ids
-
+c                                  instead of making this an error 
+c                                  could just set bad to reject the xpt
             if (ids.eq.0) call errdbg ('no such entity as: '//tname)
 c                                 all clear,
 c                                 if compound don't read composition
@@ -1342,46 +1295,12 @@ c                                 get solution composition
             if (key.ne.'begin_comp') 
      *         call errdbg ('invalid data, last read '//key)
 
-            do
-
-               call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
-
-               if (key.eq.'end_comp') exit
-
-               ok = .false.
-
-               do i = 1, icp
-                  if (key.eq.cname(i)) then
-                     ok = .true.
-                     exit
-                  end if
-               end do
-
-               if (.not.ok) bad = .true.
-
-               read (strg1,*) xptc(cxpt+i), err
-               xpte(cxpt+i) = err 
-
-               if (randm) xptc(cxpt+i) = pertrb (xptc(cxpt+i),err)
-
-            end do
-c                                 normalize bulk
-c           tot = 0d0
-            k = 0
+            call gtcomp (comp,ecomp,randm,'comp',bad)
 
             do i = 1, icp
-               if (xpte(cxpt+i).eq.0d0) k = k + 1
-c              tot = tot + xptc(cxpt+i)
+               xptc(cxpt+i) = comp(i)
+               xpte(cxpt+i) = ecomp(i)
             end do
-
-            if (k.gt.1 .and. k.ne.icp) then
-               write(*,1030) xptnam(mxpt)
-               exit
-            end if
-
-c           do i = 1, icp
-c              xptc(cxpt+i) = xptc(cxpt+i)/tot
-c           end do
 c                                 pointer to the composition of phase nph in expt mexpt 
             xptptr(mxpt,nph) = cxpt
 
@@ -1394,7 +1313,8 @@ c                                 increment composition pointer
 
          if (bad) then 
             call mertxt (tfname,prject,'.dat',0)
-            write (*,1000) xptnam(mxpt), tfname
+            write (*,1000) xptnam(mxpt), tfname(1:nblen(tfname))
+            if (grh) write (*,1030)
          end if
 c                                 next experiment
       end do
@@ -1406,14 +1326,100 @@ c                                 next experiment
      *          a,//,80('-'))
 1010  format (/,a,1x,a)
 1020  format (/,a,1x,'has ',a,' magnetic transitions')
-1030  format (/,'warning ver502** observation: ',a,/,'has been ',
-     *          'rejected because it has more than one bulk ',
-     *          'composition with zero uncertainty')
+1030  format ('or because it has > 1 composition with no uncertainty')
 1040  format (/,'**warning ver502** parameter ',a,' skipped - ',
      *          'not a compound or solution',//,80('-'))
 1050  format (i2,2(1x,a),2(1x,1pg12.5),1x,i3)
 1060  format (i2,1x,a,1x,a,1h(,a,1h),i2,' parameter',i2,2(1x,1pg12.5),
      *        1x,i3)
+
+      end
+
+      subroutine gtcomp (comp,ecomp,randm,tag,bad)
+c-----------------------------------------------------------------------
+c read compositional data and uncertainities between begin_\\tag/end_\\tag 
+c keywords. converts mass units to molar units if iopt(2) = 1.
+c if randm perturn composition within uncertainty.
+c returns bad if the composition includes a component not specified in
+c the problem definition file. 
+c-----------------------------------------------------------------------
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      logical ok, bad, randm
+
+      integer i, j, ier
+
+      character key*22, val*3, nval1*12, nval2*12, nval3*12,
+     *          strg*40, strg1*40, tag*(*)
+
+      double precision tot, comp(*), ecomp(*), pertrb
+
+      external pertrb
+
+      integer icomp,istct,iphct,icp
+      common/ cst6  /icomp,istct,iphct,icp
+c----------------------------------------------------------------------
+c                                 component indexes should probably run over 
+c                                 icomp rather than icp. for the moment
+c                                 that's not a problem. 
+      comp(1:icp) = 0d0
+      ecomp(1:icp) = 0d0
+
+      do
+
+         call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+
+         if (key.eq.'end_'//tag) exit
+
+         ok = .false.
+
+         do i = 1, icp
+            if (key.eq.cname(i)) then
+               ok = .true.
+               exit
+            end if
+         end do
+
+         if (.not.ok) bad = .true.
+
+         read (strg1,*) comp(i), ecomp(i)
+c                                 convert mass input to molar units
+         if (iopt(2).eq.1) then
+
+            comp(i) = comp(i)/atwt(i)
+            ecomp(i) = ecomp(i)/atwt(i)
+
+         end if
+
+         if (randm) comp(i) = pertrb (comp(i),ecomp(i))
+
+      end do
+
+      tot = 0d0
+c                                 george's 0 counter
+      j = 0
+
+      do i = 1, icp
+         if (ecomp(i).eq.0d0) j = j + 1
+         tot = tot + comp(i)
+      end do
+
+      if (grh) then 
+c                                 george assumes normalized input, but has 
+c                                 this suspect test. a phase with 
+c                                 fewer components than the system will
+c                                 fail, and what's with the > 1?
+         if (j.gt.1 .and. j.ne.icp) bad = .true.
+
+      else 
+c                                 normalize composition
+         do i = 1, icp
+            comp(i) = comp(i)/tot
+         end do
+
+      end if
 
       end
 
