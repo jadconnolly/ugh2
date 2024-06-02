@@ -1,9 +1,16 @@
 | comments are preceded by the "|" character
 
-| MC_inverter, the mode and expected format of the *.imc file is 
-| determined by the following flag:
+| User input and computational mode variables:
 
-T      | invxpt, T => invert experimental data, F => inverse thermobarometry
+molar  | flag indicating molar or mass (weight) compositional input units, 
+       | the choice specified here overrides the specification (iwt) in the 
+       | definition file. 
+
+F      | inversion problem type T/F flag (invprb):
+       | T => invert experimental data, F => inverse thermobarometry
+
+F      | GRH, T use George's normalization, etc
+
 F      | random, T => generate a new seed for random number generation each time the
        | program is run. F => for reproducible sequence (e.g., for debugging).
 

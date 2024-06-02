@@ -574,7 +574,7 @@ c                                 LP workspace into common
       common/ cst67 /pblk(k5,k5), eblk(k5,k5), pmode(k5), emode(k5),
      *               pids(k5), mphase
 c                                 MC_fit common block:
-      logical mcpert, mcflag, oprt, grh
+      logical mcpert, mcflag, oprt, grh, invxpt
       integer mxpt, cxpt, random,
      *        xptids, xptptr, xptnph, xpterr, mccpd, mcsol, mcid, 
      *        mcids, msloc, msolct, nparm, nunc, mcpct, mcpid, mctrm,
@@ -594,7 +594,7 @@ c                                  integer
      *               msloc(l11,k5), mcpct(k5), mcpid(k5,3),
      *               mccoef(k5,m1), mcj(k5,m1), mccoid(k5,m1,m3),
 c                                  logical
-     *               mcpert, oprt, mcflag(h9), random(3), grh,
+     *               mcpert, oprt, mcflag(h9), random(3), grh, invxpt,
 c                                  character
      *               xptnam(l11)
 

@@ -6,10 +6,10 @@ molar  | flag indicating molar or mass (weight) compositional input units,
        | the choice specified here overrides the specification (iwt) in the 
        | definition file. 
 
-F      | invxpt, inversion problem type
+F      | inversion problem type T/F flag (invxpt):
        | T => invert experimental data, F => inverse thermobarometry
 
-F      | GRH, T use georges normalization, etc
+F      | GRH, T use George's normalization, etc
 
 F      | random, T => generate a new seed for random number generation each time the
        | program is run. F => for reproducible sequence (e.g., for debugging).
@@ -54,6 +54,8 @@ F      | random, T => generate a new seed for random number generation each time
 | entered after the end_assemblage keyword is NOT read by MC_Fit.
 
 begin_assemblage
+
+sample_name bl691_test
 
 | Phase names used here must correspond to the solution models specified in
 | the problem definition file or to endmember names in the thermodynamic data
@@ -100,3 +102,15 @@ end_comp
 
 end_assemblage
 
+
+
+		pcomp(1,1)	0.000000000000000D+000	REAL(8) 
+		pcomp(2,1)	0.698994363900346	REAL(8) 
+		pcomp(3,1)	5.940580806651125D-002	REAL(8) 
+		pcomp(4,1)	0.000000000000000D+000	REAL(8) 
+		pcomp(5,1)	0.753793433240190	REAL(8) 
+		pcomp(6,1)	0.000000000000000D+000	REAL(8) 
+		pcomp(7,1)	0.193867569178069	REAL(8) 
+		pcomp(8,1)	2.893035137186196D-002	REAL(8) 
+		pcomp(9,1)	0.117266509452869	REAL(8) 
+		pcomp(10,1)	1.99999999864263	REAL(8) 
