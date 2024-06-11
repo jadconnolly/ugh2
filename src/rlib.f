@@ -230,28 +230,8 @@ c                                 sixtrude 05 JGR EoS
       else if (eos(id).eq.6) then
 c                                 stixrude JGI '05 Eos
          gval = gstxgi (id)
-c                                 landau O/D
-         if (ltyp(id).eq.4) then 
-c                                 in the 2011 data this is only qtz, 
-c                                 but neglects the effect of the clapeyron 
-c                                 slope on the transition T. This gives 
-c                                 nonsensical results if extrapolated to high
-c                                 pressure, therefore the transition effect
-c                                 was commented out Feb 9, 2022. Apparently
-c                                 the effect was not accounted for from the 
-c                                 initial implementation in perple_X and was
-c                                 added April 3, 2021.
-c           call lamla4 (dg,lmda(id))
-c           gval = gval + dg
-
-         else if (ltyp(id).eq.7) then 
-c                                 in the 2021 relative to the low T phase,
-c                                 used pointlessly for magnetic entropy of
-c                                 almost all Fe-bearing endmembers. 
-            gval = gval + lamla2(lmda(id))
-
-         end if
-
+c                                 check for transitions and Landau O/D:
+         if (ltyp(id).ne.0) call mtrans (gval,vdp,id)
          goto 999
 
       else if (eos(id).eq.11) then
@@ -22148,7 +22128,21 @@ c                                 supcrt q/coe lambda transition
 
          else if (ltyp(id).eq.4) then
 
-            if (eos(id).ne.8.and.eos(id).ne.9) then
+            if (eos(id).eq.6) then
+c                                 Stixrude 2011:
+c                                 in the 2011 data this is only qtz, 
+c                                 but neglects the effect of the clapeyron 
+c                                 slope on the transition T. This gives 
+c                                 nonsensical results if extrapolated to high
+c                                 pressure, therefore the transition effect
+c                                 was commented out Feb 9, 2022. Apparently
+c                                 the effect was not accounted for from the 
+c                                 initial implementation in perple_X and was
+c                                 added April 3, 2021.
+c              call lamla4 (dg,lmda(id))
+c              gval = gval + dg
+
+            else if (eos(id).ne.8.and.eos(id).ne.9) then
 c                                 putnis landau model as implemented incorrectly
 c                                 in hp98 (ds5)
                call lamla0 (dg,vdp,lmda(id))
@@ -22167,13 +22161,20 @@ c                                 holland and powell bragg-williams model
             call lambw (dg,lmda(id))
             gval = gval + dg
 
+         else if (ltyp(if).eq.7) then
+
+c                                 in the 2021 relative to the low T phase,
+c                                 used pointlessly for magnetic entropy of
+c                                 almost all Fe-bearing endmembers. 
+            gval = gval + lamla2(lmda(id))
+
          else if (ltyp(id).eq.8) then
-c                                 George's Hillert & Jarl magnetic transition model
-            if (lct(id).gt.1) write(0,*)'**>1 magnetic trans.!?'
-            tc = therlm(1,1,lmda(id))
-            b = therlm(2,1,lmda(id))
-            pee = therlm(3,1,lmda(id))
-            gval = gval + gmags (tc,b,pee)
+c                                 George's Hillert & Jarl magnetic transition model,
+c                                 arguments are tc, b, pee. Needs to pass parameters
+c                                 because of call to gmag2 by special FeCr model.
+            gval = gval + gmags (therlm(1,1,lmda(id)),
+     *                           therlm(2,1,lmda(id)),
+     *                           therlm(3,1,lmda(id)))
 
          else
 
