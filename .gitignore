@@ -718,48 +718,8 @@ fort.16
 
 junk/
 
-stefan_III.dat
+MC_fit-example/MC_*.dat
 
-stefan_solution.dat
+MC_fit-example/*.out
 
-stinv_mf.bst
-
-stinv_mf.dat
-
-stinv_mf.imc
-
-stinv_mf.out
-
-stinv_perplex_option.dat
-
-src/old_MC_fit.f
-
-mo2test.dat
-
-o2test.dat
-
-bl691.out
-
-scraps.f
-
-spear_2010.dat
-
-weigang_perplex_option.dat
-
-bl691.bst
-
-test_DEW19HP633ver_elements.dat
-
-comp.dat
-
-components.dat
-
-Fe.dat
-
-g.dat
-
-Iron24.dat
-
-Feg.dat
-
-sptest.dat
+MC_fit-example/*.bst
