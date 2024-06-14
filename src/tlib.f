@@ -10999,6 +10999,10 @@ c                              stixrude & lithgow-bertelloni GJI '05
          etas0  = f
          g0     =  emodu(1)
          g0p    =  emodu(2)
+c                                 for backward compatability beta_el and gamma_el are read under b1 and b2, move
+c                                 them to b13 and c8 (thermo 23/24 on return).
+         b13 = b1
+         c8 = b2
 c                                 nr9
          b1 = 9d0*n*r
 c                                 c1
@@ -12785,7 +12789,7 @@ c        b = 0.2228D1 * x - 0.8D-2 - 0.85D0 * (1d0 - x) * x
          tc = 1043d0 * xfe + (-311.5d0) * xcr +
      *        xfe * xcr * (1650d0 + 550d0*(xcr-xfe))
          b = 2.22d0 * xfe + (-0.008d0) * xcr + xfe*xcr*(-0.008d0)
-         gmag2 = gmags (tc,b,0.40d0)
+         gmag2 = gmags (tc,b,0.40d0,8)
 
       end if
 
@@ -13553,9 +13557,12 @@ c -----------
       xn = 1d0/(1d0 - an + an*(1d0 + n/(3*an) * p/Bo)**(1d0/real(n)))
       end function xn
 
-      double precision function gmags (tc,b,pee)
+      double precision function gmags (tc,b,pee,itype)
 c-----------------------------------------------------------------------
-c gmags returns the magnetic contribution to G parameterized as in
+c gmags returns the magnetic contribution to G parameterized as in either
+
+c itype = 8
+
 c Sundman 1991 J. Ph. Equil. v12, 127-140.
 c     tc - transition temperature
 c     b - Bohr magneton value
@@ -13572,10 +13579,26 @@ c structures, divide tc and b by -1; for fcc & hcp (p=0.28) antiferromagnetic
 c structures, divide tc and b by -3.
 
 c                                      G. Helffrich, ELSI, 8 Apr. 2016.
+
+c or itype = 9
+
+c Stixrude & Lithgow-Bertelloni (GJI 2024, Eqs A5-A7) where
+c     tc - transition temperature
+c     b - entropy of disordering (R*ln(b+1))
+c     pee - structural magnetic parameter
+
+c there's no fundamental reason for having two transition flags for the same 
+c model, but for some reason parameters for type 8 are read into thermo
+c for CALPHAD EoS, whereas they are read as transition data for Stx-GJI
+c EoS having two flags makes it easy to maintain backward compatability.
+
+c                                      JADC, June 11, 2024
 c-----------------------------------------------------------------------
       implicit none
 
       include 'perplex_parameters.h'
+
+      integer itype
 
       double precision a0,a1,t5,t15,t25,f1,f0,f3,f9,f15
 
@@ -13588,23 +13611,31 @@ c-----------------------------------------------------------------------
 
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
-
+c-----------------------------------------------------------------------
       if (tc.lt.0d0) then
+
          if (pee.lt.0.4d0) then
+
             bc = -b/3
             t0 = -3*t/tc
+
          else
+
             bc = -b
             t0 = -t/tc
-         endif
+
+         end if
+
       else
+
          t0 = t/tc
          bc = b
-      endif
 
+      endif
+c                                 stixrude's D
       a = a0 + a1*(1d0/pee - 1d0)
 
-      if (t0.lt.1d0) then
+      if (t0.le.1d0) then
 
          f = t - (f1*tc/pee + t * f0 * (1d0/pee - 1d0) *
      *       (f3 + t0**6 * (f9 + t0**6 * f15)) * t0**3) / a
@@ -13615,7 +13646,15 @@ c-----------------------------------------------------------------------
 
       end if
 
-      gmags = r*f*dlog(bc+1)
+      if (itype.eq.8) then 
+c                                 r*ln(beta+1) is S_max
+         gmags = r*f*dlog(bc+1)
+
+      else if (itype.eq.9) then
+
+         gmags = f*b
+
+      end if
 
       end
 
