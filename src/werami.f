@@ -3931,7 +3931,7 @@ c                                 bulk composition, wt% or mol
 c                                 absolute mass, units hardwired here, but
 c                                 are actually determined by component formula 
 c                                 mass specified in the thermodynamic data file.
-               dname(i) = cname(i)//',g       '
+               dname(i) = cname(i)//',g,abs   '
 
             else
 c                                 mass fraction (%)
@@ -4057,7 +4057,14 @@ c                                 only one phase:
 c                                 bulk composition
          if (lopt(41)) then
 c                                 absolute composition
-            x = props(16,jd)
+            if (iopt(2).eq.0) then 
+c                                 molar units
+               x = props(16,jd)
+            else 
+c                                 mass units
+               x = props(16,jd) * props(17,jd) / 1d2
+            end if
+
          else
 c                                 relative composition
             x = 1d0
