@@ -66,8 +66,8 @@ FARCH = -m64
 # is better left out. (True, unless you compile with -g, in which case the backtrace is useful) 
 
 #FFLAGS = -O3 #original github make
-#FFLAGS = -O3 -std=legacy -fno-backtrace $(FARCH) #for perplex
-FFLAGS = -O3 -fPIC -Wpedantic -ffixed-line-length-none $(FARCH) #for perplex + perplexwrap
+FFLAGS = -O3 -std=legacy -fno-backtrace $(FARCH) #for perplex
+#FFLAGS = -O3 -fPIC -Wpedantic -ffixed-line-length-none $(FARCH) #for perplex + perplexwrap
 
 FLINK = -static-libgfortran -lgfortran -lgcc -lm $(FARCH)
 LLINK = -shared -lgfortran -lgcc -lm $(FARCH)

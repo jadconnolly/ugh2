@@ -570,6 +570,8 @@ c                                 compute_FD_increments for MINFRC
       lopt(66) = .false.
 c                                 aq_fractionation_simpl
       lopt(67) = .true.
+c                                 finite_strain_alpha
+      lopt(68) = .false.
 c                                 phi_d
       nopt(65) = 0.36
 c                                 initialize mus flag lagged speciation
@@ -1411,6 +1413,10 @@ c                                 handle missing shear moduli
                valu(15) = val
                iopt(16) = 2
             end if   
+
+         else if (key.eq.'finite_strain_alpha') then 
+c                                 finite strain alpha handling
+            lopt(68) = 0 .ne. index('tT',val(1:1))
           
          else if (key.eq.'lop_28') then
 c                                 reserved values for debugging, etc
@@ -1905,8 +1911,8 @@ c                                 generic subdivision parameters:
          end if 
 c                                 generic thermo parameters:
          write (n,1012) nval1,
-     *                  nopt(12),nopt(20),lopt(8),lopt(4),nopt(5),
-     *                  iopt(21),nopt(10),lopt(63),
+     *                  nopt(12),nopt(20),lopt(8),lopt(4),lopt(68),
+     *                  nopt(5),iopt(21),nopt(10),lopt(63),
      *                  iopt(25),iopt(26),iopt(27),
      *                  lopt(32),lopt(67),lopt(44),lopt(36),lopt(46),
      *                  nopt(38),nopt(34)
@@ -1938,7 +1944,8 @@ c                                 WERAMI input/output options
 c                                 WERAMI info file options
          write (n,1241) lopt(12)       
 c                                 WERAMI thermodynamic options
-         write (n,1016) lopt(8),lopt(4),iopt(25),iopt(26),iopt(27)
+         write (n,1016) lopt(8),lopt(4),lopt(68),
+     *                  iopt(25),iopt(26),iopt(27)
          write (n,1017) nopt(31),nopt(26),nopt(27)
 
       else if (iam.eq.2) then 
@@ -1965,7 +1972,8 @@ c                                 seismic property options
 
       if (iam.eq.5) then 
 c                                 FRENDLY thermo options
-         write (n,1016) lopt(8),lopt(4),iopt(25),iopt(26),iopt(27)
+         write (n,1016) lopt(8),lopt(4),lopt(68),
+     *                  iopt(25),iopt(26),iopt(27)
          write (n,1017) nopt(31),nopt(26),nopt(27)
 
       end if 
@@ -2049,6 +2057,7 @@ c                                 generic thermo options
      *        4x,'T_melt (K)             ',f6.1,5x,'[873]',/,
      *        4x,'approx_alpha            ',l1,9x,'[T] F',/,
      *        4x,'Anderson-Gruneisen      ',l1,9x,'[F] T',/,
+     *        4x,'finite_strain_alpha     ',l1,9x,'[F] T',/,
      *        4x,'speciation_precision   ',g7.1E1,4x,
      *           '[1d-5] <1; absolute',/,
      *        4x,'speciation_max_it      ',i4,7x,'[100]',/,
@@ -2086,6 +2095,7 @@ c                                 thermo options for frendly
 1016  format (/,2x,'Thermodynamic options:',//,
      *        4x,'approx_alpha            ',l1,9x,'[T] F',/,
      *        4x,'Anderson-Gruneisen      ',l1,9x,'[F] T',/,
+     *        4x,'finite_strain_alpha     ',l1,9x,'[F] T',/,
      *        4x,'hybrid_EoS_H2O          ',i4,6x,'[4] 0-2, 4-7',/,
      *        4x,'hybrid_EoS_CO2          ',i4,6x,'[4] 0-4, 7',/,
      *        4x,'hybrid_EoS_CH4          ',i4,6x,'[0] 0-1, 7')
@@ -7245,8 +7255,8 @@ c-----------------------------------------------------------------------
       lmake = .false.
 
       write (n8,1233) valu(19),nopt(6),lopt(17),valu(15),nopt(1),
-     *                valu(14),lopt(20),lopt(4),.false.,lopt(65),
-     *                nopt(65)
+     *                valu(14),lopt(20),lopt(4),lopt(68),.false.,
+     *                lopt(65),nopt(65)
 
       write (n8,1030)
 
@@ -7396,6 +7406,7 @@ c-----------------------------------------------------------------------
      *        4x,'seismic_output          ',a3,7x,'[some] none all',/,
      *        4x,'poisson_test            ',l1,9x,'[F] T',/,
      *        4x,'Anderson-Gruneisen      ',l1,9x,'[F] T',/,
+     *        4x,'finite_strain_alpha     ',l1,9x,'[F] T',/,
      *        4x,'Tisza_test              ',l1,9x,'[F] T',/,
      *        4x,'fluid_shear_modulus     ',l1,9x,'[T] F',/,
      *        4x,'phi_d                   ',f4.2,6x,'[0.36] 0->1',/)
