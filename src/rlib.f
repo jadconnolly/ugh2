@@ -3660,12 +3660,7 @@ c                                 effective f from V(P=0,T) to V(P,T)
      *   (3d0*ft*(1d0 + 2d0*ft)**2.5d0 * (1d0-ft*3d0*(4d0+kprime)/4d0))
 c                                 and the vdp integral is:
 c                                 checked in BM3_integration.mws
-      vint = p*vpt - vt*(pr-4.5d0*kt*ft**2*(1d0-ft*(4d0+kprime)))
-c                                 correct for effect of integration path
-c                                 this is based on the difference between
-c                                 V = dG/dP and calc. V = f(P,T) from the EOS
-c                                 and leads to dG/dP within 0.1% of true V
-      vdpbmt = vint / (1d0 + 2.40316d-2 * dasinh(1.774687d0*p/k))
+      vdpbmt = p*vpt - vt*(pr-4.5d0*kt*ft**2*(1d0-ft*(4d0+kprime)))
 
 1000  format (/,'**warning ver369** failed to converge at T= ',f8.2,' K'
      *       ,' P=',f9.1,' bar',/,'Using Birch-Murnaghan ',
