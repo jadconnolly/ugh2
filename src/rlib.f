@@ -3656,10 +3656,18 @@ c                                 V(0,t)
       vt = v0*exp(ai)
 c                                 effective f from V(P=0,T) to V(P,T)
       ft = ((vt/vpt)**r23-1d0) * 0.5d0
+c                                 effective k from V(P=0,T) to V(P,T)
       kt = (p-pr) /
-     *   (3d0*ft*(1d0 + 2d0*ft)**2.5d0 * (1d0-ft*3d0*(4d0+kprime)/4d0))
+     *   (3d0*ft*(1d0 + 2d0*ft)**2.5d0 * (1d0-ft*3d0*(4d0+kprime)/2d0))
 c                                 and the vdp integral is:
 c                                 checked in BM3_integration.mws
+c                                 compared to a numerical derivative of
+c                                 dG/dP, this expression gives v(p,t) that
+c                                 is 1-2% smaller than vpt at core pressures.
+c                                 the expr. is mathematically correct though.
+c                                 in contrast, vdpbm3 (same expression for the
+c                                 integral) gives a numerical derivative
+c                                 identical to vpt.  to be investigated.
       vdpbmt = p*vpt - vt*(pr-4.5d0*kt*ft**2*(1d0-ft*(4d0+kprime)))
 
 1000  format (/,'**warning ver369** failed to converge at T= ',f8.2,' K'
