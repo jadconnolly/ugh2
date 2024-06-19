@@ -3649,7 +3649,8 @@ c                                 of alpha with p; see Helffrich (2017) AM 102
 c                                 1690-1695; based on Murnaghan EOS, which might
 c                                 be questionable.
       f = 0.5d0*((v0/v)**r23-1d0)
-      af = (1d0 + 2d0*f)**-2.5d0 * (1d0 + 1d0/(1d0 + 2d0*f)**2) * 0.5d0
+c     af = (1d0 + 2d0*f)**-2.5d0 * (1d0 + 1d0/(1d0 + 2d0*f)**2) * 0.5d0
+      af = (1d0 + 1d0/(1d0 + 2d0*f)**2) / (2d0 * sqrt(1d0 + 2d0*f)**5)
 c                                 V(p,t)
       vpt = v*exp(af*ai)
 c                                 V(0,t)
@@ -3667,8 +3668,11 @@ c                                 is 1-2% smaller than vpt at core pressures.
 c                                 the expr. is mathematically correct though.
 c                                 in contrast, vdpbm3 (same expression for the
 c                                 integral) gives a numerical derivative
-c                                 identical to vpt.  to be investigated.
-      vdpbmt = p*vpt - vt*(pr-4.5d0*kt*ft**2*(1d0-ft*(4d0+kprime)))
+c                                 identical to vpt.  to be investigated; a
+c                                 kludge is an empirical correction to vint
+c                                 good to ~0.5% to core pressures.
+      vint = p*vpt - vt*(pr-4.5d0*kt*ft**2*(1d0-ft*(4d0+kprime)))
+      vdpbmt = vint*(1d0 + 0.766d-2*asinh(2d0*p/k))
 
 1000  format (/,'**warning ver369** failed to converge at T= ',f8.2,' K'
      *       ,' P=',f9.1,' bar',/,'Using Birch-Murnaghan ',
