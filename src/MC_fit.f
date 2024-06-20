@@ -321,6 +321,8 @@ c                                 initialize scaled coordinate
 c                                 ptx inversion:
 c                                 read phase compositions
          call mccomp
+c                                 set george's "weight"
+         xptpt(1,5) = 1d0
 
          n = ipot + xptnph(1) - 1
 
@@ -579,8 +581,7 @@ c
       subroutine mcxpt (n6out, randm)
 c-----------------------------------------------------------------------
 c a subprogram to read auxilliary input file for MC inversion of exptal
-c data.
-c parameters:
+c data. parameters:
 c     n6out - echo parameter output to n6
 c     randm - randomly perturb bulk compositions before inversion
 c-----------------------------------------------------------------------
@@ -1137,9 +1138,6 @@ c-----------------------------------------------------------------------
 
       external pertrb
 
-      integer icomp,istct,iphct,icp
-      common/ cst6  /icomp,istct,iphct,icp
-
       character tname*10
       logical refine, lresub
       common/ cxt26 /refine,lresub,tname
@@ -1182,7 +1180,7 @@ c                                 modal data
 c                                 no modal data, initialize
             backspace (n8)
             pmode(nph) = -1d0
-            emode(nph) = 0d0
+            emode(nph) = 1d0
 
          end if
 c                                 if compound don't read composition
@@ -1210,7 +1208,7 @@ c                                 get solution composition
 
          call gtcomp (comp,ecomp,randm,'comp',bad)
 
-         do i = 1, icomp
+         do i = 1, kbulk
             xptc(cxpt+i) = comp(i)
             xpte(cxpt+i) = ecomp(i)
          end do
@@ -1219,7 +1217,7 @@ c                                 pointer to the composition of phase nph in exp
 
          xptnph(mxpt) = nph
 c                                 increment composition pointer
-         if (.not.bad) cxpt = cxpt + icp
+         if (.not.bad) cxpt = cxpt + kbulk
 
       end do
 
@@ -1257,12 +1255,9 @@ c-----------------------------------------------------------------------
       double precision tot, comp(*), ecomp(*), pertrb
 
       external pertrb
-
-      integer icomp,istct,iphct,icp
-      common/ cst6  /icomp,istct,iphct,icp
 c----------------------------------------------------------------------
-      comp(1:icomp) = 0d0
-      ecomp(1:icomp) = 0d0
+      comp(1:kbulk) = 0d0
+      ecomp(1:kbulk) = 1d0
 
       do
 
@@ -1272,7 +1267,7 @@ c----------------------------------------------------------------------
 
          ok = .false.
 c                                 should test for component name replication?
-         do i = 1, icomp
+         do i = 1, kbulk
             if (key.eq.cname(i)) then
                ok = .true.
                exit
@@ -1312,7 +1307,7 @@ c                                 convert mass input to molar units
 c                                 george's 0 counter
       j = 0
 
-      do i = 1, icomp
+      do i = 1, kbulk
          if (ecomp(i).eq.0d0) j = j + 1
          tot = tot + comp(i)
       end do
@@ -1322,13 +1317,17 @@ c                                 george assumes normalized input, but has
 c                                 this suspect test. a phase with 
 c                                 fewer components than the system will
 c                                 fail, and what's with the > 1?
-         if (j.gt.1 .and. j.ne.icp) bad = .true.
+         if (j.gt.1 .and. j.ne.kbulk) bad = .true.
          xpterr(mxpt) = j
 
-      else 
-c                                 normalize composition
-         do i = 1, icomp
+      else
+
+         do i = 1, kbulk
+c                                 normalize composition and error for
+c                                 scoring:
             comp(i) = comp(i)/tot
+            ecomp(i) = ecomp(i)/tot
+
          end do
 
       end if
@@ -1443,7 +1442,8 @@ c                                 to the normal variables:
 
       subroutine mcsetb (x)
 c-----------------------------------------------------------------------
-c set bulk composition for MC thermobarometry
+c set bulk composition for MC thermobarometry, assumes normalized 
+c compositions
 c-----------------------------------------------------------------------
       implicit none
 
@@ -1467,35 +1467,31 @@ c-----------------------------------------------------------------------
       integer ipot,jv,iv
       common / cst24 /ipot,jv(l2),iv(l2)
 c-----------------------------------------------------------------------
-      cblk(1:kbulk) = 0d0
-      ctotal = 0d0 
+      cblk = 0d0
+      ctotal = 0d0
 
-      do i = 1, mphase
-
+      do i = 1, xptnph(1)
+c                                 composition pointer
+         cxpt = xptptr(1,i)
+c                                 compositional var pointer
          k = ipot + i
 
-         if (i.lt.mphase) then 
+         if (i.lt.xptnph(1)) then 
             ctotal = ctotal + x(k)
          else
             x(k) = 1d0 - ctotal
          end if
 
          do j = 1, kbulk
-            cblk(j) = cblk(j) + x(k) * pblk(i,j)
+            cblk(j) = cblk(j) + x(k) * xptc(cxpt+j)
          end do
 
       end do
 c                                 modify cblk here to change the 
 c                                 composition before minimization.
-      ctotal = 0d0
-c                                 get total moles to compute mole fractions 
-      do i = 1, hcp
-         ctotal = ctotal + cblk(i)
-      end do
+      ctotal = 1d0
 
-      do i = 1, hcp 
-         b(i) = cblk(i) / ctotal
-      end do
+      b(1:kbulk) = cblk(1:kbulk) 
 
       end
 
@@ -1517,30 +1513,25 @@ c-----------------------------------------------------------------------
       double precision a,b,c
       common/ cst313 /a(k5,k1),b(k5),c(k1),is(k1+k5)
 
-      integer hcp,idv
-      common/ cst52  /hcp,idv(k7)
-
       double precision v,tr,pr,r,ps
       common/ cst5  /v(l2),tr,pr,r,ps
 c-----------------------------------------------------------------------
-      cblk(1:kbulk) = 0d0
       ctotal = 0d0
 
-      do i = 1, hcp
+      do i = 1, kbulk
          cblk(i) = xptblk(id,i)
       end do
 c                                 get total moles to compute mole fractions 
-      do i = 1, hcp
+      do i = 1, kbulk
          ctotal = ctotal + cblk(i)
       end do
 
-      do i = 1, hcp 
+      do i = 1, kbulk
          b(i) = cblk(i) / ctotal
       end do
 c                                 set p-t
       v(1) = xptpt(id,1)
       v(2) = xptpt(id,2)
-
 c                                 add error contribution for p & t
 c                                 ***WARNING***
 c                                 assumes v(3) & v(4) are unused potentials;
@@ -1630,7 +1621,7 @@ c       minimum.
 c       n.b. p, step and var (if iquad = 1) must have dimension at least nop
 c            in the calling program.
 c       the dimensions below are for a maximum of 20 parameters.
-c      the dimension of bmat should be at least nop*(nop+1)/2.
+c       the dimension of bmat should be at least nop*(nop+1)/2.
 c
 c       latest revision - 11 august 1991
 c----------------------------------------------------------------------
@@ -1669,47 +1660,62 @@ c
       if(iprint.gt.0) write(lout,1000) iprint
  1000 format(' progress report every',i4,' function evaluations'/,
      1  ' eval.  func.',15x,'parameter values')
-c
+
 c     check input arguments
-c
+
       ifault=0
       if(nop.le.0) ifault=3
       if(nloop.le.0) ifault=4
       if(ifault.ne.0) return
-c
+
 c     set nap = no. of parameters to be varied, i.e. with step.ne.0
-c
+
       nap=0
       loop=0
       iflag=0
-      do 10 i=1,nop
+
+      do i=1,nop
         if(step(i).ne.zero) nap=nap+1
-   10 continue
-c
+      end do
+
 c     if nap = 0 evaluate function at the starting point and return
-c
+
       if(nap.gt.0) go to 30
+
       call functn(p,func,bad)
       if (bad) ifault = 99
       return
-c
+
 c     set up the initial simplex
-c
-   30 do 40 i=1,nop
-   40 g(1,i)=p(i)
+
+   30 do i=1,nop
+         g(1,i)=p(i)
+      end do
+
       irow=2
-      do 60 i=1,nop
-        if(step(i).eq.zero) go to 60
-        do 50 j=1,nop
-   50   g(irow,j)=p(j)
+
+      do i=1,nop
+
+        if(step(i).eq.zero) cycle
+
+        do j=1,nop
+           g(irow,j)=p(j)
+        end do
+
         g(irow,i)=p(i)+step(i)
         irow=irow+1
-   60 continue
+
+      end do
+
       np1=nap+1
       neval=0
-      do 90 i=1,np1
-        do 70 j=1,nop
-   70   p(j)=g(i,j)
+
+      do i=1,np1
+
+        do j=1,nop
+           p(j)=g(i,j)
+        end do
+
         call functn(p,h(i),bad)
 
         if (bad) then 
@@ -1718,49 +1724,66 @@ c
         end if
 
         neval=neval+1
-        if(iprint.le.0) go to 90
+
+        if(iprint.le.0) cycle
+
         write(lout,1010) neval,h(i),(p(j),j=1,nop)
  1010   format(/i4, 2x, g12.5, 2x, 5g12.5, 3(/20x, 5g12.5))
-   90 continue
-c
+
+      end do
+
 c     start of main cycle.
-c
+
 c     find max. & min. values for current simplex (hmax & hmin).
-c
+
   100 loop=loop+1
       imax=1
       imin=1
       hmax=h(1)
       hmin=h(1)
-      do 120 i=2,np1
+
+      do i=2,np1
+
         if(h(i).le.hmax) go to 110
         imax=i
         hmax=h(i)
-        go to 120
-  110   if(h(i).ge.hmin) go to 120
+
+        cycle
+
+  110   if(h(i).ge.hmin) cycle
+
         imin=i
         hmin=h(i)
-  120 continue
-c
+
+      end do
+
 c     find the centroid of the vertices other than p(imax)
-c
-      do 130 i=1,nop
-  130 pbar(i)=zero
-      do 150 i=1,np1
-        if(i.eq.imax) go to 150
-        do 140 j=1,nop
-  140   pbar(j)=pbar(j)+g(i,j)
-  150 continue
-      do 160 j=1,nop
-      fnap = nap
-  160 pbar(j)=pbar(j)/fnap
-c
+
+      do i=1,nop
+         pbar(i)=zero
+      end do
+
+      do i=1,np1
+         if(i.eq.imax) cycle
+         do j=1,nop
+            pbar(j)=pbar(j)+g(i,j)
+         end do 
+      end do
+
+      do j=1,nop
+         fnap = nap
+         pbar(j)=pbar(j)/fnap
+      end do
+
 c     reflect maximum through pbar to pstar,
 c     hstar = function value at pstar.
-c
-      do 170 i=1,nop
-  170 pstar(i)=a*(pbar(i)-g(imax,i))+pbar(i)
+
+      do i=1,nop
+         pstar(i)=a*(pbar(i)-g(imax,i))+pbar(i)
+      end do
+
       call functn(pstar,hstar,bad)
+
       neval=neval+1
 
         if (bad) then 
@@ -1771,14 +1794,18 @@ c
       if(iprint.le.0) go to 180
       if(mod(neval,iprint).eq.0) write(lout,1010) neval,hstar,
      1  (pstar(j),j=1,nop)
-c
+
 c     if hstar < hmin, reflect pbar through pstar,
 c     hstst = function value at pstst.
-c
+
   180 if(hstar.ge.hmin) go to 220
-      do 190 i=1,nop
-  190 pstst(i)=c*(pstar(i)-pbar(i))+pbar(i)
+
+      do i=1,nop
+         pstst(i)=c*(pstar(i)-pbar(i))+pbar(i)
+      end do
+
       call functn(pstst,hstst,bad)
+
       neval=neval+1
 
         if (bad) then 
@@ -1794,37 +1821,44 @@ c     if hstst < hmin replace current maximum point by pstst and
 c     hmax by hstst, then test for convergence.
 c
   200 if(hstst.ge.hmin) go to 320
-      do 210 i=1,nop
+
+      do i=1,nop
         if(step(i).ne.zero) g(imax,i)=pstst(i)
-  210 continue
+      end do
+
       h(imax)=hstst
       go to 340
-c
+
 c     hstar is not < hmin.
 c     test whether it is < function value at some point other than
 c     p(imax).   if it is replace p(imax) by pstar & hmax by hstar.
-c
-  220 do 230 i=1,np1
-        if(i.eq.imax) go to 230
-        if(hstar.lt.h(i)) go to 320
-  230 continue
-c
+
+  220 do i=1,np1
+         if(i.eq.imax) cycle
+         if(hstar.lt.h(i)) go to 320
+      end do
+
 c     hstar > all function values except possibly hmax.
 c     if hstar <= hmax, replace p(imax) by pstar & hmax by hstar.
-c
+
       if(hstar.gt.hmax) go to 260
-      do 250 i=1,nop
-        if(step(i).ne.zero) g(imax,i)=pstar(i)
-  250 continue
+
+      do i=1,nop
+         if(step(i).ne.zero) g(imax,i)=pstar(i)
+      end do
+
       hmax=hstar
       h(imax)=hstar
-c
+
 c     contracted step to the point pstst,
 c     hstst = function value at pstst.
-c
-  260 do 270 i=1,nop
-  270 pstst(i)=b*g(imax,i) + (1.d0-b)*pbar(i)
+
+  260 do i=1,nop
+         pstst(i)=b*g(imax,i) + (1.d0-b)*pbar(i)
+      end do
+
       call functn(pstst,hstst,bad)
+
       neval=neval+1
 
         if (bad) then 
@@ -1835,97 +1869,120 @@ c
       if(iprint.le.0) go to 280
       if(mod(neval,iprint).eq.0) write(lout,1010) neval,hstst,
      1  (pstst(j),j=1,nop)
-c
+
 c     if hstst < hmax replace p(imax) by pstst & hmax by hstst.
-c
+
   280 if(hstst.gt.hmax) go to 300
-      do 290 i=1,nop
-        if(step(i).ne.zero) g(imax,i)=pstst(i)
-  290 continue
+
+      do i=1,nop
+         if(step(i).ne.zero) g(imax,i)=pstst(i)
+      end do
+
       h(imax)=hstst
+
       go to 340
-c
+
 c     hstst > hmax.
 c     shrink the simplex by replacing each point, other than the current
 c     minimum, by a point mid-way between its current position and the
 c     minimum.
-c
-  300 do 315 i=1,np1
-        if(i.eq.imin) go to 315
-        do 310 j=1,nop
-          if(step(j).ne.zero) g(i,j)=(g(i,j)+g(imin,j))*half
-          p(j)=g(i,j)
-  310   continue
-        call functn(p,h(i),bad)
-        neval=neval+1
 
-        if (bad) then 
-           ifault = 99
-           return
-        end if
+  300 do i=1,np1
 
-        if(iprint.le.0) go to 315
-        if(mod(neval,iprint).eq.0) write(lout,1010) neval,h(i),
-     1              (p(j),j=1,nop)
-  315 continue
+         if(i.eq.imin) cycle
+
+         do j=1,nop
+            if(step(j).ne.zero) g(i,j)=(g(i,j)+g(imin,j))*half
+            p(j)=g(i,j)
+         end do
+
+         call functn(p,h(i),bad)
+
+         neval = neval+1
+
+         if (bad) then 
+            ifault = 99
+            return
+         end if
+
+         if(iprint.le.0) cycle
+         if(mod(neval,iprint).eq.0) write(lout,1010) neval,h(i),
+     *              (p(j),j=1,nop)
+
+      end do
+
       go to 340
-c
+
 c     replace maximum point by pstar & h(imax) by hstar.
-c
-  320 do 330 i=1,nop
-        if(step(i).ne.zero) g(imax,i)=pstar(i)
-  330 continue
+
+  320 do i=1,nop
+         if(step(i).ne.zero) g(imax,i)=pstar(i)
+      end do
+
       h(imax)=hstar
-c
+
 c     if loop = nloop test for convergence, otherwise repeat main cycle.
-c
+
   340 if(loop.lt.nloop) go to 100
-c
+
 c     calculate mean & standard deviation of function values for the
 c     current simplex.
-c
+
       hstd=zero
       hmean=zero
-      do 350 i=1,np1
-  350 hmean=hmean+h(i)
+
+      do i=1,np1
+         hmean=hmean+h(i)
+      end do
+
       fnp1 = np1
       hmean=hmean/fnp1
-      do 360 i=1,np1
-  360 hstd=hstd+(h(i)-hmean)**2
+
+      do i=1,np1
+         hstd=hstd+(h(i)-hmean)**2
+      end do
+
       hstd=sqrt(hstd/float(np1))
-c
+
 c     if the rms > stopcr, set iflag & loop to zero and go to the
 c     start of the main cycle again.
-c
+
       if(hstd.le.stopcr.or.neval.gt.max) go to 410
+
       iflag=0
       loop=0
       go to 100
-c
+
 c     find the centroid of the current simplex and the function value there.
-c
-  410 do 380 i=1,nop
-        if(step(i).eq.zero) go to 380
-        p(i)=zero
-        do 370 j=1,np1
-  370   p(i)=p(i)+g(j,i)
-        fnp1 = np1
-        p(i)=p(i)/fnp1
-  380 continue
+
+  410 do i=1,nop
+
+         if(step(i).eq.zero) cycle
+         p(i)=zero
+
+         do j=1,np1
+            p(i)=p(i)+g(j,i)
+         end do
+
+         fnp1 = np1
+         p(i)=p(i)/fnp1
+
+      end do
 
       call functn(p,func,bad)
+
       neval=neval+1
 
-        if (bad) then 
-           ifault = 99
-           return
-        end if
+      if (bad) then 
+         ifault = 99
+         return
+      end if
 
-        if (func.gt.oktol) then
-           write (*,'(a,1x,g12.6)') 'Aborting, bad objf: ',h(i)
-           ifault = 2
-           return
-        end if
+      if (func.gt.oktol) then
+         write (*,'(a,1x,g12.6)') 'Aborting, bad objf: ',h(i)
+         ifault = 2
+         return
+      end if
 
       if(iprint.le.0) go to 390
       if(mod(neval,iprint).eq.0) write(lout,1010) neval,func,
@@ -1946,11 +2003,11 @@ c
       write(lout,1050) func
  1050 format(' function value at centroid =',g14.6)
       return
-c
+
 c     convergence criterion satisfied.
 c     if iflag = 0, set iflag & save hmean.
 c     if iflag = 1 & change in hmean <= stopcr then search is complete.
-c
+
   420 if(iprint.lt.0) go to 430
       write(lout,1060)
  1060 format(/' evidence of convergence')
@@ -1971,21 +2028,22 @@ c
  1090 format(' function value at minimum =',g14.6)
   460 if(iquad.le.0) return
 c-------------------------------------------------------------------
-c
+
 c     quadratic surface fitting
-c
+
       if(iprint.ge.0) write(lout,1110)
  1110 format(/' quadratic surface fitting about supposed minimum'/)
-c
+
 c     expand the final simplex, if necessary, to overcome rounding
 c     errors.
-c
+
       neval=0
 
-      do 490 i=1,np1
+      do i=1,np1
+
   470   test=abs(h(i)-func)
 
-        if(test.ge.simp) go to 490
+        if(test.ge.simp) cycle
 
         if (func.gt.oktol) then
            write (*,'(a,1x,g12.6)') 'Aborting, bad objf: ',func
@@ -1993,7 +2051,7 @@ c
            return
         end if
 
-        do 480 j=1,nop
+        do j=1,nop
 
            if(step(j).ne.zero) g(i,j)=(g(i,j)-p(j))+g(i,j)
 
@@ -2007,7 +2065,7 @@ c
 
            end if
 
-  480   continue
+        end do
 
         call functn(pstst,h(i),bad)
 
@@ -2033,30 +2091,34 @@ c                                 infinite loop if g(i,j) doesn't change
 
         go to 470
 
-  490 continue
-c
+      end do
+
 c     function values are calculated at an additional nap points.
-c
-      do 510 i=1,nap
-        i1=i+1
-        do 500 j=1,nop
-  500   pstar(j)=(g(1,j)+g(i1,j))*half
-        call functn(pstar,aval(i),bad)
 
-        if (bad) then 
-           ifault = 99
-           return
-        end if
+      do i=1,nap
 
-        if (aval(i).gt.oktol) then
-           write (*,'(a,1x,g12.6)') 'Aborting, bad objf: ',h(i)
-           ifault = 2
-           return
-        end if
+         i1=i+1
 
-        neval=neval+1
+         do j=1,nop
+            pstar(j)=(g(1,j)+g(i1,j))*half
+         end do
 
-  510 continue
+         call functn(pstar,aval(i),bad)
+
+         if (bad) then 
+            ifault = 99
+            return
+         end if
+
+         if (aval(i).gt.oktol) then
+            write (*,'(a,1x,g12.6)') 'Aborting, bad objf: ',h(i)
+            ifault = 2
+            return
+         end if
+
+         neval=neval+1
+
+      end do
 c
 c     the matrix of estimated second derivatives is calculated and its
 c     lower triangle stored in bmat.
@@ -2094,10 +2156,10 @@ c
         l=l+i
         bmat(l)=two*(h(i1)+a0-two*aval(i))
   550 continue
-c
+
 c     the vector of estimated first derivatives is calculated and
 c     stored in aval.
-c
+
       do 560 i=1,nap
         i1=i+1
         aval(i)=two*aval(i)-(h(i1)+three*a0)*half
@@ -2129,9 +2191,9 @@ c
      1  ' minimum probably not found'/)
       ifault=2
       return
-c
+
 c     bmat*a/2 is calculated and stored in h.
-c
+
   610 do 650 i=1,nap
         h(i)=zero
         do 640 j=1,nap
@@ -2142,10 +2204,10 @@ c
   630     h(i)=h(i)+bmat(l)*aval(j)
   640   continue
   650 continue
-c
+
 c     find the position, pmin, & value, ymin, of the minimum of the
 c     quadratic.
-c
+
       ymin=zero
       do 660 i=1,nap
   660 ymin=ymin+h(i)*aval(i)
@@ -2165,9 +2227,9 @@ c
      1  1x,'from the minimization,'/
      2  ' the minimum may be false &/or the information matrix may be',
      3  1x,'inaccurate'/)
-c
+
 c     calculate true function value at the minimum of the quadratic.
-c
+
   682 neval = neval + 1
       call functn(pmin, hstar,bad)
 
@@ -2175,9 +2237,9 @@ c
            ifault = 99
            return
         end if
-c
+
 c     if hstar < func, replace search minimum with quadratic minimum.
-c
+
       if (hstar .ge. func) go to 690
       func = hstar
       do 684 i = 1, nop
@@ -2479,8 +2541,7 @@ c
       double precision function score (kd,id,j)
 c-----------------------------------------------------------------------
 c a function to evaluate the distance between oberved and candidate 
-c compositions for MC
-c parameters are:
+c compositions for MC, parameters are:
 c     kd - phase indicator
 c     id - experiment number
 c     j  - phase number in experiment
@@ -2490,62 +2551,68 @@ c-----------------------------------------------------------------------
       integer id, kd, j, k, l, m
 
       double precision total, term
-
-      integer icomp,istct,iphct,icp
-      common/ cst6  /icomp,istct,iphct,icp
 c-----------------------------------------------------------------------
       total = 0d0
       score = 0d0
 c                                 normalization depends on whether any
 c                                 compositional uncertainty given
-      do l = 1, icomp
+      do l = 1, kbulk
+
          total = total + pcomp(l,kd)
          if (xpte(xptptr(id,j)+l).eq.0d0) m = l
+
       end do
 
       if (xpterr(id).eq.0) then
 c                                 no uncertainty - calculate residual
-         do l = 1, icomp
-            term = pcomp(l,kd)/total - xptc(xptptr(id,j)+l)
-            if (term .lt. 1d0) then
-               term = term**2
-            else
-               term = abs(term)
-            end if 
+         do l = 1, kbulk
+
+            k = xptptr(id,j)+l
+
+            term = dabs(pcomp(l,kd)/total - xptc(k)) / xpte(k)
+
+            if (term .lt. 1d0) term = term**2
+
             score = score + term
+
          end do
-      else if (xpterr(id).eq.icomp) then
+
+      else if (xpterr(id).eq.kbulk) then
 c                                 all have uncertainty - calculate weighted
 c                                 residual
-         do l = 1, icomp
+         do l = 1, kbulk
+
             k = xptptr(id,j)+l
-            term = (pcomp(l,kd)/total - xptc(k)) / xpte(k)
-            if (term .lt. 1d0) then
-               term = term**2
-            else
-               term = abs(term)
-            end if 
+
+            term = dabs((pcomp(l,kd)/total - xptc(k)) / xpte(k))
+
+            if (term .lt. 1d0) term = term**2
+
             score = score + term
+
          end do
+
       else if (xpterr(id).eq.1) then
 c                                 only one has no uncertainty - normalize
 c                                 to it, calculate weighted residual
          total = xptc(m) / pcomp(m,kd)
-         do l = 1, icomp
+
+         do l = 1, kbulk
+
             if (l.eq.m) cycle
+
             k = xptptr(id,j)+l
-            term = (pcomp(l,kd)*total - xptc(k)) / xpte(k)
-            if (term .lt. 1d0) then
-               term = term**2
-            else
-               term = abs(term)
-            end if 
+
+            term = dabs((pcomp(l,kd)*total - xptc(k)) / xpte(k))
+
+            if (term .lt. 1d0) term = term**2
+
             score = score + term
+
          end do
-      else
-         print *,'**bad score call: id, xpterr',id,xpterr(id)
-         score = 1d99
+
       end if
+
       end
 
       subroutine x2ther (x)
@@ -2756,13 +2823,11 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical ok, imout(k5), imin(k5), used(k5), debug 
+      logical ok, imout(k5), imin(k5), used(k5)
 
       integer id, jd, ids, i, j, kct(k5), ksol(k5,k5), ibest, mpred
 
       double precision lobj, score, best, res
-
-      character name*14
 
       external score
 
@@ -2784,17 +2849,14 @@ c-----------------------------------------------------------------------
 
       double precision props,psys,psys1,pgeo,pgeo1
       common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),pgeo1(i8)
-
-      parameter (debug = .false.)
 c     -------------------------------------------------------------------
 
 c     call calpr0 (6)
 c                                 compute the observation objective function
-      kct(1:xptnph(id)) = 0
-
-      imout(1:ntot) = .true.
+      kct = 0
+      imout = .true.
       used = .false.
-      imin(1:mphase) = .false.
+      imin = .false.
       ksol = 0
 
       do i = 1, ntot
@@ -2818,18 +2880,9 @@ c                                 compute the observation objective function
       mpred = 0
 c                                 first extraneous phases:
       do i = 1, ntot
-
-         if (imout(i)) then 
-c                                 residual is wextra * mass_fraction^2
-            lobj = lobj + 
-     *             wextra * (props(17,i)*props(16,i)/psys(17))**2
-            if (debug) then
-               call getnam (name,kkp(i))
-               print '(i2,2(1x,a),f8.1)',id,'extraneous: ',name,
-     *            wextra * (props(17,i)*props(16,i)/psys(17))**2
-            end if
-
-         end if
+c                                 penalty is wextra * mass_fraction^2
+         if (imout(i)) lobj = lobj + wextra * 
+     *                 (props(17,i)*props(16,i)/psys(17))**2
 
       end do
 c                                 potential target phases:
@@ -2844,8 +2897,7 @@ c                                 potential target phases:
 c                                 a compound, just count
             mpred = mpred + 1
 
-         else if (kct(j).eq.1.and.
-     *            msolct(id,ids).eq.1) then
+         else if (kct(j).eq.1.and.msolct(id,ids).eq.1) then
 c                                 found solution and no ambiguity
             mpred = mpred + 1
 c                                 compute and add residual
@@ -2855,7 +2907,6 @@ c                                 compute and add residual
 c                                 if there are multiple appearances of a
 c                                 solution in an assemblage, use the
 c                                 best fit
-
             best = 1d99
             ok = .false.
 
@@ -2901,32 +2952,12 @@ c                                 set used to avoid double counting
 c                                 residual is wextra * mass_fraction^2
             lobj = lobj + wextra * 
      *                   (props(17,jd)*props(16,jd)/psys(17))**2
-            if (debug) then
-               call getnam (name,jd)
-               print '(i2,2(1x,a),f8.1)',id,'extra phase:',name,
-     *            wextra * (props(17,jd)*props(16,jd)/psys(17))**2
-            end if
+
          end do
 
       end do
 c                                 missing phase residual
-      lobj = lobj + wmiss * (1d0 - dble(mpred)/xptnph(id))
-      if (debug .and. mpred .ne. xptnph(id)) then
-         print '(2(i2,1x),a,1x,i2,1x,a,$)',
-     *      id,xptnph(id)-mpred,'of',xptnph(id),
-     *      'phases missing:'
-         do j = 1, xptnph(id)
-            if (kct(j).eq.0) cycle
-
-            do i = 1,kct(j)
-               jd = ksol(j,i)
-               if (used(jd)) cycle
-               call getnam(name,kkp(jd))
-               print '(a,$)',' ',name
-            end do
-         end do
-         print *,wmiss * (1d0 - dble(mpred)/xptnph(id))
-      end if
+      lobj = lobj + wmiss * (1d0 - dble(mpred)/xptnph(id))**2
 c                                 accumulate scores
       xptscr = lobj
 

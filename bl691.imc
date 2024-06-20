@@ -87,7 +87,7 @@ CaO     0.36535 0.01
 O2      0.04241 0.01
 end_comp
 
-phase_name Augite(G)
+phase_name Gt(W)
 
 phase_mode -1 0
 

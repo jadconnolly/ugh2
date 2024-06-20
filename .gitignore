@@ -723,3 +723,7 @@ MC_fit-example/MC_*.dat
 MC_fit-example/*.out
 
 MC_fit-example/*.bst
+
+bl691.bst
+
+bl691.out
