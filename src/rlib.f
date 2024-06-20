@@ -9744,23 +9744,25 @@ c                                 indicate site_check_override and refine endmem
             end if
 
          end if
-c                               read next solution
+c                                 read next solution
       end do
-c                               make lists of found/not-found solutions
+c                                 make lists of found/not-found solutions
       infnd = 0
       ifnd = 0
-
+c                                 check if fname was included:
       do i = 1, isoct
 
          ok = .false.
-c                                 check if fname was included:
+
          do j = 1, im
+
             if (fname(i).eq.sname(j)) then 
                ok = .true.
                ifnd = ifnd + 1
                solptr(ifnd) = j
                exit
             end if
+
          end do
 
          if (ok) cycle
@@ -22216,7 +22218,7 @@ c----------------------------------------------------------------------
 
       integer id
 
-      double precision gval, dg, vdp, gmags, lamla2, told
+      double precision gval, dg, vdp, gmags, lamla2
 
       external gmags, lamla2
 

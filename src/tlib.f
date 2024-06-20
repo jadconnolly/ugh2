@@ -36,7 +36,7 @@ c----------------------------------------------------------------------
       integer n
 
       write (n,'(/,a,//,a)') 
-     *     'Perple_X BETA release 7.1.7c Jun 14, 2024.',
+     *     'Perple_X BETA release 7.1.7d Jun 20, 2024.',
 
      *     'Copyright (C) 1986-2024 James A D Connolly '//
      *     '<www.perplex.ethz.ch/copyright.html>.'
@@ -2647,7 +2647,7 @@ c---------------------------------------------------------------------
 
       character msg*(*)
 
-      write (*,'(/,a,/)') msg
+      write (*,'(/,a,/)') '**error ver999** '//msg
 
       call errpau
 
@@ -9696,7 +9696,15 @@ c                             io9 is a flag = 0 no solution file
          if (isoct.gt.h9) call error (25,r,i,'BUILD')
          fname(isoct) = sname
 
-      end do  
+      end do
+c                               check that a solution model has not been
+c                               entered twice
+      do i = 1, isoct 
+         do j = i+1, isoct
+            if (fname(i).eq.fname(j)) call errdbg ('solution model '//
+     *         fname(i)//' is specified more than once in your input.')
+         end do
+      end do
 c                             read the maximum pressure, temper-
 c                             ature, xco2, u1, and u2; the minimum
 c                             pressure temperature, xco2, u1, and u2;
