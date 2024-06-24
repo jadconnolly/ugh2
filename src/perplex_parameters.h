@@ -572,7 +572,7 @@ c                                 LP workspace into common
       double precision pmode, emode
       common/ cst67 /pmode(k5), emode(k5)
 c                                 MC_fit common block:
-      logical mcpert, mcflag, oprt, grh, invxpt
+      logical mcpert, mcflag, oprt, grh, invxpt, fprint
       integer mxpt, cxpt, random,
      *        xptids, xptptr, xptnph, xpterr, mccpd, mcsol, mcid, 
      *        mcids, msloc, msolct, nparm, nunc, mcpct, mcpid, mctrm,
@@ -593,6 +593,7 @@ c                                  integer
      *               mccoef(k5,m1), mcj(k5,m1), mccoid(k5,m1,m3),
 c                                  logical
      *               mcpert, oprt, mcflag(h9), random(3), grh, invxpt,
+     *               fprint,
 c                                  character
      *               xptnam(l11)
 

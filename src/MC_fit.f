@@ -239,7 +239,7 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i, n, conchk, kcount, icount, ifault, iprint,
+      integer i, n, conchk, kcount, icount, ifault, iprint, jcount,
      *        iquad, j, k, igood, ntry, ibest, id, jbest, pnum(l2+k5)
 
       logical readyn, bad, randm, n6out
@@ -265,6 +265,10 @@ c----------------------------------------------------------------------
       integer ipot,jv,iv
       common / cst24 /ipot,jv(l2),iv(l2)
 c----------------------------------------------------------------------- 
+c                                 flag to make mcobj print extended
+c                                 ouput for invptx
+      fprint = .false.
+
       if (n6out) then 
 c                                 output file
          call mertxt (tfname,prject,'.out',0)
@@ -357,16 +361,22 @@ c                                 initialize icount in case of failure
          else
             call minim (x, step, n, objf, kcount, iprint, tol, 
      *               conchk, iquad, simplx, var, mcobj2, icount, 
-     *               ifault, oktol)
+     *               jcount, ifault, oktol)
          end if
-
-         call mcobj2 (x,objf,bad)
 
          if (ifault.gt.2.or.(ifault.gt.0.and.objf.gt.oktol)) then
 
             write (*,1020) ifault, icount, igood, i
 
          else
+c                                 repeat the calculation at best x, 
+c                                 or in george's case do the calculation
+c                                 at x
+            if (.not.invxpt) fprint = .true.
+
+            call mcobj2 (x,objf,bad)
+
+            if (.not.invxpt) fprint = .false.
 
             igood = igood + 1
 c                                 compute ss of parameter deviations
@@ -375,7 +385,6 @@ c                                 compute ss of parameter deviations
             do j = 1, n
 c                                 center "bayesian" score in interval
                if (pdelta(j).ne.0d0) then
-c                 ssp = ssp + ((x(j) - plow(j))/pdelta(j))**2
                   ssp = ssp +
      *               ((2*(x(j) - plow(j) - pdelta(j)/2))/pdelta(j))**2
                end if
@@ -400,31 +409,47 @@ c                                 save max likelihood result
                write (*,'(a,i7,1h/,i7,1x,a,2(1x,1pg12.6),a,$)')
      *            'Try',i,random(3),'best:',bstobj,bstbay,char(13)
             else
-               write (*,1120) i, igood, icount, objf, bstobj, ibest
+
+               if (iquad.gt.0.and.jcount.gt.0) then
+                  write (*,1125) i, igood, icount, jcount, objf, bstobj, 
+     *                           ibest
+               else
+                  write (*,1120) i, igood, icount, objf, bstobj, ibest
+               end if
+
                write (*,1130) ssp, bay, bstbay, jbest
                write (*,1080) sx(1:n)
                write (*,1085) x0(1:n)
                write (*,1030) x(1:n)
                write (*,'(80(''-''))')
+
             end if
 
             if ((random(1).lt.2 .or. i.eq.ibest .or. i.eq.jbest)
      *          .and. n6out) then
 
-               write (n6,1120) i, igood, icount, objf, bstobj, ibest
+               if (iquad.gt.0.and.jcount.gt.0) then
+                  write (n6,1125) i, igood, icount, jcount, objf,
+     *                           bstobj, ibest
+               else
+                  write (n6,1120) i, igood, icount, objf, bstobj, ibest
+               end if
+
                write (n6,1130) ssp, bay, bstbay, jbest
                write (n6,1085) x0(1:n)
                write (n6,1030) x(1:n)
+
                write (n6,'(/,a,i7,a,/)') 'Scores for try = ',i,
      *                                   ' follow:'
+
                do id = 1, mxpt
 
                   if (xptpt(id,5).eq.1d0) then
                      write (n6,1010)
-     *                   id, xptnam(id),' score =',scores(id)
+     *                   id, xptnam(id),' score = ',scores(id)
                   else
                      write (n6,1010)
-     *                   id, xptnam(id),' score =',scores(id),
+     *                   id, xptnam(id),' score = ',scores(id),
      *                   xptpt(id,5)
                   end if
 
@@ -480,12 +505,19 @@ c                               write best model to *.bst
      *          'Last objective function value this try OBJ = ',g12.6,/,
      *          'Best OBJ so far = ',g12.6,
      *          ' obtained on try ',i7,/)
+1125  format (/,'Try ',i7,', successes so far = ',i7,/,
+     *          'Objective function evaluations this try = ',i5,/,
+     *          ' + ',i3,' evaluations for quadratic surface fitting',/,
+     *          'Last objective function value this try OBJ = ',g12.6,/,
+     *          'Best OBJ so far = ',g12.6,
+     *          ' obtained on try ',i7,/)
 1130  format (/,'Scaled parameter SSP = ',g12.6,/,
      *          'Bayes score SSP * OBJF = ',g12.6,/,
      *          'Best Bayes score so far = ',g12.6,
      *          ' obtained on try ',i7,/)
 
-      end 
+      end
+
 
       subroutine mccomp
 c-----------------------------------------------------------------------
@@ -1545,7 +1577,7 @@ c                                 ***WARNING***
       end
 
       subroutine minim (p,step,nop,func,max,iprint,stopcr,nloop,iquad,
-     *                  simp,var,functn,neval,ifault,oktol)
+     *                  simp,var,functn,neval,meval,ifault,oktol)
 c----------------------------------------------------------------------
 c     a program for function minimization using the simplex method.
 c     the minimum found will often be a local, not a global, minimum.
@@ -1634,7 +1666,7 @@ c                                 original code used implicit typing
 
       integer nop, lout, iprint, ifault, nloop, nap, loop, iflag, i, 
      *        irow, j, np1, imax, imin, iquad, neval, max, i1, i2, j1, 
-     *        k, l, ii, ij, nullty, irank, jj, ijk
+     *        k, l, ii, ij, nullty, irank, jj, ijk, meval
 
       double precision zero, one, two, three, half, a, b, c, func, 
      *                 fnap, fnp1, savemn, test, simp, a0, stopcr,
@@ -1707,8 +1739,9 @@ c     set up the initial simplex
 
       end do
 
-      np1=nap+1
-      neval=0
+      np1 = nap + 1
+      neval = 0
+      meval = 0
 
       do i=1,np1
 
@@ -1987,10 +2020,10 @@ c     find the centroid of the current simplex and the function value there.
       if(iprint.le.0) go to 390
       if(mod(neval,iprint).eq.0) write(lout,1010) neval,func,
      1  (p(j),j=1,nop)
-c
+
 c     test whether the no. of function values allowed, max, has been
 c     overrun; if so, exit with ifault = 1.
-c
+
   390 if(neval.le.max) go to 420
       ifault=1
       if(iprint.lt.0) return
@@ -2037,8 +2070,6 @@ c     quadratic surface fitting
 c     expand the final simplex, if necessary, to overcome rounding
 c     errors.
 
-      neval=0
-
       do i=1,np1
 
   470   test=abs(h(i)-func)
@@ -2080,10 +2111,10 @@ c     errors.
            return
         end if
 
-        neval=neval+1
+        meval = meval+1
 c                                 quick fix: this segment goes into an 
 c                                 infinite loop if g(i,j) doesn't change
-        if (neval.gt.max) then
+        if (meval.gt.max) then
            write (*,*) 'Aborting, infinite loop during surface fitting'
            ifault = 2
            return
@@ -2095,7 +2126,7 @@ c                                 infinite loop if g(i,j) doesn't change
 
 c     function values are calculated at an additional nap points.
 
-      do i=1,nap
+      do i = 1, nap
 
          i1=i+1
 
@@ -2116,7 +2147,7 @@ c     function values are calculated at an additional nap points.
             return
          end if
 
-         neval=neval+1
+         meval= meval + 1
 
       end do
 c
@@ -2145,7 +2176,7 @@ c
            return
         end if
 
-          neval=neval+1
+          meval = meval+1
           l=i*(i-1)/2+j
           bmat(l)=two*(hstst+a0-aval(i)-aval(j))
   530   continue
@@ -2230,7 +2261,7 @@ c     quadratic.
 
 c     calculate true function value at the minimum of the quadratic.
 
-  682 neval = neval + 1
+  682 meval = meval + 1
       call functn(pmin, hstar,bad)
 
         if (bad) then 
@@ -2267,9 +2298,9 @@ c
   740     vc(l)=vc(l)+h(k)*g(k,j)
   750   continue
   760 continue
-c
+
 c     the diagonal elements of vc are copied into var.
-c
+
       j=0
       do 770 i=1,nop
         j=j+i
@@ -2327,13 +2358,13 @@ c
         if(vc(ii).ne.zero) vc(ii)=one
   850 continue
       go to 880
-  860 write(lout,1210) neval
+  860 write(lout,1210) meval
  1210 format(/' a further',i4,' function evaluations have been used'/)
       return
-c
+
 c     pseudo-subroutine to print vc if ijk = 1 or 2, or
 c     bmat if ijk = 3.
-c
+
   880 l=1
   890 if(l.gt.nop) go to (790,860,800),ijk
       ii=l*(l-1)/2
@@ -2737,6 +2768,12 @@ c-----------------------------------------------------------------------
          end if
       end do
 
+      do i = ipot + 1, nparm 
+         if (x(i).lt.0) then  
+            write (*,*) ' neg x' 
+         end if 
+      end do 
+
       neg = nunc(2)
 
       if (invxpt) then
@@ -2823,9 +2860,11 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical ok, imout(k5), imin(k5), used(k5)
+      logical ok, imout(k5), imin(k5), used(k5), jmiss(k5)
 
-      integer id, jd, ids, i, j, kct(k5), ksol(k5,k5), ibest, mpred
+      integer id, jd, ids, i, j, k, kct(k5), ksol(k5,k5), ibest, mpred,
+     *        idpred(k5), idmiss(k5), idextr(k5), jmin(k5), mextra, lu,
+     *        jdbest, kd
 
       double precision lobj, score, best, res
 
@@ -2839,6 +2878,9 @@ c-----------------------------------------------------------------------
 
       double precision vmax,vmin,dv
       common/ cst9  /vmax(l2),vmin(l2),dv(l2)
+
+      character pname*14
+      common/ cxt21a /pname(k5)
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
@@ -2855,9 +2897,11 @@ c     call calpr0 (6)
 c                                 compute the observation objective function
       kct = 0
       imout = .true.
-      used = .false.
       imin = .false.
+      used = .false.
+      jmiss = .true.
       ksol = 0
+      jmin = 0
 
       do i = 1, ntot
 
@@ -2896,10 +2940,16 @@ c                                 potential target phases:
          if (kct(j).eq.1.and.ids.lt.0) then
 c                                 a compound, just count
             mpred = mpred + 1
+            imin(jd) = .true.
+            jmiss(j) = .false.
+            jmin(mpred) = j
 
          else if (kct(j).eq.1.and.msolct(id,ids).eq.1) then
 c                                 found solution and no ambiguity
             mpred = mpred + 1
+            imin(jd) = .true.
+            jmiss(j) = .false.
+            jmin(mpred) = j
 c                                 compute and add residual
             lobj = lobj + wcomp * score (jd,id,j)
 
@@ -2921,6 +2971,7 @@ c                                 best fit
                if (res.lt.best) then
                   best = res
                   ibest = i
+                  jdbest = jd
                   ok = .true.
                end if
 
@@ -2928,8 +2979,13 @@ c                                 best fit
 
             if (ok) then
 
-               used(ibest) = .true.
                mpred = mpred + 1
+
+               used(ibest) = .true.
+               imin(jdbest) = .true.
+               jmiss(j) = .false.
+               jmin(mpred) = j
+
                lobj = lobj + wcomp * best
 
             end if
@@ -2960,5 +3016,51 @@ c                                 missing phase residual
       lobj = lobj + wmiss * (1d0 - dble(mpred)/xptnph(id))**2
 c                                 accumulate scores
       xptscr = lobj
+
+      if (.not.invxpt) then
+c                                 output optimal P-T and compositions
+c                                 for inverse thermo-barometry
+         lu = 6
+c                                 locate predicted and extra phases
+         mpred = 0
+         mextra = 0
+
+         do i = 1, ntot
+            if (imin(i)) then
+               mpred = mpred + 1
+               idpred(mpred) = i
+            else if (imout(i)) then
+               mextra = mextra + 1
+               idextr(mextra) = i
+            end if
+         end do
+
+         do i = 1, 2
+c                                 phases observed and predicted
+            write (lu,1000)
+
+            do j = 1, mpred
+
+               jd = idpred(j)
+               kd = jmin(j)
+
+               write (lu,'(a)') pname(jd)
+               write (lu,1020) (cname(k), k = 1, kbulk)
+               write (lu,1030) 'predicted*', (pcomp(k,jd), k = 1, kbulk)
+               write (lu,1030) 'observed* ', (xptc(xptptr(1,kd)+k), 
+     *                                                     k = 1, kbulk)
+
+            end do
+
+            lu = n6
+
+         end do
+
+      end if
+
+1000  format (/,'The following observed phases were predicted: ',/)
+1010  format ('*normalized molar units')
+1020  format (25x,20(1x,a,3x))
+1030  format (26x,20(f8.5,1x))
 
       end
