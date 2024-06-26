@@ -1,0 +1,76 @@
+690 DO NOT DELETE THIS LINE
+
+                      --------------------------------------------------------
+begin_model
+                       CaS-MgS-FeS  solid solution 
+Nin                   
+abbreviation Nin
+full_name    niningerite
+
+2                                     model type: simplicial composition space
+
+3                                     endmembers
+old nin fnin
+  0  0  0                   | endmember flags
+0  1  .1   0                | subdivision range, imod = 0 -> cartesian subdivision
+0  1  .1   0                | subdivision range, imod = 0 -> cartesian subdivision
+
+begin_excess_function
+
+W(nin fnin)          14332.4  
+W(fnin old)          76847.7     -26.0627*T
+W(nin old old)         0
+W(nin nin old)         0
+
+
+end_excess_function
+
+1                                     1 site configurational entropy model
+
+3 1                                   3 species (Ca, Mg, Fe), site multiplicity = 1.
+z(M,Mg) = 1 nin
+z(M,Fe) = 1 fnin
+
+refine_endmembers
+
+end_of_model
+                      --------------------------------------------------------
+
+begin_model
+                       CaS-MgS-FeS liquid
+melt                   
+abbreviation melt
+full_name    melt
+
+2                                     model type: simplicial composition space
+
+3                                     endmembers
+oldL ninL troL 
+  0  0  0                     | endmember flags
+0  1  .1   0               | subdivision range, imod = 0 -> cartesian subdivision
+0  1  .1   0               | subdivision range, imod = 0 -> cartesian subdivision
+
+begin_excess_function
+
+W(ninL troL)         15242.5
+
+|W(troL oldL oldL)   404189.
+|W(oldL troL troL)   -71384.3
+
+W(troL oldL oldL)  817439.     -311.194*T  
+W(oldL troL troL)  203286.     -205.912*T    
+
+W(ninL oldL oldL)    48810.1     -35.1137*T
+W(oldL ninL ninL)    35508.8     -72.3391*T
+
+end_excess_function
+
+1                                     1 site configurational entropy model
+
+3 1                                   3 species (Ca, Mg, Fe), site multiplicity = 1.
+z(M,Mg) = 1 ninL
+z(M,Fe) = 1 troL
+
+refine_endmembers
+
+end_of_model

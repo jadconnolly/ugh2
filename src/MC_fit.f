@@ -3038,6 +3038,7 @@ c                                 locate predicted and extra phases
          do i = 1, 2
 c                                 phases observed and predicted
             write (lu,1000)
+            write (lu,1020) (cname(k), k = 1, kbulk)
 
             do j = 1, mpred
 
@@ -3045,10 +3046,20 @@ c                                 phases observed and predicted
                kd = jmin(j)
 
                write (lu,'(a)') pname(jd)
-               write (lu,1020) (cname(k), k = 1, kbulk)
                write (lu,1030) 'predicted*', (pcomp(k,jd), k = 1, kbulk)
                write (lu,1030) 'observed* ', (xptc(xptptr(1,kd)+k), 
      *                                                     k = 1, kbulk)
+
+            end do
+
+            write (lu,1040)
+            write (lu,1020) (cname(k), k = 1, kbulk)
+
+            do j = 1, mextra
+
+               jd = idextr(j)
+
+               write (lu,1030) pname(jd), (pcomp(k,jd), k = 1, kbulk)
 
             end do
 
@@ -3058,9 +3069,10 @@ c                                 phases observed and predicted
 
       end if
 
-1000  format (/,'The following observed phases were predicted: ',/)
+1000  format (/,'The following observed phases are predicted:',/)
 1010  format ('*normalized molar units')
-1020  format (25x,20(1x,a,3x))
-1030  format (26x,20(f8.5,1x))
-
+1020  format (17x,'vol %   ',20(1x,a,2x))
+1030  format (2x,a,5x,8x,20(f7.4,1x))
+1040  format (/,'The following predicted phases are not observed:',/)
+1050  format (/,'The following observed phases are not predicted:',/)
       end
