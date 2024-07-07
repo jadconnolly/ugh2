@@ -18,6 +18,7 @@ c----------------------------------------------------------------------
       integer i, j, k, l, m, lu, id, inc, ct
 
       double precision poiss, gcpd, zsite(m10,m11), zt, gga(k5,3,m14)
+     *, wttot(k5), motot(k5)
  
       external gcpd, zbad
 
@@ -26,9 +27,6 @@ c----------------------------------------------------------------------
 
       double precision gtot,fbulk,gtot1,fbulk1
       common/ cxt81 /gtot,fbulk(k0),gtot1,fbulk1(k0)
-
-      double precision props,psys,psys1,pgeo,pgeo1
-      common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),pgeo1(i8)
 
       integer kkp,np,ncpd,ntot
       double precision cp3,amt
@@ -53,9 +51,6 @@ c----------------------------------------------------------------------
 
       integer hcp,idv
       common/ cst52  /hcp,idv(k7)
-
-      character pname*14
-      common/ cxt21a /pname(k5)
 
       integer ld, na1, na2, na3, nat
       double precision x3, caq
@@ -108,9 +103,9 @@ c                                 probably unnecessary?
 c                                 print standard potentials
       write (lu,1000)
 
-      if (iam.eq.2) then 
+      if (iam.eq.2) then
+
          write (lu,1120) (vname(jv(i)),v(jv(i)), i = 1, ipot)
-         write (lu,1120) (vname(jv(i)),v(jv(i)), i = 3, ipot)
 
          do i = 2, icont
             write (lu,1121) i-1, cx(i-1)
@@ -127,6 +122,9 @@ c                                 print standard potentials
       end if
 
       write (lu,1020) cprop, (cname(i), i = 1, icomp)
+
+      motot = 0d0
+      wttot = 0d0
 
       do i = 1, ntot
 
@@ -160,6 +158,9 @@ c                                 weight composition
 
          end if
 
+         do j = 1, icomp
+         motot(j) = motot(j) + props(16,i)*pcomp(l,i)
+         end do
 c         if (lopt(28)) then
 
 c            do l = 1, icomp
@@ -647,8 +648,13 @@ c                                 mass fraction, %
      *                      fbulk(i)*atwt(i)/psys(17)*1d2,
 c                                 mol/kg
      *                      fbulk(i)/psys(17)*1d3
+            write (*,*) motot(i), motot(i)*atwt(i)
+            motot(k5) = motot(k5) + motot(i)
+            wttot(k5) = wttot(k5) + motot(i) *atwt(i)
 
          end do
+
+         write (*,*) motot(k5), wttot(k5)
 
          write (lu,1220)
 
@@ -876,10 +882,6 @@ c                                 for final adaptive solution
 
       double precision gtot,fbulk,gtot1,fbulk1
       common/ cxt81 /gtot,fbulk(k0),gtot1,fbulk1(k0)
-
-      double precision props,psys,psys1,pgeo,pgeo1
-      common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),pgeo1(i8)
-
 
       logical mus
       double precision mu
@@ -1582,14 +1584,8 @@ c----------------------------------------------------------------------
 
       external poiss, ginc
 
-      double precision props,psys,psys1,pgeo,pgeo1
-      common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),pgeo1(i8)
-
       double precision gtot,fbulk,gtot1,fbulk1
       common/ cxt81 /gtot,fbulk(k0),gtot1,fbulk1(k0)
-
-      character pname*14
-      common/ cxt21a /pname(k5)
 
       integer iam
       common/ cst4 /iam
@@ -2651,12 +2647,6 @@ c-----------------------------------------------------------------------
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
 
-      double precision props,psys,psys1,pgeo,pgeo1
-      common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),pgeo1(i8)
-
-      character pname*14
-      common/ cxt21a /pname(k5)
-
       integer hs2p
       double precision hsb
       common/ cst84 /hsb(i8,4),hs2p(6)
@@ -3203,9 +3193,6 @@ c----------------------------------------------------------------------
       integer i
 
       logical ssick,ppois,bulkg,bsick
-
-      double precision props,psys,psys1,pgeo,pgeo1
-      common/ cxt22 /props(i8,k5),psys(i8),psys1(i8),pgeo(i8),pgeo1(i8)
 
       double precision gtot,fbulk,gtot1,fbulk1
       common/ cxt81 /gtot,fbulk(k0),gtot1,fbulk1(k0)

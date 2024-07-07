@@ -4973,9 +4973,6 @@ c----------------------------------------------------------------------
       integer ltyp,lct,lmda,idis
       common/ cst204 /ltyp(k10),lct(k10),lmda(k10),idis(k10)
 
-      double precision therdi,therlm
-      common/ cst203 /therdi(m8,m9),therlm(m7,m6,k9)
-
       integer eos
       common/ cst303 /eos(k10)
 
@@ -5805,7 +5802,7 @@ c----------------------------------------------------------------------
 
       integer i,j,jopt,ict,ier,jscan
  
-      character*5 pname, rname
+      character*5 char5, rname
 
       double precision sum, ssum
 
@@ -5835,11 +5832,11 @@ c                                 recombine components:
          if (.not.readyn()) exit
 
          write (*,1060)
-         read (*,'(a)') pname
-         if (pname.eq.' ') exit
+         read (*,'(a)') char5
+         if (char5.eq.' ') exit
 c                                 get the identity of the real comp
 c                                 to be replaced.
-50       write (*,1070) pname
+50       write (*,1070) char5
          read (*,'(a)') rname
 
          do i = 1, icmpn
@@ -5860,7 +5857,7 @@ c                                 phase components
 c                                 ctransf, ask the user if the 
 c                                 new component will be a special 
 c                                 component
-                     write (*,1010) cmpnt(i),pname
+                     write (*,1010) cmpnt(i),char5
 
                      if (readyn()) cycle
                      idspe(j) = 0 
@@ -5883,7 +5880,7 @@ c                                 components in the new component:
          ict = 1
          if (itrans.gt.k0) call error (999,atwt(1),ict,'GETTRN')
        
-         write (*,4050) k5-1,pname
+         write (*,4050) k5-1,char5
 30       read (*,'(a)') rname
          if (rname.eq.'     ') goto 80
 
@@ -5899,7 +5896,7 @@ c                                 no match, try again message
          goto 30
 c                                 get the component stoichiometries:
 80       write (*,4030) (cmpnt(icout(i)),i=1,ict)
-         write (*,4040) pname
+         write (*,4040) char5
 
          do 
             read (*,*,iostat=ier) (ctrans(icout(i),itrans), i= 1, ict)
@@ -5907,7 +5904,7 @@ c                                 get the component stoichiometries:
             call rerr
          end do 
  
-         write (*,1100) pname,(ctrans(icout(i),itrans),
+         write (*,1100) char5,(ctrans(icout(i),itrans),
      *                      cmpnt(icout(i)), i = 1, ict)
          write (*,1110)
 
@@ -5921,9 +5918,9 @@ c                                 get the component stoichiometries:
             end do 
             atwt(icout(1)) = sum
             sel(icout(1)) = ssum
-            cmpnt(icout(1)) = pname
-            cl(icout(1)) = jscan(1,5,' ',pname) - 1
-            tcname(itrans) = pname
+            cmpnt(icout(1)) = char5
+            cl(icout(1)) = jscan(1,5,' ',char5) - 1
+            tcname(itrans) = char5
             ictr(itrans) = icout(1)
          else
             itrans = itrans - 1
@@ -8602,7 +8599,7 @@ c id identifies the assemblage
 
       include 'perplex_parameters.h'
 
-      character string*(*), pname*14
+      character string*(*), char14*14
 
       integer i, ist, iend, id, ids
 
@@ -8624,11 +8621,11 @@ c----------------------------------------------------------------------
              
          ids = idasls(i,id)
 
-         call getnam (pname,ids) 
+         call getnam (char14,ids) 
 
          ist = iend + 1
          iend = ist + 14
-         read (pname,'(400a)') chars(ist:iend)
+         read (char14,'(400a)') chars(ist:iend)
 
          call ftext (ist,iend)
 
@@ -9212,13 +9209,12 @@ c-----------------------------------------------------------------------
 
       integer idum, nstrg, i, j, k, ierr, icmpn, jcont, kct
 
+      double precision tot
+
       logical fileio, flsh, anneal, verbos, siphon, colcmp, usecmp
       integer ncol, nrow
       common/ cst226 /ncol,nrow,fileio,flsh,anneal,verbos,siphon,
      *                usecmp, colcmp
-
-      character*100 cfname
-      common/ cst227 /cfname
 
       integer ipot,jv,iv
       common/ cst24 /ipot,jv(l2),iv(l2)
@@ -9457,6 +9453,9 @@ c                                 read to the beginning of the component list
 c                                 count (icp) and save names (cname)
       icp = 0
       jbulk = 0
+ 
+
+      tot = 0
 
       do 
 
@@ -9504,6 +9503,7 @@ c                                 check for compositional constraints
          if (k.ne.0) then 
             jbulk = jbulk + 1
             read (strg,*,err=998) j, (dblk(i,jbulk), i = 1, k)
+            tot = tot + dblk(1,jbulk)
          end if 
 
       end do
@@ -9520,7 +9520,7 @@ c                                 isat is the saturated component counter
       do 
          read (n1,'(a)',end=998) rname
          if (rname.eq.'begin') exit
-      end do 
+      end do
 
       do 
 
@@ -9640,7 +9640,7 @@ c                                 chemical potential
                
          end if 
 
-      end do 
+      end do
 c                             the ifct flag can probably be set later if fluid
 c                             is in the thermodynamic composition space.   
       jfct = icp + isat 
@@ -10115,9 +10115,6 @@ c-----------------------------------------------------------------------
       integer ncol, nrow
       common/ cst226 /ncol,nrow,fileio,flsh,anneal,verbos,siphon,
      *                usecmp, colcmp
-
-      character*100 cfname
-      common/ cst227 /cfname
 
       integer ids,isct,icp1,isat,io2
       common/ cst40 /ids(h5,h6),isct(h5),icp1,isat,io2
@@ -11959,10 +11956,7 @@ c---------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer id,j
-
-      double precision therdi,therlm
-      common/ cst203 /therdi(m8,m9),therlm(m7,m6,k9)
+      integer id, j
 
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
@@ -11985,10 +11979,7 @@ c---------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer id,j
-
-      double precision therdi,therlm
-      common/ cst203 /therdi(m8,m9),therlm(m7,m6,k9)
+      integer id, j
 
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
@@ -12030,9 +12021,6 @@ c---------------------------------------------------------------------
       double precision t,g,gtrans,vdp,trtp,p,dt,pstar
 
       external gtrans
-
-      double precision therlm,therdi
-      common/ cst203 /therdi(m8,m9),therlm(m7,m6,k9)
 
       double precision v,tr,pr,r,ps
       common/ cst5  /v(l2),tr,pr,r,ps
@@ -12110,9 +12098,6 @@ c---------------------------------------------------------------------
 
       external gclpht
 
-      double precision therlm,therdi
-      common/ cst203 /therdi(m8,m9),therlm(m7,m6,k9)
-
       double precision v,tr,pr,r,ps
       common/ cst5  /v(l2),tr,pr,r,ps
 c----------------------------------------------------------------------
@@ -12177,9 +12162,6 @@ c---------------------------------------------------------------------
 
       double precision p,t,ps,g,pdv
 
-      double precision therdi,therlm
-      common/ cst203 /therdi(m8,m9),therlm(m7,m6,k9)
-
       double precision trt, tr, pr, s, aa, ba, ca , vb
 
       save trt, tr, pr, s, aa, ba, ca , vb
@@ -12240,9 +12222,6 @@ c---------------------------------------------------------------------
       double precision gspk,ctrans,aspk2,bspk2,ct2,ct3,a1,b1,c1,t92,t93,
      *                 tr92,tr93,dhspk,dsspk,t9,tr,teq,tq1bar,p,tr9,
      *                 dvdtr,dvdp,dstr,abspk,t
-
-      double precision therdi, therlm
-      common/ cst203 /therdi(m8,m9),therlm(m7,m6,k9)
 c---------------------------------------------------------------------
       gspk=0d0
 
@@ -12321,10 +12300,7 @@ c---------------------------------------------------------------------
 
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
-
-      double precision therdi,therlm
-      common/ cst203 /therdi(m8,m9),therlm(m7,m6,k9)
-
+c---------------------------------------------------------------------
       trr = therdi(8,id)
       if (t .lt. trr) return
 
@@ -12377,9 +12353,6 @@ c---------------------------------------------------------------------
 
       double precision dg,tc,tc0,q2,intvdp
 
-      double precision therdi,therlm
-      common/ cst203 /therdi(m8,m9),therlm(m7,m6,k9)
-
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
 c----------------------------------------------------------------------
@@ -12429,9 +12402,6 @@ c---------------------------------------------------------------------
       integer ld
 
       double precision dg,tc,tc0,q2,intvdp
-
-      double precision therdi,therlm
-      common/ cst203 /therdi(m8,m9),therlm(m7,m6,k9)
 
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
@@ -12486,9 +12456,6 @@ c---------------------------------------------------------------------
 
       double precision tc,tc0,q2
 
-      double precision therdi,therlm
-      common/ cst203 /therdi(m8,m9),therlm(m7,m6,k9)
-
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
 c----------------------------------------------------------------------
@@ -12533,9 +12500,6 @@ c---------------------------------------------------------------------
       integer ld
 
       double precision dg,tc,tc0,q2,vlan
-
-      double precision therdi,therlm
-      common/ cst203 /therdi(m8,m9),therlm(m7,m6,k9)
 
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
