@@ -36,7 +36,7 @@ c----------------------------------------------------------------------
       integer n
 
       write (n,'(/,a,//,a)') 
-     *     'Perple_X BETA release 7.1.7d Jun 20, 2024.',
+     *     'Perple_X BETA release 7.1.7e Jul 20, 2024.',
 
      *     'Copyright (C) 1986-2024 James A D Connolly '//
      *     '<www.perplex.ethz.ch/copyright.html>.'
@@ -569,7 +569,7 @@ c                                 fluid_shear_modulus
 c                                 compute_FD_increments for MINFRC
       lopt(66) = .false.
 c                                 aq_fractionation_simpl
-      lopt(67) = .true.
+      lopt(67) = .false.
 c                                 finite_strain_alpha
       lopt(68) = .false.
 c                                 phi_d
@@ -653,7 +653,7 @@ c                                 phase composition key
 
          else if (key.eq.'aq_fractionation_simpl') then 
 
-            if (val.eq.'F') lopt(67) = .false.
+            if (val.eq.'T') lopt(67) = .true.
 
          else if (key.eq.'aq_oxide_components') then 
 
@@ -2070,7 +2070,7 @@ c                                 generic thermo options
      *        4x,'hybrid_EoS_CO2          ',i1,9x,'[4] 0-4, 7',/,
      *        4x,'hybrid_EoS_CH4          ',i1,9x,'[0] 0-1, 7',/,
      *        4x,'aq_lagged_speciation    ',l1,9x,'[F] T',/,
-     *        4x,'aq_fractionation_simple ',l1,9x,'[T] F',/,
+     *        4x,'aq_fractionation_simpl  ',l1,9x,'[F] T',/,
      *        4x,'aq_ion_H+               ',l1,9x,'[T] F => use OH-',/,
      *        4x,'aq_oxide_components     ',l1,9x,'[F] T',/,
      *        4x,'aq_solvent_solvus       ',l1,9x,'[T] F',/,

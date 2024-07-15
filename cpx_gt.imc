@@ -13,6 +13,10 @@ invptx     | inversion problem type: "invptx" => inverse thermobarometry
 minim      | inversion method: "minim" => Nelder-Meade minim algorithm
            | "grid" => grid search
 
+likelihood | criterion for selecting best result: "likelihood" => minimum
+           | value of the objective function; "bayes" => minimum value of 
+           | the objective function weighted by prior probability
+
 JADC       | "GRH" => use George's normalization, etc
            | "JADC" => use my normalization, etc
 
@@ -68,7 +72,7 @@ quadratic  | "quadratic" or "linear". quadratic => objective function is a quadr
 0.1    | frac, fractional step size
 10     | conchk, how often to check for convergence
 0      | iprint, 0 => normal print, < 0 => silent, > 0 => verbose
-1      | iquad, 1 => fit quadratic surface to improve location of the minimum, 0 => don't fit
+0      | iquad, 1 => fit quadratic surface to improve location of the minimum, 0 => don't fit
 1000   | kcount, max # of objective evaluations per try, recommended nparm*1024
 
 |------------------------------------------------------------------------------

@@ -18,7 +18,6 @@ c----------------------------------------------------------------------
       integer i, j, k, l, m, lu, id, inc, ct
 
       double precision poiss, gcpd, zsite(m10,m11), zt, gga(k5,3,m14)
-     *, wttot(k5), motot(k5)
  
       external gcpd, zbad
 
@@ -123,9 +122,6 @@ c                                 print standard potentials
 
       write (lu,1020) cprop, (cname(i), i = 1, icomp)
 
-      motot = 0d0
-      wttot = 0d0
-
       do i = 1, ntot
 
          if (iopt(2).eq.0) then 
@@ -158,9 +154,6 @@ c                                 weight composition
 
          end if
 
-         do j = 1, icomp
-         motot(j) = motot(j) + props(16,i)*pcomp(l,i)
-         end do
 c         if (lopt(28)) then
 
 c            do l = 1, icomp
@@ -648,13 +641,8 @@ c                                 mass fraction, %
      *                      fbulk(i)*atwt(i)/psys(17)*1d2,
 c                                 mol/kg
      *                      fbulk(i)/psys(17)*1d3
-            write (*,*) motot(i), motot(i)*atwt(i)
-            motot(k5) = motot(k5) + motot(i)
-            wttot(k5) = wttot(k5) + motot(i) *atwt(i)
 
          end do
-
-         write (*,*) motot(k5), wttot(k5)
 
          write (lu,1220)
 

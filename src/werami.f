@@ -3246,7 +3246,7 @@ c                                  ask which result is to be output
 
                   kfl(1) = .true.
 
-                  if (lopt(40)) call errdbg ('absolute option cannot be'
+                  if (lopt(41)) call errdbg ('absolute option cannot be'
      *                  //' set T for simple back-calculated results.')
 
                end if 
@@ -3261,7 +3261,7 @@ c                                 eject if no aqueous species
 c                                 back-calculated is the only option
                kfl(1) = .true. 
 
-               if (lopt(40)) call errdbg ('absolute option cannot be'//
+               if (lopt(41)) call errdbg ('absolute option cannot be'//
      *                    ' set T for simple back-calculated results.')
 
             end if 

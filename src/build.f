@@ -810,7 +810,7 @@ c                                 diagrams:
 
          write (n1,'(i4,1x,g14.6,1x,a)')  i, v(1),
      *                         'Number and size (mole) of fluid '//
-     *                         'aliquots for 0d infilitration model'
+     *                         'aliquots for 0d infiltration model'
 
       end if
  

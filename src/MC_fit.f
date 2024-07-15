@@ -100,6 +100,25 @@ c                                 read algorithm flag
      *               //key)
 
       end if
+c                                 best model criterion (both output, but
+c                                 choice selects the scores output to 
+c                                 n6). 
+      call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+
+      if (key.eq.'likelihood'.or.key.eq.'bayes') then
+
+         if (key.eq.'bayes') then
+            bayes =  .true.
+         else
+            bayes = .false.
+         end if
+
+      else
+
+         call errdbg ('expecting likelihood or bayes tag, found: '
+     *               //key)
+
+      end if
 c                                 george's normalization, etc
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
 
@@ -245,6 +264,8 @@ c-----------------------------------------------------------------------
 c                                 best model statistics for error evaluation
       call mertxt (tfname,prject,'.bst',0)
       open (n7,file=tfname)
+      call mertxt (tfname,prject,'.bay',0)
+      open (n9,file=tfname)
 c                                 initialize drand
       if (random(1).eq.0) call random_seed
 c                                 get best model, 1st argument sets 
@@ -254,7 +275,6 @@ c                                 output of all sucessful optimizations
 
       x(1,1:nparm) = bstx(1:nparm)
 
-      oprt = .false.
       pdat = .true.
 
       do i = 1, nunc(1)
@@ -309,7 +329,7 @@ c                                 standard deviation
 
       end 
 
-      subroutine bstmod (randm, n6out, bstx)
+      subroutine bstmod (randm, n6out, x)
 c----------------------------------------------------------------------
       implicit none
 
@@ -320,10 +340,9 @@ c----------------------------------------------------------------------
 
       logical readyn, bad, randm, n6out
 
-      double precision var(l2+k5), objf, x(l2+k5), sx(l2+k5), x0(l2+k5),
-     *                 step(l2+k5), bstobj, bstx(*), 
-     *                 bstvar(l2+k5), plow(l2+k5), pdelta(l2+k5), ssp,
-     *                 bay, bstbx(l2+k5), bstbay
+      double precision var(l2+k5), objf, bstx(l2+k5), sx(l2+k5), 
+     *                 x0(l2+k5), step(l2+k5), bstobj, x(*), 
+     *                 bstvar(l2+k5), ssp, bay, bstbx(l2+k5), bstbay
 
       external readyn, mcobj2
 
@@ -340,6 +359,9 @@ c----------------------------------------------------------------------
 
       integer ipot,jv,iv
       common / cst24 /ipot,jv(l2),iv(l2)
+
+      double precision vmax,vmin,dv
+      common/ cst9  /vmax(l2),vmin(l2),dv(l2)
 c----------------------------------------------------------------------- 
 c                                 flag to make mcobj print extended
 c                                 ouput for invptx
@@ -348,6 +370,8 @@ c                                 ouput for invptx
       if (n6out) then 
 c                                 output file
          call mertxt (tfname,prject,'.out',0)
+c                                 in case the user has set print, detach the file
+         close (n6)
          open (n6,file=tfname)
 
          write (n6,*) 'tol/frac/simplx',invtol, frac, simplx
@@ -388,14 +412,6 @@ c                                 for each coefficient
                end do
             end do
          end do
-c                                 unscaled step size for search
-         step(1:n) = frac*pdelta(1:n)
-c                                 initialize scaled coordinate
-         if (random(1).lt.2) then
-            sx(1:n) = 0.5d0
-         else
-            sx(1:n) = 0d0
-         end if
 
          nfree = n
 
@@ -408,39 +424,51 @@ c                                 set george's "weight"
 
          n = ipot + xptnph(1) - 1
 
-         x(1:n) = 0.5d0
-         step(1:n) = frac
-
          nfree = 2
 
+         do k = 1, n
+            if (k.le.ipot) then
+               plow(k) = vmin(k)
+               pdelta(k) = vmax(k) - vmin(k)
+            else
+               plow(k) = 0d0
+               pdelta(k) = 1d0
+            end if
+
+         end do
+
       end if
+c                                 initialize scaled coordinate
+      if (mcgrid) then
+         sx = 0d0
+      else
+         sx = 0.5d0
+      end if
+c                                 unscale step size for search
+      step(1:n) = frac*pdelta(1:n)
 
       nparm = n
       ibest = 0
       igood = 0
       ifault = 0
       bstobj = 1d99
-      oprt = .false.
       bstbay = 1d99
       jbest = 0
 
       do i = 1, mtry
-
-         if (invxpt) then
 c                                 unscale sx
-            do j = 1, n
+         do j = 1, n
                x(j) = plow(j) + sx(j)*pdelta(j)
-            end do
-
-         end if
-
-         x0 = x
+         end do
+c                                 save starting coordinate
+         x0(1:n) = x(1:n)
 
          if (mcgrid) then
-
+c                                 grid seach:
             call mcobj2 (x,objf,bad)
 
          else
+c                                 Nelder-Meade search:
 c                                 initialize icount in case of failure
             icount = 0
 
@@ -449,37 +477,56 @@ c                                 initialize icount in case of failure
      *                  jcount, ifault, oktol, nfree)
 
          end if
-c                                  count and compare to previous best
-c                                  results
+c                                  count and check if model improved
+         if (ifault.le.2) call savbst (x,var,objf,bstobj,bstx,bay,
+     *                    bstbay,bstbx,bstvar,n,i,ibest,jbest,igood)
+c                                  print loop
          lu = 6
 
          do
 c                                   output some stats
-
             if (ifault.gt.2.or.(ifault.gt.0.and.objf.gt.oktol)) then
 c                                 minim has failed
-               write (lu,1020) ifault, icount, igood, i
-               write (lu,'(/80(''-''))')
+               write (lu,1020) ifault, icount, igood, i, char(13)
 
             else if (mcgrid.and.lu.eq.6) then 
 c                                   george's minimal console output
-
-               call savbst (x,var,objf,bstx,bstbay,bstbx,bstvar,plow,
-     *                      pdelta,n,i,ibest,jbest,igood)
-
                write (*,'(a,i7,1h/,i7,1x,a,2(1x,1pg12.6),a,$)')
      *                'Try',i,random(3),'best:',bstobj,bstbay,char(13)
+
+            else if (.not.invxpt) then
+c                                thermobarometry
+               write (lu,'(/80(''-''))')
+               write (lu,2000) i
+               write (lu,2070) (vname(j),x(j), j = 1, ipot)
+c                                write likelihood results
+               write (lu,2010) objf
+               if (i.eq.ibest) then
+                  write (lu,2020)
+               else
+                  write (lu,2030) bstobj, ibest
+               end if
+c                                write Bayeseian results
+               write (lu,2040) bay
+               if (i.eq.jbest) then
+                  write (lu,2050)
+               else
+                  write (lu,2060) bstbay, jbest
+               end if
+
+               if (.not.mcgrid) then
+c                                   unnecessary obj call for print output
+                  fprint = .true.
+                  call mcobj2 (x,objf,bad)
+                  fprint = .false.
+
+               end if
 
             else if (.not.mcgrid.or.
 c                                   george only outputs improved results
      *               (mcgrid.and.(ibest.eq.i.or.jbest.eq.j))) then
-c                                   unnecessary obj call for print output
-               fprint = .true.
-               call mcobj2 (x,objf,bad)
-               fprint = .false.
 
-               call savbst (x,var,objf,bstx,bstbay,bstbx,bstvar,plow,
-     *                      pdelta,n,i,ibest,jbest,igood)
+               write (lu,'(/80(''-''))')
 
                if (iquad.gt.0.and.jcount.gt.0.and..not.mcgrid) then
                   write (lu,1125) i, igood, icount, jcount, objf, 
@@ -493,7 +540,7 @@ c                                   unnecessary obj call for print output
                write (lu,1085) x0(1:n)
                write (lu,1030) x(1:n)
 
-               if (lu.eq.n6) then 
+               if (lu.eq.n6.and.invxpt) then 
 
                   write (lu,'(/,a,i7,a,/)') 'Scores for try = ',i,
      *                                   ' follow:'
@@ -541,24 +588,25 @@ c                               new grid search point
 
          end if
 
-         if (.not.invxpt) x = sx
-
       end do
-c                               print residuals for best model
-      if (mcgrid) write(*,*)
 
-      x(1:n) = bstx(1:n)
-      oprt = .true.
-c                               write best model to *.bst
-      write (n7,'(20(1pg13.6,1x))') bstx(1:n), bstobj
-
-      call mcobj2 (x,objf,bad)
+      if (bayes) then
+         x(1:n) = bstx(1:n)
+         objf = bstobj
+      else
+         x(1:n) = bstbx(1:n)
+         objf = bstbay
+      end if
+c                               write best model to *.bst and *.bay
+      write (n7,1000) bstx(1:n), bstobj
+      write (n9,1000) bstbx(1:n), bstbay
 
       if (n6out) close (n6)
 
+1000  format (20(1pg13.6,1x),a)
 1010  format (i3,1x,2a,g12.6,:,3h * ,g8.3)
-1020  format (/,'Minimization FAILED, ifault = ',i3,', icount = ',i4,
-     *          ', igood = ',i4,', mtry = ',i7)
+1020  format ('Search FAILED, ifault = ',i3,', icount = ',i4,
+     *        ', igood = ',i4,', mtry = ',i7,a,$)
 1030  format ('Final coordinates: ',20(1pg13.6,1x))
 1050  format (/,'Number of function evaluations: ',i5,', igood = ',i3,/)
 1080  format ('Initial normalized coordinates: ',20(1pg12.6,1x))
@@ -570,7 +618,7 @@ c                               write best model to *.bst
      *          ' obtained on try ',i7,/)
 1125  format (/,'Try ',i7,', successes so far = ',i7,/,
      *          'Objective function evaluations this try = ',i5,/,
-     *          ' + ',i3,' evaluations for quadratic surface fitting',/,
+     *          ' + ',i4,' evaluations for quadratic surface fitting',/,
      *          'Last objective function value this try OBJ = ',g12.6,/,
      *          'Best OBJ so far = ',g12.6,
      *          ' obtained on try ',i7,/)
@@ -578,6 +626,17 @@ c                               write best model to *.bst
      *          'Bayes score SSP * OBJF = ',g12.6,/,
      *          'Best Bayes score so far = ',g12.6,
      *          ' obtained on try ',i7,/)
+
+2000  format (/,'Try ',i5,' has converged at:',/)
+2010  format (/,'Likelihood score for this Try: ',g12.6)
+2020  format ('This is the best likelihood score obtained so far.')
+2030  format ('The best likelihood score (',g12.6,
+     *        ' so far was obtained on Try',i5)
+2040  format (/,'Bayesian score for this Try: ',g12.6)
+2050  format ('This is the best Bayesian score obtained so far.')
+2060  format ('The best Bayesian score (',g12.6,
+     *        ' so far was obtained on Try',i5)
+2070  format (29x,a8,' = ',g12.6)
 
       end
 
@@ -2874,12 +2933,6 @@ c-----------------------------------------------------------------------
          end if
       end do
 
-      do i = ipot + 1, nparm 
-         if (x(i).lt.0) then  
-            write (*,*) ' neg x' 
-         end if 
-      end do 
-
       neg = nunc(2)
 
       if (invxpt) then
@@ -2888,10 +2941,9 @@ c                                 parameters
          call x2ther (x)
 
       else
-c                                 convert the scaled potential variables back
-c                                 to the normal variables:
+c                                 set the potentials
          do i = 1, ipot
-            v(jv(i)) = vmin(jv(i)) + x(i) * (vmax(jv(i)) - vmin(jv(i)))
+            v(i) = x(i)
          end do
 c                                 set the bulk composition
          call mcsetb (x)
@@ -2948,11 +3000,6 @@ c                                 within p, t uncertainty range
 
          obj = obj + value*xptpt(id,5)
 
-c        write (*,'(i3,1x,2(g12.6,1x,a))') id, value, xptnam(id)
-
-c        if (oprt) write (n6,'(i3,1x,a,g12.6,1x)') 
-c    *                   id, xptnam(id)\\' score =', value
-
       end do
 
       end
@@ -2973,7 +3020,7 @@ c-----------------------------------------------------------------------
       integer id, jd, ids, i, j, k, kct(k5), ksol(k5,k5), ibest, mpred,
      *        idpred(k5), idextr(k5), jmin(k5), mextra, lu, jdbest, kd
 
-      double precision lobj, score, best, res, mode
+      double precision lobj, score, best, res, mode, tot
 
       external score
 
@@ -2996,9 +3043,7 @@ c-----------------------------------------------------------------------
       logical mus
       double precision mu
       common/ cst330 /mu(k8),mus
-c     -------------------------------------------------------------------
-
-c     call calpr0 (6)
+c---------------------------------------------------------------------
 c                                 compute the observation objective function
       kct = 0
       imout = .true.
@@ -3160,9 +3205,15 @@ c                                 phases observed and predicted
 
                   mode = props(1,jd)*props(16,jd)/psys(1)*1d2
 
+                  tot = 0d0
+
+                  do k = 1, kbulk
+                     tot = tot + pcomp(k,jd)
+                  end do
+
                   write (lu,'(a)') pname(jd)
                   write (lu,1030) 'predicted*', mode, 
-     *                            (pcomp(k,jd), k = 1, kbulk)
+     *                            (pcomp(k,jd)/tot, k = 1, kbulk)
                   write (lu,1035) 'observed* ', (xptc(xptptr(1,kd)+k), 
      *                                                     k = 1, kbulk)
 
@@ -3181,8 +3232,14 @@ c                                 phases predicted but not observed
 
                   mode = props(1,jd)*props(16,jd)/psys(1)*1d2
 
+                  tot = 0d0
+
+                  do k = 1, kbulk
+                     tot = tot + pcomp(k,jd)
+                  end do
+
                   write (lu,1050) pname(jd), mode, 
-     *                            (pcomp(k,jd), k = 1, kbulk)
+     *                            (pcomp(k,jd)/tot, k = 1, kbulk)
 
                end do
 
@@ -3233,8 +3290,8 @@ c                12345678901234567890123456789
 1120  format (29x,a8,' = ',g12.6)
       end
 
-      subroutine savbst (x,var,objf,bstx,bstbay,bstbx,bstvar,plow,
-     *                   pdelta,n,i,ibest,jbest,igood)
+      subroutine savbst (x,var,objf,bstobj,bstx,bay,bstbay,bstbx,bstvar,
+     *                   n,i,ibest,jbest,igood)
 c----------------------------------------------------------------------
       implicit none
 
@@ -3242,8 +3299,7 @@ c----------------------------------------------------------------------
 
       integer i, n, j, igood, ibest, jbest
 
-      double precision var(*), objf, x(*), bstobj, 
-     *                 bstvar(*), plow(*), pdelta(*), ssp,
+      double precision var(*), objf, x(*), bstobj, bstvar(*), ssp,
      *                 bay, bstbx(*), bstbay, bstx(*)
 c----------------------------------------------------------------------
       igood = igood + 1

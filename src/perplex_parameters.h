@@ -573,18 +573,22 @@ c                                 project name, temporary file name
       common/ cst67 /pmode(k5), emode(k5)
 c                                 MC_fit common block:
       logical mcpert, mcflag, oprt, grh, invxpt, fprint, grdsch, seed, 
-     *        mcgrid, grhobj
+     *        mcgrid, grhobj, bayes
+
       integer mxpt, cxpt, random,
      *        xptids, xptptr, xptnph, xpterr, mccpd, mcsol, mcid, 
      *        mcids, msloc, msolct, nparm, nunc, mcpct, mcpid, mctrm,
      *        mcj, mccoef, mccoid
       character xptnam*18
+
       double precision xptpt, xptblk, xptc, xpte, cprng, sprng, wcomp, 
-     *                 wextra, wmiss, oktol, scores
+     *                 wextra, wmiss, oktol, scores, plow, pdelta
+
       common/ cst68 /xptpt(l11,l2), xptblk(l11,k5),
      *               xptc(k5*l11), xpte(k5*l11), xpterr(l11),
      *               cprng(k5,3,3),sprng(k5,m1,m3,3), wcomp, wextra,
-     *               wmiss, oktol, scores(l11), 
+     *               wmiss, oktol, scores(l11), plow(l2 + k5), 
+     *               pdelta(l2 + k5),
 c                                  integer
      *               mccpd, mcsol, mxpt, cxpt, nparm, nunc(2),
      *               mctrm(k5),
@@ -594,7 +598,7 @@ c                                  integer
      *               mccoef(k5,m1), mcj(k5,m1), mccoid(k5,m1,m3),
 c                                  logical
      *               mcpert, oprt, mcflag(h9), random(3), grh, invxpt,
-     *               fprint, grdsch, seed, mcgrid, grhobj,
+     *               fprint, grdsch, seed, mcgrid, grhobj, bayes,
 c                                  character
      *               xptnam(l11)
 

@@ -12775,7 +12775,7 @@ c                                lagged speciation
          if (lagged.and.lopt(67)) then
 
             call warn (99,0d0,0,'aq_lagged_speciation is inconsistent w'
-     *            //'ith aq_fractionation_simple and will be disabled'//
+     *            //'ith aq_fractionation_simpl and will be disabled'//
      *              ' (AQIDST)')
 
             if (lopt(56)) call wrnstp
