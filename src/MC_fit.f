@@ -422,7 +422,7 @@ c                                 read phase compositions
 c                                 set george's "weight"
          xptpt(1,5) = 1d0
 
-         n = ipot + xptnph(1) - 1
+         n = ipot + cextra + xptnph(1) - 1
 
          nfree = 2
 
@@ -458,7 +458,7 @@ c                                 unscale step size for search
       do i = 1, mtry
 c                                 unscale sx
          do j = 1, n
-               x(j) = plow(j) + sx(j)*pdelta(j)
+            x(j) = plow(j) + sx(j)*pdelta(j)
          end do
 c                                 save starting coordinate
          x0(1:n) = x(1:n)
@@ -630,12 +630,12 @@ c                               write best model to *.bst and *.bay
 2000  format (/,'Try ',i5,' has converged at:',/)
 2010  format (/,'Likelihood score for this Try: ',g12.6)
 2020  format ('This is the best likelihood score obtained so far.')
-2030  format ('The best likelihood score (',g12.6,
-     *        ' so far was obtained on Try',i5)
+2030  format ('Best likelihood score (',g12.6,
+     *        ') so far was obtained on Try',i5)
 2040  format (/,'Bayesian score for this Try: ',g12.6)
 2050  format ('This is the best Bayesian score obtained so far.')
-2060  format ('The best Bayesian score (',g12.6,
-     *        ' so far was obtained on Try',i5)
+2060  format ('Best Bayesian score (',g12.6,
+     *        ') so far was obtained on Try',i5)
 2070  format (29x,a8,' = ',g12.6)
 
       end
@@ -651,7 +651,7 @@ c-----------------------------------------------------------------------
 
       logical randm, bad
 
-      integer ier, nblen
+      integer ier, nblen, i
 
       character key*22, val*3, nval1*12, nval2*12, nval3*12,
      *          strg*40, strg1*40
@@ -675,6 +675,8 @@ c                                observation (mxpt = 1).
       mxpt = 1
 c                                 number of phase compositions
       cxpt = 0
+c                                 unmeasured component counter
+      cextra = 0
 c                                 look for thermobarometry problem in
 c                                 my_project.imc
       call mertxt (tfname,prject,'.imc',0)
@@ -686,13 +688,14 @@ c                                 my_project.imc
 
       if (random(1).ge.2) call errdbg
      *   ('can''t use grid search option (yet)')
-
+c                                 -------------------------------------
+c                                 IMC file input Section 6
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
 
       if (key.ne.'begin_assemblage') call errdbg (
      *   'expecting begin_assemblage keyword, found '//key)
 c                                 IMC file input Section 6
-c                                read sample name
+c                                 read sample name
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
 
       if (key.ne.'sample_name') call errdbg (
@@ -712,8 +715,7 @@ c                                 pressure range
      *               //key)
 
       end if
-c                                 IMC file input Section 6
-c                                 pressure range
+c                                 temperature range
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
 
       if (key.eq.'temperature_range') then
@@ -724,6 +726,42 @@ c                                 pressure range
 
          call errdbg ('expecting temperature_range tag, found: '
      *               //key)
+
+      end if
+c                                 read optional unmeasured component
+      call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+
+      if (key.eq.'unmeasured_component') then
+
+         call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+
+         if (key.ne.'begin_comp') call errdbg ('expecting begin_comp'//
+     *                            ' tag, found :'//key)
+
+         call gtcomp (comp,ecomp,randm,'comp',bad)
+
+         if (bad) call errdbg ('error reading unmeasured_component '//
+     *                         'composition')
+
+         do i = 1, kbulk
+            xptc(cxpt+i) = comp(i)
+            xpte(cxpt+i) = ecomp(i)
+         end do
+c                                 pointer to the composition of phase nph in expt mexpt 
+         xptptr(mxpt,k5) = cxpt
+c                                 variable counter increment
+         cextra = 1
+c                                 increment composition pointer
+         cxpt = cxpt + kbulk
+
+      else if (key.eq.'phase_name') then
+
+         backspace (n8)
+
+      else
+
+         call errdbg ('expecting unmeasured_component or phas_name tag,'
+     *               //'found: '//key)
 
       end if
 c                                 read the assemblage data
@@ -1389,6 +1427,11 @@ c                                 get solution composition
 
          do i = 1, kbulk
             if (comp(i).ne.0d0) absent(i) = .false.
+
+            if (absent(i).and.cextra.gt.1) then 
+
+            end if
+
             xptc(cxpt+i) = comp(i)
             xpte(cxpt+i) = ecomp(i)
          end do
@@ -1672,7 +1715,7 @@ c-----------------------------------------------------------------------
 c                                 composition pointer
          cxpt = xptptr(1,i)
 c                                 compositional var pointer
-         k = ipot + i
+         k = ipot + cextra + i
 
          if (i.lt.xptnph(1)) then 
             ctotal = ctotal + x(k)
@@ -1687,6 +1730,14 @@ c                                 compositional var pointer
       end do
 c                                 modify cblk here to change the 
 c                                 composition before minimization.
+      if (cextra.gt.0) then
+
+         do j = 1, kbulk
+            cblk(j) = cblk(j) + x(k) * xptc(xptptr(1,k5)+j)
+         end do
+
+      end if
+
       ctotal = 1d0
 
       b(1:kbulk) = cblk(1:kbulk) 

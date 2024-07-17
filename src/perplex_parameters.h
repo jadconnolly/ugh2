@@ -575,7 +575,7 @@ c                                 MC_fit common block:
       logical mcpert, mcflag, oprt, grh, invxpt, fprint, grdsch, seed, 
      *        mcgrid, grhobj, bayes
 
-      integer mxpt, cxpt, random,
+      integer mxpt, cxpt, random, cextra,
      *        xptids, xptptr, xptnph, xpterr, mccpd, mcsol, mcid, 
      *        mcids, msloc, msolct, nparm, nunc, mcpct, mcpid, mctrm,
      *        mcj, mccoef, mccoid
@@ -591,7 +591,7 @@ c                                 MC_fit common block:
      *               pdelta(l2 + k5),
 c                                  integer
      *               mccpd, mcsol, mxpt, cxpt, nparm, nunc(2),
-     *               mctrm(k5),
+     *               mctrm(k5), cextra, 
      *               xptids(l11,k5), xptptr(l11,k5), xptnph(l11),
      *               mcid(k5), mcids(k5), msolct(l11,h9), 
      *               msloc(l11,k5), mcpct(k5), mcpid(k5,3),
