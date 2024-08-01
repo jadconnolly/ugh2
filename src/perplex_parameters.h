@@ -592,7 +592,7 @@ c                                  integer
      *               mctrm(k5),
      *               xptids(l11,k5), xptptr(l11,k5), xptnph(l11),
      *               mcid(k5), mcids(k5), msolct(l11,h9), 
-     *               msloc(l11,k5), mcpct(k5), mcpid(k5,3),
+     *               msloc(l11,k5), mcpct(k5), mcpid(k5,k14),
      *               mccoef(k5,m1), mcj(k5,m1), mccoid(k5,m1,m3),
 c                                  logical
      *               mcpert, oprt, mcflag(h9), random(3),
