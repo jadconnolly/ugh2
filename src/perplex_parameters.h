@@ -585,7 +585,7 @@ c                                 LP workspace into common
 
       common/ cst68 /xptpt(l11,l2), xptblk(l11,k5),
      *               xptc(k5*l11), xpte(k5*l11), xpterr(l11),
-     *               cprng(k5,3,3),sprng(k5,m1,m3,3), wcomp, wextra,
+     *               cprng(k5,k14,3),sprng(k5,m1,m3,3), wcomp, wextra,
      *               wmiss, oktol, scores(l11), 
 c                                  integer
      *               mccpd, mcsol, mxpt, cxpt, nparm, nunc(2),
