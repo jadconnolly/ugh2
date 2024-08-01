@@ -22,6 +22,12 @@ likelihood | criterion for selecting best result: "likelihood" => minimum
 JADC       | "GRH" => use George's normalization, etc
            | "JADC" => use my normalization, etc
 
+better     | "better" => output only results that improve on the previous best result
+           | "all" => output all results
+
+vital_sign | "vital_sign" => output optimization counter to console
+           | "quiet" => no counter
+
 no_seed    | "seed" => generate a new seed for random number generation each time the
            | program is run. "no_seed" => for reproducible sequences (e.g., for debugging).
 |------------------------------------------------------------------------------
@@ -91,7 +97,7 @@ temperature_range 823 1273  | K, temperature range of initial guesses
 unmeasured_component
 
 begin_comp
-O2    3.0  3.0
+O2    0.02  3.0
 end_comp
 
 | The coexisting phases, modes (optionally) and their compositions follow 
@@ -147,6 +153,8 @@ O2        0.    1d4
 end_comp
 
 end_assemblage
+
+| text after the end_assemblage tag is not read by MC_fit ...
 
 NIL 16-1 Gt
    SiO2  	   TiO2  	   Al2O3 	   Cr2O3 	   FeO   	   MgO   	   MnO   	   CaO   

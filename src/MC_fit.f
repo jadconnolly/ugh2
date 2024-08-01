@@ -136,6 +136,40 @@ c                                 george's normalization, etc
      *               //key)
 
       end if
+c                                 output only improved results
+      call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+
+      if (key.eq.'better'.or.key.eq.'all') then
+
+         if (key.eq.'better') then
+            better =  .true.
+         else
+            better = .false.
+         end if
+
+      else
+
+         call errdbg ('expecting better or all tag, found: '
+     *               //key)
+
+      end if
+c                                 output optimization counter
+      call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
+
+      if (key.eq.'vital_sign'.or.key.eq.'quiet') then
+
+         if (key.eq.'vital_sign') then
+            vital =  .true.
+         else
+            vital = .false.
+         end if
+
+      else
+
+         call errdbg ('expecting vital_sign or quiet tag, found: '
+     *               //key)
+
+      end if
 c                                 make new seed for random number generator
 c                                 george's normalization, etc
       call redcd1 (n8,ier,key,val,nval1,nval2,nval3,strg,strg1)
@@ -335,10 +369,10 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i, n, icount, ifault, jcount, lu, nfree, 
+      integer i, n, icount, ifault, jcount, nfree, lu, 
      *        j, k, igood, ibest, id, jbest, pnum(l2+k5)
 
-      logical readyn, bad, randm, n6out
+      logical readyn, bad, randm, n6out, improv
 
       double precision var(l2+k5), objf, bstx(l2+k5), sx(l2+k5), 
      *                 x0(l2+k5), step(l2+k5), bstobj, x(*), 
@@ -456,6 +490,8 @@ c                                 unscale step size for search
       jbest = 0
 
       do i = 1, mtry
+c                                 counter in mcobj2
+         optct = 0
 c                                 unscale sx
          do j = 1, n
             x(j) = plow(j) + sx(j)*pdelta(j)
@@ -480,8 +516,11 @@ c                                 initialize icount in case of failure
 c                                  count and check if model improved
          if (ifault.le.2) call savbst (x,var,objf,bstobj,bstx,bay,
      *                    bstbay,bstbx,bstvar,n,i,ibest,jbest,igood)
+         
+         improv = i.eq.ibest.or.i.eq.jbest.or..not.better
 c                                  print loop
          lu = 6
+         consol = .false.
 
          do
 c                                   output some stats
@@ -492,9 +531,9 @@ c                                 minim has failed
             else if (mcgrid.and.lu.eq.6) then 
 c                                   george's minimal console output
                write (*,'(a,i7,1h/,i7,1x,a,2(1x,1pg12.6),a,$)')
-     *                'Try',i,random(3),'best:',bstobj,bstbay,char(13)
+     *                'Try ',i,random(3),'best:',bstobj,bstbay,char(13)
 
-            else if (.not.invxpt) then
+            else if (.not.invxpt.and.improv) then
 c                                thermobarometry
                write (lu,'(/80(''-''))')
                write (lu,2000) i
@@ -522,10 +561,10 @@ c                                   unnecessary obj call for print output
 
                end if
 
-            else if (.not.mcgrid.or.
-c                                   george only outputs improved results
-     *               (mcgrid.and.(ibest.eq.i.or.jbest.eq.j))) then
+               write (lu,'(/80(''-''))')
 
+            else if (.not.mcgrid.or.(mcgrid.and.improv)) then
+c                                   george only outputs improved results         
                write (lu,'(/80(''-''))')
 
                if (iquad.gt.0.and.jcount.gt.0.and..not.mcgrid) then
@@ -567,6 +606,7 @@ c                                   george only outputs improved results
             if (lu.eq.n6.or..not.n6out) exit
 
             lu = n6
+            consol = .true.
 
          end do
 
@@ -1429,7 +1469,7 @@ c                                 get solution composition
             if (comp(i).ne.0d0) absent(i) = .false.
 
             if (absent(i).and.cextra.gt.1) then 
-
+               if (xptc(xptptr(1,k5)+i).ne.0) absent(i) = .false. 
             end if
 
             xptc(cxpt+i) = comp(i)
@@ -3069,7 +3109,7 @@ c-----------------------------------------------------------------------
       character bdname(k5)*14
 
       integer id, jd, ids, i, j, k, kct(k5), ksol(k5,k5), ibest, mpred,
-     *        idpred(k5), idextr(k5), jmin(k5), mextra, lu, jdbest, kd
+     *        idpred(k5), idextr(k5), jmin(k5), mextra, jdbest, kd, lu
 
       double precision lobj, score, best, res, mode, tot
 
@@ -3103,6 +3143,7 @@ c                                 compute the observation objective function
       jmiss = .true.
       ksol = 0
       jmin = 0
+      optct = optct + 1
 
       do i = 1, ntot
 
@@ -3221,13 +3262,7 @@ c                                 accumulate scores
       if (.not.invxpt.and.fprint) then
 c                                 output optimal P-T and compositions
 c                                 for inverse thermo-barometry
-         lu = 6
-
-         write (lu,'(/,80(''-''),/)')
-
-         write (lu,1070) lobj
-
-         write (lu,1120) (vname(jv(i)),v(jv(i)), i = 1, ipot)
+c                                 ------------------------------------
 c                                 locate predicted and extra phases
          mpred = 0
          mextra = 0
@@ -3241,8 +3276,12 @@ c                                 locate predicted and extra phases
                idextr(mextra) = i
             end if
          end do
-
-         do i = 1, 2
+         
+         if (consol) then
+            lu = 6
+         else
+            lu = n6
+         end if
 
             if (mpred.gt.0) then 
 c                                 phases observed and predicted
@@ -3318,11 +3357,10 @@ c                                 phases observed but not predicted
 
             write (lu,1010)
 
-            lu = n6
-
-         end do
-
-      end if
+         end if
+         
+         if (.not.fprint)  write (*,'(a,g12.6,1x,i6,60x,a,$)')
+     *                                'Score: ', lobj, optct, char(13)
 
 1000  format (/,'The following observed phases are predicted:',/)
 1010  format (/,'*normalized molar units',/)
@@ -3333,7 +3371,6 @@ c                                 phases observed but not predicted
 1050  format (a,1x,f7.3,3x,20(f7.4,1x))
 1060  format (/,'The following observed phases are not predicted:',//,
      *           10(2x,a))
-1070  format (/,'Score for this result: ',g12.6,/)
 1080  format (/,5x,'       Effective Bulk*      ',
 c                12345678901234567890123456789
      *            '  Chemical Potentials (J/mol)')

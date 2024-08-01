@@ -573,12 +573,13 @@ c                                 project name, temporary file name
       common/ cst67 /pmode(k5), emode(k5)
 c                                 MC_fit common block:
       logical mcpert, mcflag, oprt, grh, invxpt, fprint, grdsch, seed, 
-     *        mcgrid, grhobj, bayes
+     *        mcgrid, grhobj, bayes, better, vital, consol
 
-      integer mxpt, cxpt, random, cextra,
+      integer mxpt, cxpt, random, cextra, optct,
      *        xptids, xptptr, xptnph, xpterr, mccpd, mcsol, mcid, 
      *        mcids, msloc, msolct, nparm, nunc, mcpct, mcpid, mctrm,
      *        mcj, mccoef, mccoid
+
       character xptnam*18
 
       double precision xptpt, xptblk, xptc, xpte, cprng, sprng, wcomp, 
@@ -591,14 +592,15 @@ c                                 MC_fit common block:
      *               pdelta(l2 + k5),
 c                                  integer
      *               mccpd, mcsol, mxpt, cxpt, nparm, nunc(2),
-     *               mctrm(k5), cextra, 
+     *               mctrm(k5), cextra, optct, 
      *               xptids(l11,k5), xptptr(l11,k5), xptnph(l11),
      *               mcid(k5), mcids(k5), msolct(l11,h9), 
      *               msloc(l11,k5), mcpct(k5), mcpid(k5,3),
      *               mccoef(k5,m1), mcj(k5,m1), mccoid(k5,m1,m3),
 c                                  logical
      *               mcpert, oprt, mcflag(h9), random(3), grh, invxpt,
-     *               fprint, grdsch, seed, mcgrid, grhobj, bayes,
+     *               fprint, grdsch, seed, mcgrid, grhobj, bayes, 
+     *               better, vital, consol,
 c                                  character
      *               xptnam(l11)
 
