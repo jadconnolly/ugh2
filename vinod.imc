@@ -1,0 +1,175 @@
+| comments are preceded by the "|" character
+
+| This is NIL16-1 of Samuel et al 2019
+
+|------------------------------------------------------------------------------
+| Section 1: I/O composition, problem type, computational mode variables:
+
+mass       | "molar" or "mass" (weight) compositional input units, 
+           | the choice specified here overrides the specification (iwt) in the 
+           | definition file.
+
+invptx     | inversion problem type: "invptx" => inverse thermobarometry
+           | "invxpt" => invert experimental data
+
+minim      | inversion method: "minim" => Nelder-Meade minim algorithm
+           | "grid" => grid search
+
+likelihood | criterion for selecting best result: "likelihood" => minimum
+           | value of the objective function; "bayes" => minimum value of 
+           | the objective function weighted by prior probability
+
+JADC       | "GRH" => use George's normalization, etc
+           | "JADC" => use my normalization, etc
+
+all        | "better" => output only results that improve on the previous best result
+           | "all" => output all results
+
+vital_sign | "vital_sign" => output optimization counter to console
+           | "quiet" => no counter
+
+no_seed    | "seed" => generate a new seed for random number generation each time the
+           | program is run. "no_seed" => for reproducible sequences (e.g., for debugging).
+|------------------------------------------------------------------------------
+| Section 3: Objective function mode, tolerances, and weights
+
+quadratic  | "quadratic" or "linear". quadratic => objective function is a quadratic 
+           | function of residuals. "linear" => objective function is linear for 
+           | residuals > 1. NB: this choice may affect oktol and invtol (below).
+
+1d5        | oktol, the maximum acceptable value of the objective function, larger values trigger an error
+1d-1       | invtol, variance of the objective function for an acceptable solution 
+
+1d0        | wcomp, compositional residual weight
+1d5        | wextra, extra phase amount residual weight, wextra should be ~ 1/eps^2, 
+           | where eps is the error on modal estimates (~0.01)
+1d5        | wmiss, missing phase residual weight, chosen so that extra and missing 
+           | phases have comparable contributions to the objective function.
+
+           | the above weights have the consequence that:
+
+           | when the predicted phases match the observed phases within compositional uncertainty 
+           | the objective function will be < 1
+
+           | when the observed phases are predicted but additional phases are also predicted
+           | the objective function will be > 1
+
+           | when an observed phase is not predicted the objective function will be of order wmiss.
+
+|------------------------------------------------------------------------------
+| Section 4: Monte-Carlo logistical variables:
+
+1000   | ntry, number of starting guesses used to find a best fit model
+00     | nunc, number of iteration to evaluate uncertainities. set nunc = 0 
+       | to suppress uncertainty evaluation.
+
+       | time cost is proportional to nunc + 1, i.e., the program will 
+       | do (nunc + 1) * ntry Nelder-Meade minimizations.
+
+       | Each Nelder-Meade minimization is allowed to do a maximum of kcount
+       | free energy minimization calculations plus a few extra (~10-50) if
+       | the minimum is to be fit to a surface (iquad = 1). I see 
+       | little value to the surface fitting, who cares if it's at a true 
+       | minimum? The result is still useful if it's better than the other 
+       | results.
+|------------------------------------------------------------------------------
+| Section 5: Nelder-Meade MINIM algorithm variables
+
+
+1d-6   | simplx, if iquad = 1, criterion used to decide whether final simplex is expanded before quadratic fitting, should be at least 1000 x rounding error
+0.1    | frac, fractional step size
+20     | conchk, how often to check for convergence
+0      | iprint, 0 => normal print, < 0 => silent, > 0 => verbose
+0      | iquad, 1 => fit quadratic surface to improve location of the minimum, 0 => don't fit
+1000   | kcount, max # of objective evaluations per try, recommended nparm*1024
+
+|------------------------------------------------------------------------------
+| Section 6: Thermobarometric problem definition
+
+begin_assemblage           | this tag signals the beginning of the problem definition
+
+sample_name NIL_16-1     | sample name
+
+pressure_range 5000 15000   | bar, pressure range of initial guesses
+
+temperature_range 823 1273  | K, temperature range of initial guesses
+
+unmeasured_component
+
+begin_comp
+O2    0.02  3.0
+end_comp
+
+| The coexisting phases, modes (optionally) and their compositions follow 
+| and must be terminated by the end_assemblage tag. Only one assemblage can be 
+| analyzed per MC_Fit calculation. Text (e.g., data for additional assemblages, 
+| comments, notes) entered after the end_assemblage keyword is NOT read by MC_Fit.
+
+| Phase names used here must correspond to the solution models specified in
+| the problem definition file or to endmember names in the thermodynamic data
+| file specified in that file.
+
+phase_name Cpx(HGP)
+
+| Modes (phase_mode) are optional, if phase_mode is not specified or its 
+| value is < 0 the constraint is ignored. The first value of phase_mode 
+| is the volume fraction (<1) of the phase, the second number is the uncertainty
+| of the fraction. If phase modes are specified, then they indicate the 
+| fraction of the phase in the equilibrium assemblage, these fractions do NOT
+| correspond to bulk fractions unless the specified assemblage represents a 
+| bulk equilibrium.
+
+phase_mode -1 0
+
+| Component names used here must match those specified in the problem 
+| definition file. If the phase is an endmember its composition is not
+| read. 
+
+begin_comp
+SiO2    49.76   0.44
+TiO2     0.47   0.05
+Al2O3    4.64   0.27
+Cr2O3    0.09   0.02
+FeO      9.41   0.40
+MgO     12.39   0.19
+CaO     22.30   0.40
+Na2O     0.84   0.05
+O2        0.    1d4
+end_comp
+
+phase_name Gt(HGP)
+
+phase_mode -1 0
+
+begin_comp
+SiO2     38.89   0.47
+TiO2      0.06   0.05
+Al2O3    21.69   0.14
+Cr2O3     0.10   0.02
+FeO      24.51   0.30
+MgO       8.38   0.23
+CaO       6.88   0.46
+O2        0.    1d4
+end_comp
+
+end_assemblage
+
+| text after the end_assemblage tag is not read by MC_fit ...
+
+NIL 16-1 Gt
+   SiO2  	   TiO2  	   Al2O3 	   Cr2O3 	   FeO   	   MgO   	   MnO   	   CaO   
+
+Mean	38.89	0.06	21.69	0.10	23.86	8.38	0.65	6.88
+StD	    0.47	0.05	0.14	0.02	0.57	0.23	0.06	0.46
+O2        1.32   2.66 | 2.656 would be 100% ferric
+
+cpx
+
+   SiO2  	   TiO2  	   Al2O3 	   Cr2O3 	   FeO   	   MgO   	   MnO   	   CaO   	   Na2O  
+
+
+Mean	49.76	0.47	4.64	0.09	9.41	12.39	0.06	22.30	0.84
+StD  	0.44	0.05	0.27	0.02	0.36	0.19	0.04	0.40	0.05
+O2       0.50   1.00 | 1.048 would be 100% ferric
+
+

@@ -751,7 +751,7 @@ c                                 ergo set cblk to the phase based bulk
 c                                 composition fbulk
                cblk(1:kbulk) = fbulk(1:kbulk)
 
-               call aqrxdo (i,lu)
+               call aqrxdo (i,lu,.false.)
 
             end if 
 

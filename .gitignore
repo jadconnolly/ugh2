@@ -739,3 +739,8 @@ cpx_gt.out
 vin1.bay
 
 *.bst
+
+intel/enc_temp_folder/*
+
+
+vinod.bay

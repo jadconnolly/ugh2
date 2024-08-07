@@ -640,7 +640,7 @@ c                                  the result to prop.
                   else
 c                                  output back-calculated result to props, -1 signals
 c                                  tab file output.  
-                     call aqrxdo (komp,-1)
+                     call aqrxdo (komp,-1,.false.)
 
                   end if 
 

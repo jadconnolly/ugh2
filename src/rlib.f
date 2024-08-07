@@ -11968,7 +11968,7 @@ c-----------------------------------------------------------------------
 
       end
 
-      subroutine aqrxdo (jd,lu)
+      subroutine aqrxdo (jd,lu,xin)
 c-----------------------------------------------------------------------
 c given chemical potentials solve for rock dominated aqueous speciation
 
@@ -11982,7 +11982,7 @@ c-----------------------------------------------------------------------
 
       integer i, j, k, l, ind(l9), lu, jd, badct
 
-      logical bad, output
+      logical bad, output, xin
 
       character text*200
 
@@ -12093,7 +12093,6 @@ c                                 fractionation with simple back-calc
          end do
 
       end if
-
 c                                 set feos = .true. because can't be
 c                                 sure that the last solvent calculation was
 c                                 at the present p-t condition.
@@ -12124,7 +12123,14 @@ c                                 back calculated bulk composition
 
       end if
 
-      if (iam.eq.1) then
+      if (iam.eq.1.or.xin) then
+c                                 XIN is a flag that can be set by MEEMUM for fractionation
+c                                 of simple back-calculated fluid, the consequences are 
+c                                 the same as if AQRXDO is called by VERTEX from routine
+c                                 FRACTR and options must be set accordingly. Currently there
+c                                 is no instance of a call to AQRXDO with XIN = .true. within
+c                                 Perple_X.
+         
 c                                 aqrxdo is being called by VERTEX this is only done
 c                                 for fractionation calculations when lagged speciation is
 c                                 off. In this case AQRXDO computes a 
