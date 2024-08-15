@@ -1,16 +1,52 @@
-awk 'BEGIN{IN=0; npar=0}
+#!/bin/sh
+# Shell script to parse the MC_fit .out file to determine the parameters
+#   being varied and to output their values in a concise form.  The output
+#   may be read by runmodel-feh to generate a suite of Perple_X plots to
+#   assess the fit quality.
+# Written by G. Helffrich / ELSI (Titech)
+#   Last update 2 Aug. 2024
+awk 'BEGIN{IN=0; npar=0; pr="'"'"'"}
    func err(msg){
       print "***" msg > "/dev/tty"; exit(1)
    }
    /Inverted parameters:/{IN=1}
-   IN && $1 ~ /[0-9][0-9]*/{npar += 1}
+   IN && $1 ~ /[0-9][0-9]*/{
+      npar += 1
+      sp = $2; par = $3
+      if (sp == "liq-FeH") L = "L"
+      if (sp == "FCC-FeH") L = "F"
+      if (par == "V0") ix[L "V0"] = npar
+      if (par == "K") ix[L "K"] = npar
+      if (par == "K" pr) ix[L "Kp"] = npar
+      if (par == "H&J-T") ix[L "Tc"] = npar
+      if (par == "H&J-B") ix[L "B"] = npar
+      if (par ~ /^a[0-4]$/) ix[L par] = npar
+   }
    /^Try /{ntry = substr($0,4,4); IN=0}
    /^Last objective/{obj = 0 + $(NF)}
    /^Final coordinates:/{
       for(i=3;i<=NF;i++) v[i-2] = $(i) + 0
       if (npar != NF-2) err("bad # pars in .out file")
-      LIQ = sprintf("LIQ V0 = %.3f b6 = %.1f b8 = %.3f",v[3],v[1],v[2])
-      FEH = sprintf("FEH transition = 1 type = 8 Tc = %.1f B = %.1f p = 0.28",
-         v[4],v[5])
+      LIQ = "LIQ"
+      for(f in ix) {
+         if (f == "LV0") LIQ = LIQ " " sprintf("V0 = %.3f",v[ix[f]])
+         if (f == "LK") LIQ = LIQ " " sprintf("b6 = %.1f",v[ix[f]])
+         if (f == "LKp") LIQ = LIQ " " sprintf("b8 = %.3f",v[ix[f]])
+         if (f == "La0") FEH = FEH " " sprintf("b1 = %.4g",v[ix[f]])
+         if (f == "La1") FEH = FEH " " sprintf("b2 = %.4g",v[ix[f]])
+      }
+      FEH = "FEH"
+      for(f in ix) {
+         if (f == "FV0") FEH = FEH " " sprintf("V0 = %.3f",v[ix[f]])
+         if (f == "FK") FEH = FEH " " sprintf("b6 = %.1f",v[ix[f]])
+         if (f == "FKp") FEH = FEH " " sprintf("b8 = %.3f",v[ix[f]])
+         if (f == "FTc") FEH = FEH " " sprintf("Tc = %.0f",v[ix[f]])
+         if (f == "FB") FEH = FEH " " sprintf("B = %.1f",v[ix[f]])
+         if (f == "Fa0") FEH = FEH " " sprintf("b1 = %.4g",v[ix[f]])
+         if (f == "Fa1") FEH = FEH " " sprintf("b2 = %.4g",v[ix[f]])
+         if (f == "Fa2") FEH = FEH " " sprintf("b3 = %.4g",v[ix[f]])
+         if (f == "Fa3") FEH = FEH " " sprintf("b4 = %.4g",v[ix[f]])
+         if (f == "Fa4") FEH = FEH " " sprintf("b5 = %.4g",v[ix[f]])
+      }
       printf "%.6g %s, %s\n",obj,FEH,LIQ
    }'
