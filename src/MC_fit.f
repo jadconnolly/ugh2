@@ -506,7 +506,8 @@ c                                 save max likelihood result
             end if
 
             if (n6out .and.
-     *         (random(1).lt.2 .or. i.eq.ibest .or. i.eq.jbest)
+c    *         (random(1).lt.2 .or. i.eq.ibest .or. i.eq.jbest)
+     *         (random(1).lt.2 .or. objf.eq.bstobj .or. bay.eq.bstbay)
      *      ) then
 
                write (n6,1120) i, igood, icount, objf, bstobj, ibest
@@ -706,6 +707,27 @@ c
 
       end 
 
+      subroutine eoswrn (name, par, ieos)
+c-----------------------------------------------------------------------
+c Give a warning when the MC inversion routine needs further work to
+c undo the changes to G, S, V, etc. in subroutine conver (see tlib.f).
+c-----------------------------------------------------------------------
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      character*(*) name, par
+
+      integer ieos, nblen
+
+      write(*,1001) ieos,name(1:nblen(name)),par
+
+1001  format('**EOS',i4,' for ',a,' parameter ',a,
+     *  ' is unimplemented for MC inversion.**',/,
+     *  '**Use at your own risk**'
+     *)
+      end
+
       subroutine mcxpt (n6out, randm)
 c-----------------------------------------------------------------------
 c a subprogram to read auxilliary input file for MC inversion of exptal
@@ -720,7 +742,7 @@ c-----------------------------------------------------------------------
 
       logical ok, bad, randm, n6out, done, eof
 
-      integer i, j, k, nph, ier, id, ids, nblen
+      integer i, j, k, nph, ier, id, ids, ieos, nblen
 
       integer*8 ngrid
 
@@ -769,6 +791,9 @@ c-----------------------------------------------------------------------
 
       integer ltyp,lct,lmda,idis
       common/ cst204 /ltyp(k10),lct(k10),lmda(k10),idis(k10)
+
+      integer eos
+      common/ cst303 /eos(k10)
 c-----------------------------------------------------------------------
       if (iopt(2).eq.1) then
          write (*,*) 'resetting composition_phase option to mol'
@@ -823,6 +848,7 @@ c                                 read free parameters for compounds
 
                if (key.ne.'parameter') call errdbg ('expecting '//
      *                    'parameter tag for '//tname//' found '//key)
+               ieos = eos(-id)
                mcpct(mccpd) = mcpct(mccpd) + 1
 
                if (val.eq.'a') then 
@@ -832,10 +858,13 @@ c                                 read free parameters for compounds
                else if (val.eq.'c') then 
                   mcpid(mccpd,mcpct(mccpd)) = 3
                else if (val.eq.'K') then 
+                  if (ieos.lt.600) call eoswrn(tname,val,ieos)
                   mcpid(mccpd,mcpct(mccpd)) = 4
                else if (val.eq.'K''') then 
+                  if (ieos.lt.600) call eoswrn(tname,val,ieos)
                   mcpid(mccpd,mcpct(mccpd)) = 5
                else if (val.eq.'V0') then 
+                  if (ieos.lt.600) call eoswrn(tname,val,ieos)
                   mcpid(mccpd,mcpct(mccpd)) = 6
                else if (val.eq.'HJT' .or. val.eq.'HJB') then 
                   if (lct(-id).gt.1) then
@@ -853,6 +882,26 @@ c                                 read free parameters for compounds
                   else
                      mcpid(mccpd,mcpct(mccpd)) = 8
                   end if
+               else if (val.eq.'a0') then 
+c                 constant alpha term
+                  if (ieos.lt.600) call eoswrn(tname,val,ieos)
+                  mcpid(mccpd,mcpct(mccpd)) = 9
+               else if (val.eq.'a1') then 
+c                 *T alpha term
+                  if (ieos.lt.600) call eoswrn(tname,val,ieos)
+                  mcpid(mccpd,mcpct(mccpd)) = 10
+               else if (val.eq.'a2') then 
+c                 /T alpha term
+                  if (ieos.lt.600) call eoswrn(tname,val,ieos)
+                  mcpid(mccpd,mcpct(mccpd)) = 11
+               else if (val.eq.'a3') then 
+c                 /T**2 alpha term
+                  if (ieos.lt.600) call eoswrn(tname,val,ieos)
+                  mcpid(mccpd,mcpct(mccpd)) = 12
+               else if (val.eq.'a4') then 
+c                 /sqrt(T) alpha term
+                  if (ieos.lt.600) call eoswrn(tname,val,ieos)
+                  mcpid(mccpd,mcpct(mccpd)) = 13
                else 
                   call errdbg ('invalid parameter name for ' //
      *                         tname(1:nblen(tname)) // ': "' //
@@ -1042,6 +1091,16 @@ c                                 echo parameters to output
                   key = 'H&J-T'
                else if (k .eq. 8) then
                   key = 'H&J-B'
+               else if (k .eq. 9) then
+                  key = 'a0'
+               else if (k .eq. 10) then
+                  key = 'a1'
+               else if (k .eq. 11) then
+                  key = 'a2'
+               else if (k .eq. 12) then
+                  key = 'a3'
+               else if (k .eq. 13) then
+                  key = 'a4'
                else
                   call errdbg('**internal error** MCXPT encoding')
                end if
@@ -2707,9 +2766,14 @@ c-----------------------------------------------------------------------
 
       integer i, j, k, n, id, ids, jt
 
+      logical bredo, first
+
       double precision x(*)
 
       character name*14
+
+      double precision v,tr,pr,r,ps
+      common/ cst5  /v(l2),tr,pr,r,ps
 
       integer eos
       common/ cst303 /eos(k10)
@@ -2720,22 +2784,29 @@ c-----------------------------------------------------------------------
       integer jterm, jord, extyp, rko, jsub
       common/ cxt2i /jterm(h9),jord(h9),extyp(h9),rko(m1,h9),
      *               jsub(m2,m1,h9)
+
+      data first/.true./
 c-----------------------------------------------------------------------
       n = 0
 c                                 compounds
       do i = 1, mccpd
 c                                 for each coefficient
+         bredo = .false.
+         id = mcid(i)
+c        if (first.and.thermo(12,id).ne.0d0)
+c    *      print*,'>id,thermo:',id,eos(id),thermo(1:23,id)
          do j = 1, mcpct(i)
             n = n + 1
-            id = mcid(i)
             ids = mcpid(i,j)
             if (ids.le.3) then
                mdqf(make(mcid(i)),ids) = x(n)
             else if (ids.eq.4) then
-c                                 K - modified compound data directly
+c                                 K - compensate like conver
                thermo(16,id) = x(n)
+               if (.not.lopt(4))
+     *            thermo(16,id) = thermo(16,id) - tr*thermo(17,id)
             else if (ids.eq.5) then
-c                                 K' - modified compound data directly
+c                                 K' - compensate like conver
                thermo(18,id) = x(n)
                if (lopt(4)) thermo(21,id) = abs(x(n))
             else if (ids.eq.6) then
@@ -2747,9 +2818,26 @@ c                                 Tc - modify compound data directly
             else if (ids.eq.8) then
 c                                 B - modify compound data directly
                therlm(2,1,id) = x(n)
+            else if (ids.ge.9.and.ids.le.13) then
+c                                 b1...b5 - compensate like conver
+c              if (.not.bredo) print*,'>',thermo(11:15,id),thermo(23,id)
+               bredo = .true.
+               thermo(11+ids-9,id) = x(n)
+               if (ids.eq.10) thermo(12,id) = thermo(12,id)/2d0
+               if (ids.eq.12) thermo(14,id) = -thermo(14,id)
+               if (ids.eq.13) thermo(15,id) = 2d0*thermo(15,id)
             end if
          end do
+         if (bredo) thermo(23,id) = -(
+     *      thermo(11,id)*tr + thermo(12,id)*tr*tr +
+     *      thermo(13,id)*dlog(tr) + thermo(14,id)/tr +
+     *      thermo(15,id)*dsqrt(tr)
+     *   )
+c        if (bredo) print*,'<',thermo(11:15,id),thermo(23,id)
+c        if (first.and.thermo(12,id).ne.0d0)
+c    *      print*,'<id,thermo:',id,eos(id),thermo(1:23,id)
       end do
+      if (thermo(12,id).ne.0d0) first = .false.
 c                                 solutions, this is only for margules
 c                                 for rk (extyp(mcids(i)).eq.1), the 
 c                                 coefficients are in wkl(m16,m17,m18,h9)
