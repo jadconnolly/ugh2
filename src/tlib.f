@@ -4025,7 +4025,10 @@ c                                 there is a non-blank data character
 
          do i = 2, com
 c                                 strip out '+' and '*' chars
-            if (chars(i).eq.'+'.or.chars(i).eq.'*') chars(i) = ' '
+c                                 except for e+.. d+.. (number exponents)
+c           if (chars(i).eq.'+'.or.chars(i).eq.'*') chars(i) = ' '
+            if ((chars(i).eq.'+'.and.0.eq.index('eEdD',chars(i-1)))
+     *          .or.chars(i).eq.'*') chars(i) = ' '
 c                                 eliminate blanks after '/' and '-'
 c                                 and double blanks
             if ((chars(ict).eq.'/'.and.chars(i  ).ne.' ') .or. 
