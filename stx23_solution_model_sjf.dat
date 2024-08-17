@@ -1,0 +1,907 @@
+689 DO NOT DELETE THIS LINE
+
+| From:
+| - Modification of stx21.
+| - Stixrude, L. and Lithgow-Bertelloni, C. (2023), ms12 in revision.
+| - GitHub: https://github.com/stixrude/HeFESTo_Parameters_010123
+|   (source of interaction parameter values [J/mol])
+|   https://www.perplex.ethz.ch/perplex/datafiles/solution_model.dat
+
+|                      --------------------------------------------------------
+                                                                               | Start olivine
+
+begin_model
+                                  | olivine solution
+ol
+2                                 | model type: Margules, macroscopic
+2                                 | 2 endmembers
+fo       fa
+0  0                              | endmember flags
+0. 1.0  0.1  0                    | subdivision range, imod = 0 -> cartesian subdivision
+begin_excess_function
+W(fo fa) 2.47406d3
+end_excess_function
+1                                 | 1 site entropy model
+2 2.                              | 2 species, site multiplicity = 2.
+z(mg) = 1 fo
+end_of_model
+                                                                               | End olivine √
+|                      --------------------------------------------------------
+                                                                               | Start plagioclase
+begin_model
+                                  | Plagioclase
+plg
+2                                 | model type: Margules or Ideal
+2                                 | # of endmembers
+ab       an
+0  0                              | endmember flags
+0. 1. .1  0                       | imod = 0 -> Cartesian subdivision
+
+begin_excess_function
+w(an ab) 13d3
+end_excess_function
+
+1                                 | 1 site molecular model:
+2 1.                              | 1 species, site multiplicity = 1.
+z(Na) = 1 ab
+end_of_model
+                                                                               | End plagioclase √
+|                      --------------------------------------------------------
+| COMMENTED OUT BECAUSE ERROR                                                                               | Start spinel
+|begin_model
+                                  | Spinel solution, fixed order
+|sp
+|2                                 | model type: Margules, macroscopic
+|4                                 | 4 endmembers
+|sp  smag  picr  hc
+|0  0   0  0                       | endmember flags
+|0. 1. .1  0                       | range and resolution for X(sp); imod = 0, Cartesian subdivision.
+|0. 1. .1  0                       | range and resolution for X(smag)
+|0. 1. .1  0                       | range and resolution for X(picr)
+
+|begin_excess_function
+|W(sp hc)    -1.31090d3
+|W(sp smag)   63.0d3
+|W(sp picr)   20.99394d3
+|W(hc smag)   55.0d3
+|W(hc picr)   21.0d3
+|W(smag picr) 42.0d3
+|end_excess_function
+
+|2                                 | 2 site (A, B) entropy model
+|3 8.                              | 3 species on tetrahedral site, 8 sites pfu.
+|z(A,mg)  = 1/8 sp + 1/8 picr      | *** SJF. CHECK. In stx21, stx11: z(A,mg) = 1/8 sp; z(B,mg) = 3/4 sp.
+|z(A,fe)  = 1/8 hc                 |         Seems need to divide by multiplicity: 8 (A), 4 (B). Why? ***
+|| z(A,fe3) = 1/8 smag             | Only need two eqns.
+
+|4 4.                              | 4 species on octahedral site, 4 sites pfu.
+|z(B,al)  = 2/4 sp + 2/4 hc
+|z(B,fe)  = 1/4 smag
+|z(B,fe3) = 1/4 smag
+|| z(B,cr)  = 2/4 picr             | Only need three eqns.
+                                  | *** SJF notes
+                                  | - A B2 O4 (A, tetrahedral; B, octahedral).
+                                  |
+                                  | - From ms12, Table C1:
+                                  |   sp:   MgAl_2O_4
+                                  |   hc:   FeAl_2O_4
+                                  |   smag: Fe+3Fe+2Fe+3O_4 (inverse)
+                                  |   picr: MgCr_2O_4
+                                  |
+                                  | - Rules:
+                                  |     A = Fe2+, Fe3+, Mg2+
+                                  |     B = Fe2+, Fe3+, Al3+, Cr3+
+                                  |
+                                  |     All Mg on A.
+                                  |     Fe+2 on A or B.
+                                  |     Fe+3, Al, Cr on B.
+                                  |
+                                  | - Paper 1, Table A1: sp: (Mg3Al)(Al7Mg)O16; hc: (Fe3Al)(Al7Fe)O16.
+                                                                               | End spinel √
+|                      --------------------------------------------------------
+                                                                               | Start clinopyroxene
+begin_model
+                                  | Clinopyroxene
+cpx
+2                                 | model type: Margules, macroscopic
+6                                 | 6 endmembers
+di  he  cen  cats  jd  acm
+0  0  0  0  0  0                  | endmember flags
+0. 1. .1  0                       | range and resolution for X(di)
+0. 1. .1  0                       | range and resolution for X(he)
+0. 1. .1  0                       | range and resolution for X(cen)
+0. 1. .1  0                       | range and resolution for X(cats)
+0. 1. .1  0                       | range and resolution for X(jd)
+begin_excess_function
+W(di   cen)   24.74d3
+W(di   cats)  26.0d3
+W(di   jd)    24.3d3
+W(di   acm)   24.3d3
+W(he   cen)   24.74d3
+W(he   cats)  26.0d3
+W(he   jd)    24.3d3
+W(he   acm)   24.3d3
+W(cen  cats)  63.71812d3
+W(cen  jd)    46.03709d3
+W(cen  acm)   46.03709d3
+W(cats jd)    10.0d3
+W(cats acm)   10.0d3
+end_excess_function
+                                   | CHECK these. Errors --> increased # species to nspecies + 1. Runs but why?
+3                                  | 3 site entropy model
+3 1.                               | 3 species, M2 site multiplicity = 1.
+z(M2,Ca) = 1 di + 1 he + 1 cats
+z(M2,Mg) = 1 cen
+| z(M2,Na) = 1 acm + 1 jd          | Only need two eqns.
+
+4 1.                               | 3 species, M1 site multiplicity = 1.
+z(M1,Mg)  = 1 di + 1 cen
+z(M1,Fe)  = 1 he
+z(M1,Fe3) = 1 acm
+| z(M1,Al)  = 1 cats + 1 jd        | Only need three eqns.
+
+3 2.                               | 2 species, T site, multiplicity 2.
+z(T,Si) = 2/2 di + 2/2 he + 2/2 cen + 1/2 cats + 2/2 jd + 2/2 acm
+z(T,Al) = 1/2 cats
+
+begin_van_laar_sizes
+alpha(di)     1
+alpha(he)     1
+alpha(cen)    1
+alpha(cats)   3.5
+alpha(jd)     1
+alpha(acm)    1                    | *** SJF: ms12, Table C2 caption.
+end_van_laar_sizes
+
+reach_increment 3                  | *** SJF: <-- find out what this is.
+                                   | *** SJF notes
+                                   | - Compare with stx11, stx21, where M2 and M1 may have been switched (?).
+                                   
+                                   | - X Y Z2 O6 (M2 M1 T2 O6; M2, M1 octahedral, T2, Tetrahedral).
+                                   |
+                                   | - From ms12, Table C1:
+                                   |   di:   CaMgSi_2O_6
+                                   |   he:   CaFeSi_2O_6
+                                   |   cen:  MgMgSi_2O_6
+                                   |   cats: CaAl(SiAl)O_6
+                                   |   jd:   NaAlSi_2O_6
+                                   |   acm:  NaFe+3Si_2O_6
+                                   |
+                                   | - Rules:
+                                   |     X = Na+, Ca2+, Mg2+
+                                   |     Y = Fe2+, Mg2+, Fe3+, Al3+
+                                   |     Z = Si4+, Al3+
+                                   |
+                                   |     All Na+, Ca2+ on X.
+                                   |     Fe+2, Mg2+ on X or Y.
+                                   |     All Fe+3 on Y.
+                                   |     Al3+ on Y and Z.
+                                   |     Si4+ on Z.
+end_of_model
+                                                                               | End clinopyroxene √
+|                      --------------------------------------------------------
+                                                                               | Start wadleysite
+begin_model
+                                  | Wadleysite solution
+wa
+2                                 | model type: Margules, macroscopic
+2                                 | 2 endmembers
+mgwa       fewa
+0  0                              | endmember flags
+0. 1. .1    0                     | subdivision range, imod = 0 -> cartesian subdivision
+begin_excess_function
+W(mgwa fewa) 12.86875d3
+end_excess_function
+1                                 | 1 site entropy model
+2 2.                              | 2 species, site multiplicity = 2.
+z(mg) = 1 mgwa
+end_of_model
+                                                                               | End wadleysite √
+|                      --------------------------------------------------------
+                                                                               | Start ringwoodite
+begin_model
+                                  | Ringwoodite solution
+ri
+2                                 | model type: Margules, macroscopic
+2                                 | 2 endmembers
+mgri       feri
+0  0                              | endmember flags
+0. 1. .1   0                      | subdivision range, imod = 0 -> cartesian subdivision
+begin_excess_function
+W(mgri feri) 6.22927d3
+end_excess_function
+1                                 | 1 site entropy model
+2 2.                              | 2 species, site multiplicity = 2.
+z(mg) = 1 mgri
+end_of_model
+                                                                               | End ringwoodite √
+|                      --------------------------------------------------------
+                                                                               | Start bridgmanite
+begin_model
+                                  | Bridgmanite solution
+pv
+2                                 | model type: Margules, macroscopic
+7                                 | 7 endmembers
+mgpv   fepv   alpv   hepv   hlpv   fapv   crpv
+0  0  0  0  0  0  0
+0. 1. .1  0                       | range and resolution for X(mgpv)
+0. 1. .1  0                       | range and resolution for X(fepv)
+0. 1. .1  0                       | range and resolution for X(alpv)
+0. 1. .1  0                       | range and resolution for X(hepv)
+0. 1. .1  0                       | range and resolution for X(hlpv)
+0. 1. .1  0                       | range and resolution for X(fapv)
+
+begin_excess_function
+W(mgpv fepv)   -12.46739d3
+W(mgpv alpv)    31.66295d3
+W(mgpv hepv)    93.86753d3
+W(mgpv hlpv)    49.85996d3
+W(mgpv crpv)    93.18402d3
+W(fepv hepv)    93.86753d3
+W(fepv hlpv)    49.85996d3
+W(fepv crpv)    93.18402d3
+W(alpv hepv)    65.0d3
+W(alpv hlpv)    65.0d3
+W(alpv fapv)    65.0d3
+W(alpv crpv)    40.0d3
+W(hepv hlpv)   -5.87510d3
+W(hepv fapv)    65.0d3
+W(hepv crpv)    40.0d3
+W(hlpv fapv)    65.0d3
+W(hlpv crpv)    40.0d3
+W(fapv crpv)    40.0d3
+end_excess_function
+
+2                                  | 2 site entropy model
+5 1.                               | 5 species on M site multiplicity = 1.
+z(mg)   = 1 mgpv
+z(fe)   = 1 fepv
+z(al)   = 1 alpv
+z(fe3)  = 1 hepv + 1 hlpv + 1 fapv
+| z(cr) = 1 crpv                   | Only need four eqns.
+
+4 1.                               | 4 species on T site multiplicity = 1.
+z(si)   = 1 mgpv + 1 fepv
+z(al)   = 1 alpv + 1 fapv
+z(fe3)  = 1 hepv + 1 hlpv
+| z(cr) = 1 crpv                   | Only need three eqns.
+
+                                   | *** SJF notes
+                                   | - A B X3 (A, 12-fold, B, octahedral).
+                                   |
+                                   | - From ms12, Table C1 (note inconsistency in ms12–Github nomenclature):
+                                   |   mgpv: MgSiO3
+                                   |   fepv: Fe+2SiO3
+                                   |   alpv: AlAlO3
+                                   |   hepv: Fe+3Fe+3O3
+                                   |   hlpv: Fe+3Fe+3O3 (LS)
+                                   |   fapv: Fe+3AlO3
+                                   |   crpv: CrCrO3
+                                   |
+                                   | - Rules:
+                                   |     A = Mg2+, Fe2+, Al3+, Fe3+, Cr3+
+                                   |     B = Si4+, Al3+, Fe3+, Cr3+
+                                   |
+                                   |     All Mg2+, Fe2+ on A.
+                                   |     Al3+, Fe3+, Cr3+ on X or Y.
+                                   |     Si4+ on Y.
+end_of_model
+                                                                               | End bridgmanite √
+|                      --------------------------------------------------------
+                                                                               | Start FP
+begin_model
+                                      magnesio-wuestite-na2al2o4 solution
+                                      technically this is a 2 site model, but
+                                      na2al2O2 adds different species on both
+                                      sites, therefore it is condensed here to
+                                      1 site with mulitplicity 4.
+mw
+2                                 | model type: Margules, macroscopic
+5                                 | 5 endmembers
+pe    wu    wuls    anao    mag
+0  0  0  0  0
+0. 1. .1  0                       | range and resolution for X(pe)
+0. 1. .1  0                       | range and resolution for X(wu)
+0. 1. .1  0                       | range and resolution for X(wuls)
+0. 1. .1  0                       | range and resolution for X(anao)
+
+begin_excess_function
+W(pe wu)     44.0d3
+W(pe wuls)  -87.12047d3
+W(pe anao)   120.0d3
+W(pe mag)    302.74520d3
+W(wu wuls)  -60.21909d3
+W(wu anao)   120.0d3
+W(wu mag)    106.15149d3
+W(wuls anao) 120.0d3
+W(wuls mag)  106.15149d3
+W(anao mag)  120.0d3
+end_excess_function
+
+2                                  | 1 site entropy model
+
+3 4.                               | 3 species, site multiplicity = 4.
+z(mg)  = 2/4 pe                    | *** SJF: CHECK multiplicity
+z(fe)  = 2/4 wu + 2/4 wuls         | *** SJF: removed "+ 1 mag" because mo mixing on A site of mag (ms12).
+| z(na) = 2/4 anao                 | Only need two eqns.
+
+4 4.                               | 4 species, site multiplicity = 4.
+z(mg)  = 2/4 pe
+z(fe)  = 2/4 wu + 2/4 wuls
+z(fe3) = 2/4 mag
+| z(al)  = 2/4 anao                | Only need three eqns.
+
+                                   | *** SJF notes
+                                   | - Add P transition between wu and wuls?
+                                   |
+                                   | - From ms12, Table C1:
+                                   |   A2B2O4
+                                   |   pe:   Mg_2Mg_2O_4
+                                   |   wu:   Fe_2Fe_2O_4      (Fe+2)
+                                   |   wuls: Fe_2Fe_2O_4 (LS) (Fe+2)
+                                   |   anao: Na_2Al_2O_4
+                                   |   mag:  Fe_1Fe_2O_4      [Fe]Fe2O4; AB2O4 (A, Fe+2, tet.; B, Fe+3, oct.)
+                                   |
+                                   | - Rules:
+                                   |     A = Fe2+, Mg2+, Na+
+                                   |     B = Fe2+, Mg2+, Fe3+, Al3+
+                                   |
+                                   |     All Na+ on A.
+                                   |     All Fe+3 on B.
+                                   |     Fe+2, Mg2+ on A or B.
+                                   
+                                   | From ms12: Formula of mag: [Fe]Fe2O4, with square brackets indicating that the first site does not participate in mixing. We assume a ”normal” (as opposed to inverse) arrangement of ferric and ferrous cations in magnetite, with the ferric ions occupying octahedra and the ferrous ion occupying the tetrahedron. Thus, the ideal entropy of mixing of an equimolar solution of wu and mag is 2R ln 2 per 4 oxygens.
+end_of_model
+                                                                               | End FP
+|                      --------------------------------------------------------
+                                                                               | Start c2c
+begin_model
+                                 | c2c pyroxene solution
+c2c
+2                                | model type: Margules, macroscopic
+2                                | 2 endmembers
+mgc2      fec2
+0  0
+0. 1. .1  0
+ideal
+1                                | 1 site entropy model
+2 2.                             | 2 species, site multiplicity = 2.
+z(mg) = 1 mgc2
+end_of_model
+                                                                               | End c2c
+|                      --------------------------------------------------------
+                                                                               | Start orthopyroxene
+begin_model
+                                   | Orthopyroxene solution
+opx
+2                                  | model type: Margules, macroscopic
+4                                  | 4 endmembers
+en  fs  mgts  odi
+0  0  0  0                         | endmember flags
+0. 1. .1  0                        | range and resolution for X(en)
+0. 1. .1  0                        | range and resolution for X(fs)
+0. 1. .1  0                        | range and resolution for X(mgts)
+
+begin_excess_function
+W(en odi) 32.21303d3
+W(fs odi) 32.21303d3
+W(mgts odi) 46.64038d3
+end_excess_function
+
+3                                  | 2 site entropy model
+3 1.                               | 3 species, M2 site multiplicity = 1.
+z(M2,Ca) = 1 odi
+z(M2,Fe) = 1 fs
+| z(M2,Mg) = 1 en + 1 mgts         | Only need two eqns.
+
+3 1.                               | 3 species, M1 site multiplicity = 1.
+z(M1,Al) = 1 mgts
+z(M1,Fe) = 1 fs
+| z(M1,Mg) = 1 en + 1 mgts + 1 odi | Only need two eqns.
+
+2 2.                               | 2 species, T site multiplicity = 2
+z(T,Si) = 2/2 en + 2/2 fs + 2/2 odi + 1/2 mgts
+| z(T,Al) = 1/2 mgts               | Only need one eqn.
+
+                                   | *** SJF notes
+                                   | - Compare with stx11, stx21, where M2 and M1 may have been switched (?).
+                                   
+                                   | - X Y Z2 O6 (M2 M1 T2 O6; M2, M1 octahedral, T2, Tetrahedral).
+                                   |
+                                   | - From ms12, Table C1:
+                                   |   en:   MgMgSi_2O_6
+                                   |   fs:   FeFeSi_2O_6
+                                   |   mgts: MgAlSiO_6Al (assuming this is MgAl(SiAl)O_6
+                                   |   odi:  CaMgSi_2O_6
+                                   |
+                                   | - Rules:
+                                   |     X = Fe2+, Ca2+, Mg2+
+                                   |     Y = Fe2+, Mg2+, Al3+
+                                   |     Z = Si4+, Al3+
+                                   |
+                                   |     All Ca2+ on X.
+                                   |     Fe+2, Mg2+ on X or Y.
+                                   |     Al3+ on Y and Z.
+                                   |     Si4+ on Z.
+                                   |     No Fe3+.
+end_of_model
+                                                                               | End orthopyroxene
+|                      --------------------------------------------------------
+                                                                               | Start ilmenite
+begin_model
+                                  | hem van laar size = 1.30000000000000  | *** SJF: how/where to set this?
+                                  | akimotoite (ilmenite-structure) solution
+il                                | Aki in stx11, 21. ak in ms12.
+2                                 | model type: Margules, macroscopic
+5                                 | 5 endmembers
+mgil   feil   co   hem   esk      | cor aki faki in stx11, 21. mgak, feak, co, hem, esk in ms12.
+0  0  0  0  0                     | endmember flags
+0.0 1.  0.1  0                    | subdivision range, imod = 0 -> cartesian subdivision for X(mgil)
+0.0 1.  0.1  1                    | subdivision range, imod = 0 -> cartesian subdivision for X(feil)
+0.0 1.  0.1  2                    | subdivision range, imod = 0 -> cartesian subdivision for X(co)
+0.0 1.  0.1  3                    | subdivision range, imod = 0 -> cartesian subdivision for X(hem)
+
+begin_excess_function                                                
+W(mgil  co)  62.48740d3
+W(mgil  hem) 65.0d3
+W(mgil  esk) 93.18402d3
+W(feil  co)  62.48740d3
+W(feil  hem) 65.0d3
+W(feil  esk) 93.18402d3
+W(co    hem) 65.0d3
+W(co    esk) 40.0d3
+W(hem   esk) 40.0d3
+end_excess_function 
+
+2                                  | 2 site entropy model
+
+5 1.                               | 5 species on X site multiplicity = 1.
+z(mg)  = 1 mgil
+z(fe)  = 1 feil
+z(al)  = 1 co
+z(fe3) = 1 hem
+| z(cr)  = 1 esk                   | Only need four eqns.
+
+4 1.                               | 4 species on Y site multiplicity = 1.
+z(si)  = 1 mgil + 1 feil
+z(al)  = 1 co
+z(fe3) = 1 hem
+| z(cr)  = 1 esk                   | Only need three eqns.
+                                   | *** SJF notes
+                                   | - X Y O3 (X, Y octahedral).
+                                   |
+                                   | - From ms12, Table C1:
+                                   |   mgil: MgSiO_3 (Mg-akimotoite)
+                                   |   feil: Fe+2SiO_3 (Fe-akimotoite)
+                                   |   co:   AlAlO_3 (corundum)
+                                   |   hem:  Fe+3Fe+3O_3 (hematite))
+                                   |   esk:  CrCrO_3 (eskolaite)
+                                   |
+                                   | - Rules:
+                                   |     X = Mg2+, Fe2+, Al3+, Fe3+, Cr3+
+                                   |     Y = Si4+, Al3+, Fe3+, Cr3+
+                                   |
+                                   |     All Mg2+, Fe2+ on X.
+                                   |     Al3+, Fe3+, Cr3+ on X and Y.
+                                   |     Si4+ on Y.
+end_of_model
+|                      --------------------------------------------------------
+                                                                               | Start post-perovskite
+begin_model
+ppv
+2                                    | model type: Margules, macroscopic
+
+5                                    | 5 endmembers
+mppv  fppv  appv  hppv  cppv
+0  0  0  0  0                        | endmember flags
+0. 1.0  0.1  0                       | subdivision range, imod = 0 -> cartesian subdivision
+0. 1.0  0.1  0                       | subdivision range, imod = 0 -> cartesian subdivision
+0. 1.0  0.1  0                       | subdivision range, imod = 0 -> cartesian subdivision
+0. 1.0  0.1  0                       | subdivision range, imod = 0 -> cartesian subdivision
+begin_excess_function
+W(mppv fppv)  -39.83177d3
+W(mppv appv)   31.66295d3
+W(mppv hppv)   93.86753d3
+W(mppv cppv)   93.18402d3
+W(fppv appv)   31.66295d3
+W(fppv hppv)   93.86753d3
+W(fppv cppv)   93.18402d3
+W(appv hppv)   65.0d3
+W(appv cppv)   40.0d3
+W(hppv cppv)   40.0d3
+end_excess_function
+
+2                                  | 2 site entropy model
+
+5 1.                               | 3 species on M site multiplicity = 1.
+z(mg)  = 1 mppv
+z(fe)  = 1 fppv
+z(al)  = 1 appv
+z(fe3) = 1 hppv
+| z(cr)  = 1 cppv                  | Only need four eqns.
+
+4 1.                               | 2 species on T site multiplicity = 1.
+z(si)  = 1 mppv + 1 fppv
+z(al)  = 1 appv
+z(fe3) = 1 hppv
+| z(cr)  = 1 cppv                  | Only need three eqns.
+
+                                   | *** SJF notes
+                                   | - A B X3.
+                                   |
+                                   | - From ms12, Table C1:
+                                   |   mppv: MgSiO_3     (Mg-post perovskite)
+                                   |   fppv: Fe+2SiO_3   (Fe-post perovskite)
+                                   |   appv: AlAlO_3     (Al-post perovskite)
+                                   |   hppv: Fe+3Fe+3O_3 (HS Fe2O3-post perovskite)
+                                   |   cppv: CrCrO_3     (Cr-post perovskite)
+                                   |
+                                   | - Rules:
+                                   |     A = Mg2+, Fe2+, Al3+, Fe3+, Cr3+
+                                   |     B = Si4+, Al3+, Fe3+, Cr3+
+                                   |
+                                   |     All Mg2+, Fe2+ on A.
+                                   |     Al3+, Fe3+, Cr3+ on A and B.
+                                   |     Si4+ on B.
+end_of_model
+                                                                               | End post-perovskite
+|                      --------------------------------------------------------
+                                                                               | Start Ca-ferrite
+begin_model                        | ****** FIX ******
+                                   | Ca-Ferrite solution.
+cf
+
+2                                  | model type: Margules, macroscopic
+
+5                                  | 5 endmembers
+mgcf fecf nacf hmag crcf
+0  0  0  0  0
+0. 1.0  0.1  0
+0. 1.0  0.1  0
+0. 1.0  0.1  0
+0. 1.0  0.1  0
+
+begin_excess_function
+W(mgcf nacf)  67.19452d3
+W(fecf nacf)  67.19452d3
+W(nacf crcf)  67.19452d3           | *** SJF: No interaction value (ms12, TableC2) with hmag?
+end_excess_function
+
+2                                  | number of sites for the entropy model
+
+4 1.                               | 3 species, A site multiplicity = 1.
+z(A,fe)  = 1 fecf
+z(A,mg)  = 1 mgcf
+z(A,fe3) = 1 hmag
+                                      
+5 1.                               | al-si mixing on only one "T" site.
+z(M,si) = 1 nacf                   | *** SJF: I don't understand this (above): there is only one T/A site.
+z(M,al) = 2 mgcf + 2 fecf + 1 nacf |          CHECK multiplicity. Assuming 1 here but don't know.
+z(M,cr) = 2 crcf
+z(M,fe) = 1 hmag
+
+begin_van_laar_sizes
+alpha(mgcf)          1
+alpha(fecf)          1
+alpha(nacf)          3.99
+alpha(hmag)          1             | *** CHECK whether should be 0.083 (as for mag, ms12, Table C2)
+alpha(crcf)          1
+end_van_laar_sizes
+                                   | *** SJF notes
+                                   | - AB_2O_4
+                                   |   (Si, Al in octahedral coordination. A, X tetrahedral)
+                                   |
+                                   | - From ms12, Table C1:
+                                   |   mgcf: MgAlAlO_4          (Mg-Ca-Ferrite)
+                                   |   fecf: Fe+2AlAlO_4        (Fe-Ca-Ferrite)
+                                   |   nacf: NaAlSiO_4          (Na-Ca-Ferrite)
+                                   |   hmag: Fe3+(Fe2+ Fe3+)O_4 (High-Pressure Magnetite)
+                                   |   crcf: MgCrCrO_4          (Cr Ca-Ferrite)
+                                   |
+                                   | - Rules:
+                                   |     A = Na+, Mg2+, Fe2+, Fe3+
+                                   |     B = Si4+, Al3+, Cr3+, Fe2+, Fe3+
+                                   |
+                                   |     All Mg2+, Na+ on A.
+                                   |     Al3+, Fe3+, Cr3+, Si4+ on B.
+                                   |     Fe2+ on A or B.
+end_of_model
+                                                                               | End Ca-ferrite
+|                      --------------------------------------------------------
+                                                                               | Start garnet based on stx11
+begin_model
+                                   | Garnet.
+
+gtSimple
+ 
+2                                  | model type: simplicial composition space
+ 
+7                                  | number of endmembers
+mgmj  al  py  gr  knor andr namj   | endmember names
+0  0  0  0  0  0  0                | endmember flags
+0. 1.0  0.1  0                     | imod = 0 -> cartesian subdivision
+0. 1.0  0.1  0                     | imod = 0 -> cartesian subdivision
+0. 1.0  0.1  0                     | imod = 0 -> cartesian subdivision
+0. 1.0  0.1  0                     | imod = 0 -> cartesian subdivision
+0. 1.0  0.1  0                     | imod = 0 -> cartesian subdivision
+0. 1.0  0.1  0                     | imod = 0 -> cartesian subdivision
+ 
+begin_excess_function
+W(py gr)     19.08857d3
+W(py mgmj)   23.16432d3
+W(py namj)   23.16432d3
+W(py andr)   53.00000d3
+W(al mgmj)   23.16432d3
+W(al namj)   23.16432d3
+W(al andr)   44.0d3
+W(al knor)   10.0d3
+W(gr mgmj)   64.68245d3
+W(gr namj)   64.68245d3
+W(gr knor)   -20.0d3
+W(mgmj namj) 71.17245d3
+W(mgmj andr) 64.68245d3
+W(mgmj knor) 25.87913d3
+W(namj andr) 64.68245d3
+W(namj knor) 25.87913d3
+W(andr knor) 75.0d3
+end_excess_function
+ 
+2                                  | 2 site entropy model
+ 
+4 3.                               | 4 species, A site multiplicity 3
+z(mg) = 3/3 py + 3/3 mgmj + 1/3 namj + 3/3 knor
+z(fe) = 3/3 al
+z(ca) = 3/3 gr + 3/3 andr
+| z(na) = 2/3 al                    | Only need 3 eqns.
+ 
+5 2.                               | 5 species, B site multiplicity 2
+z(al)  = 2/2 py + 2/2 al + 2/2 gr  |   *** SJF: consider two Y?
+z(si)  = 1/2 mgmj + 2/2 namj
+z(mg)  = 1/2 mgmj
+z(cr)  = 2/2 knor
+| z(fe3) = 2/2 andr                | Only need 4 eqns.
+                                   | *** SJF notes
+                                   | - X3Y2(SiO4)3
+                                   |
+                                   | - From ms12, Table C1:
+                                   |   py:   Mg_3AlAlSi_3O_12     (pyrope)
+                                   |   al:   Fe_3AlAlSi_3O_12     (almandine)
+                                   |   gr:   Ca_3AlAlSi_3O_12     (grossular)
+                                   |   mgmj: Mg_3MgSiSi_3O_12     (Mg-Majorite) (Mg, Si for Al; Si,Si; Fe, Fe; Cr, Cr)
+                                   |   namj: (Na_2Mg)SiSiSi_3O12  (Na-Majorite)
+                                   |   andr: Ca_3Fe+3Fe+3Si_3O_12 (andradite)
+                                   |   knor: Mg_3CrCrSi_3O_12     (knorrigite)
+                                   |
+                                   | - Rules:
+                                   |     X = Ca2+, Na+, Mg2+, Fe2+
+                                   |     Y = Si4+, Al3+, Cr3+, Fe3+, Mg2+
+                                   |
+                                   |     All Mg2+, Na+, Fe2+, Ca2+ on X.
+                                   |     Al3+, Fe3+, Cr3+, Si4+ on Y.
+                                   |     Mg2+ on X or Y.
+end_of_model
+                                                                               | End garnet based on stx11
+|                      --------------------------------------------------------
+                                                                               | Start garnet based on stx21
+begin_model
+
+                                   
+                                   | Dodecahedral Octahedral Tetrahedral Anion
+                                   | py:   Mg_3AlAlSi_3O_12     (pyrope)
+                                   | al:   Fe_3AlAlSi_3O_12     (almandine)
+                                   | gr:   Ca_3AlAlSi_3O_12     (grossular)
+                                   | mgmj: Mg_3MgSiSi_3O_12     (Mg-Majorite) (Mg, Si for Al; Si, Si; Fe, Fe; Cr, Cr)
+                                   | namj: (Na_2Mg)SiSiSi_3O12  (Na-Majorite)
+                                   | andr: Ca_3Fe+3Fe+3Si_3O_12 (andradite)
+                                   | knor: Mg_3CrCrSi_3O_12     (knorrigite)
+
+                                     Garnet solution with Fe-majorite (Fe3MgSiSi3O12) and Ca-majorite (Ca3MgSiSi3O12),
+                                     the use of these endmembers appear to be necessary to reproduce the Stixrude & Lithgow-Bertelloni (2011)
+                                     calculations.
+
+                                     reformulated as an irregular prismatic model, JADC, 5/18
+
+                                     reformulated as 688 standard format. JADC, 10/19
+
+                                                      A   B1/B2
+                                                      (SJF: A is type of simplex. All 2+ so no charge balance. Triangle, MgFeCa). B would be line: 6+ and 6+ same charge. So simplex is defined as relationship between AlAl and MgSi. Don't worry about the orphan vertex.
+                                                      3 * 2 independent endmembers (product of 3 * 2) Number of independent endmembers is smaller.
+                                                      So with andr and knor, do we now have 12 independent endmembers (3 * 4)? We know 8 (below); need another 4.
+                                                     ____________________
+
+                                      Multiplicity    3            2
+                                                     ____________________
+                   prismatic vertex (***SJF: product of simplices):
+                                        py            Mg           AlAl     independent (SJF: Treating B1B2 as single site--disordered)
+                                        al            Fe2+         AlAl     independent
+                                        gr            Ca           AlAl     independent
+                                        andr          Ca           Fe3+Fe3+ independent (SJF: added)
+                                        knor          Mg           CrCr     independent (SJF: added)
+                                        
+                                        mgmj          Mg           MgSi     independent
+                                        fmaj          Fe           MgSi     dependent   (SJF: dependent because can create from other endmembers)
+                                        cmaj          Ca           MgSi     dependent
+                                        skag          Fe2+         Fe3+Fe3+ dependent   (SJF: added)
+                                        khoh          Mg           Fe3+Fe3+ dependent   (SJF: added)
+                                        uvv           Ca           CrCr     dependent   (SJF: added)
+                                        shypth        Mg           CrCr     dependent   (SJF: added)
+                   orphan vertex:
+                                        namj          Na2Mg        SiSi   independent (orphan)
+                                        
+                                        | fmaj    = 1 maj + 1 al - 1 py     (Mg3MgSiSi3O12 + Fe2+_3Al2Si3O12 - Mg_3Al2Si3O12)
+                                        | cmaj    = 1 maj + 1 gr  - 1 py     (Mg3MgSiSi3O12 + Ca_3Al2Si3O12   - Mg_3Al2Si3O12)
+                                        | skag    = 1 al  - 1 py  + 1 khoh   (Fe2+_3Fe3+_2Si3O12 = Fe2+_3Al2Si3O12 - Mg_3Al2Si3O12 + Mg_3Fe3+_2Si3O12)
+                                        | khoh    = 1 py - 1 gr + 1 andr     (Mg_3Fe3+_2Si3O12 = Mg_3Al2Si3O12 - Ca3Al2Si3O12 + Ca3Fe3+_2Si3O12)
+                                        | uvv     = 1 gr - 1 py + 1 knor     (Ca3Cr2Si3O12 = Ca_3Al2Si3O12 - Mg3Al2Si3O12 + Mg3CrCrSi3O12)
+                                        | shypoth = 1 py - 1 gr + 1 uvv      (Mg3Cr2Si3O12 = Mg3Al2Si3O12 - Ca_3Al2Si3O12 + Ca3Cr2Si3O12)
+                                        
+                                        | SJF: triangular simplex with three vertices is endmembers on A site. 3 species. For B site, having added andr and knor, have four.
+                                        |      Six vertices in orginal. Added FeFe and CrCr from andr and knor. Gives 8. 3*4 vertices (new object). Six are independent.
+                                        |      So need four more dependent endmembers. So now come up with dependent endmembers (skiagite and khoharite?). Name whatever I like.
+                                        |      Can call Mg, Fe and FeFe and CaFe if I want. So have then created vertex. Then add below. So adding two more things to second simplex.
+                                        |      Add XfeFe and XCrCr below:
+                                        |
+                                        | Additional possible endmembers (khoharite, skiagite are hypothetical):
+                                        | skiagite:  Fe2+_3Fe3+_2Si3O12 (skag).
+                                        | khoharite: Mg3Fe3+_2Si3O12 (khoh).
+                                        | uvarovite: Ca3Cr2(SiO4)3 (uvv).
+                                        | sjfHypothetical: Mg3(Cr,Cr)Si3O12 (shypoth) (or (Ca,Fe,Mg)3(Cr,Al)Si3O12)
+                                        
+
+ |   SJF: Jamie is saying we have single polytope (any math object that defines geometry). The two different sites with product of simplices is triangular prism. Anywhere inside triangular prism is valid composition. Jamie saying this isn't everything. Also have to worry about Na on dodecahedal site that exchanges with Si on octahedral site. Jamie saying instead of making product of simplices, let's make product of product of simplices. We have a prism of composiitons and outside it we have Na point. That point can mix with prismatic vertex. That's a product and we can operate on it. *** SEE BELOW CHANGE IN Pp and RUN. Then make phase diagraam and match to phase diagram in Stixrude. Match to manuscript. ***
+
+Gt
+
+688                                | model type: 688 format standard model
+
+2                                  | number of polytopes (SJF: any geometrical shape with straight lines Jamie means as #Cartesian products of simplexes).
+                                   | polytope names and composite composition space subdivision schemes
+[namj]   0    1   .1  0            | subdivision range for X(1) = M-free
+[~namj]  by difference             | = [M][Al,MgSi], M = Mg,Fe,Ca
+                                   | ----------------------------
+                                   | Polytope 1 - 1 simplex (*** SJF: 1 simplex is single point that = Na majorite endmember. Single pt with one vertex. 1 vertex means one endmember)
+1                                  | number of simplices, [Na2/3Al1/3][AlSi]
+1                                  | number of vertices on each simplex
+namj                               | endmembers on the vertices
+                                   | ----------------------------
+                                   | Polytope 2 - 3x2 simplices (SJF: endmembers of prism that don't include Na. 3x2 refers to 2-soimplex and 1-simplex)
+2                                  | number of simplices
+3  4                               | number of vertices on each simplex
+                                   | endmembers on the vertices
+cmaj   fmaj   mgmj                |   (SJF: changed from 2 rows, three columns to three columns, four rows)
+gr     al     py
+andr   knor   skag
+khoh   uvv    shypoth
+
+                                   | First 3-simplex. SJF: unchanged.
+X_Ca,A    0. 1. .1   0             | range and resolution for X(Ca,A), imod = 0 -> cartesian subdivision
+X_Fe,A    0. 1. .1   0             | range and resolution for X(Fe,A), imod = 0 -> cartesian subdivision
+X_Mg,A    by difference
+                                   | Second 2-simplex. SJF: added Fe3+Fe3+, CrCr
+X_MgSi,B    0. 1. .1   0           | range and resolution for X(1-Ts,B), imod = 0 -> cartesian subdivision
+X_Fe3Fe3,B  0. 1. .1   0
+X_CrCr,B    0. 1. .1   0
+X_AlAl,B    by difference
+
+begin_dependent_endmembers
+fmaj    = 1 mgmj + 1 al - 1 py
+cmaj    = 1 mgmj + 1 gr  - 1 py
+skag    = 1 al  - 1 py  + 1 khoh
+khoh    = 1 py - 1 gr + 1 andr
+uvv     = 1 gr - 1 py + 1 knor
+shypoth = 1 py - 1 gr + 1 uvv
+end_dependent_endmembers
+
+begin_excess_function
+W(py gr)     19.08857d3
+W(py mgmj)   23.16432d3
+W(py namj)   23.16432d3
+W(py andr)   53.00000d3
+W(al mgmj)   23.16432d3
+W(al namj)   23.16432d3
+W(al andr)   44.0d3
+W(al knor)   10.0d3
+W(gr mgmj)   64.68245d3
+W(gr namj)   64.68245d3
+W(gr knor)   -20.0d3
+W(mgmj namj) 71.17245d3
+W(mgmj andr) 64.68245d3
+W(mgmj knor) 25.87913d3
+W(namj andr) 64.68245d3
+W(namj knor) 25.87913d3
+W(andr knor) 75.0d3
+end_excess_function
+
+3                                 | 3 site configurational entropy model
+
+A                                 | site name
+4 3 3                             | number of species, effective multiplicity, true multiplicity
+z(Ca,A) = 1 gr
+z(Fe,A) = 1 al
+z(Na,A) = 2/3 namj
+z(Mg,A) = 1 py + 1 mgmj + 1/3 namj
+|z(Mg,A) = 1 py + 1 mgmj + 1 namj
+
+B1                                | site name
+3 1 1                             | number of species, effective multiplicity, true multiplicity
+z(Mg,B1) = 1 mgmj
+z(Al,B1) = 1 gr  + 1 py    + 1 al
+z(Si,B1) = 1 namj
+
+B2                                | site name
+2 1 1                             | number of species, effective multiplicity, true multiplicity
+z(Si,B2) = 1 mgmj + 1 namj
+z(Al,B2) = 1 gr  + 1 py    + 1 al
+
+[Si3O12]                                    | formula suffix, enter "none" for no suffix.
+
+                                   | *** SJF notes
+                                   | - X3Y2(SiO4)3
+                                   |   (Si, Al in octahedral coordination. A, X tetrahedral)
+                                   |
+                                   | - From ms12, Table C1:
+                                   |   py:   Mg_3AlAlSi_3O_12     (pyrope)
+                                   |   al:   Fe_3AlAlSi_3O_12     (almandine)
+                                   |   gr:   Ca_3AlAlSi_3O_12     (grossular)
+                                   |   mgmj: Mg_3MgSiSi_3O_12     (Mg-Majorite) (Mg, Si for Al; Si,Si; Fe, Fe; Cr, Cr)
+                                   |   namj: (Na_2Mg)SiSiSi_3O12  (Na-Majorite)
+                                   |   andr: Ca_3Fe+3Fe+3Si_3O_12 (andradite)
+                                   |   knor: Mg_3CrCrSi_3O_12     (knorrigite)
+                                   |
+                                   | - Rules:
+                                   |     X = Ca2+, Na+, Mg2+, Fe2+
+                                   |     Y = Si4+, Al3+, Cr3+, Fe3+, Mg2+
+                                   |
+                                   |     All Mg2+, Na+, Fe2+, Ca2+ on X.
+                                   |     Al3+, Fe3+, Cr3+, Si4+ on Y.
+                                   |     Mg2+ on X or Y.
+end_of_model
+                                                                               | End garnet based on stx21
+|                      --------------------------------------------------------
+                                                                               | Start Na-Al phase
+begin_model
+                                      Na-Al phase solution. 
+
+                                      A    B      C
+                                      1    2      6
+                              mnal    Na   Mg   Al5Si1
+                              fnal    Na   Fe   Al5Si1
+                              nnal    Na   Na   Al3Si3
+
+
+nal
+
+688                                | model type: 688 format standard model
+
+1                                  | number of polytopes
+1                                  | number of simplices, [Na2/3Al1/3][AlSi]
+3                                  | number of vertices on each simplex
+fnal                               | endmembers on the vertices
+mnal
+nnal
+
+0. 1. .1   0                       | range and resolution for X(fnal), imod = 0 -> cartesian subdivision
+0. 1. .1   0                       | range and resolution for X(mnal), imod = 0 -> cartesian subdivision
+
+begin_excess_function 
+w(mnal nnal)    -62.08292d3
+w(fnal nnal)    -62.08292d3
+end_excess_function 
+
+2                                   | number of sites in configurational entropy model
+                                    | *** COMPLETE BELOW.
+B                                   | site name
+3 2 2                               | number of species, effective multiplicity, true multiplicity
+z(Na,B)  = 1 nnal
+z(Mg,B)  = 1 mnal
+z(Fe,B)  = 1 fnal
+
+C                                   | site name
+2 6 6                               | number of species, effective multiplicity, true multiplicity
+z(Al,C) = 5/6 mnal + 5/6 fnal + 1/2 nnal
+z(Si,C) = 1/6 mnal + 1/6 fnal + 1/2 nnal
+
+[NaO12]                             | formula suffix, enter "none" for no suffix.
+
+end_of_model
+                                                                               | End Na-Al phase

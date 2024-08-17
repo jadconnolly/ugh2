@@ -95,6 +95,9 @@ c                                    iam = 13 - unsplt (global)
 c                                    iam = 14 - unsplt (local)
 c                                    iam = 15 - convex
       iam = 1
+c                                 perplexwrap.f flags
+      getInput = .true.
+      sWarn = .false.
 c                                 initialization
       call iniprp
 c                                 start the total timer (30)
@@ -2778,7 +2781,7 @@ c                               increments at each level
 
       call setvar
 c                               init progress info
-      dinc = 1d2/real(loopx/kinc + 1)
+      dinc = 1d2/real((loopx-1)/kinc + 1)
       tot = 0d0
 
 c     if (lopt(28)) call begtim (11)
@@ -2795,6 +2798,7 @@ c                               flush stdout for paralyzer
          flush (6)
 
       end do
+      write (*,1030)
 
 c     if (lopt(28)) call endtim (11,.true.,'low level grid')
 c                               output interim plt file
@@ -2985,7 +2989,7 @@ c                                 ouput grid data
 10    if (outprt) call outgrd (loopx,loopy,1,n4,0)
 
 1030  format (f5.1,'% done with low level grid.',a,$)
-1050  format (/,'Beginning grid refinement stage.',/)
+1050  format (//,'Beginning grid refinement stage.',/)
 1060  format (i6,' grid cells to be refined at grid level ',i1)
 1070  format (7x,'refinement at level ',i1,' involved ',i6,
      *        ' minimizations')
@@ -3578,6 +3582,9 @@ c                                 do fractionation
 c                                 the phase to be fractionated
 c                                 is present, remove from bulk
                      there(i) = .true.
+c                                 simple back calculated speciation
+c                                 is being used for fractionation:
+                     if (lopt(67)) call aqrxdo (j,-1)
 
                      if (amt(j).lt.0d0) amt(j) = 0d0
 

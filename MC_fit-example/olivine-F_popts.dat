@@ -1,0 +1,6 @@
+approx_alpha          F
+Anderson-Gruneisen    T
+seismic_data_file     F      | no seismic output
+initial_resolution    0.0500
+x_nodes               80 150 | exploratory and autorefine (grid parameters keyword group)
+y_nodes               80 150 | exploratory and autorefine (grid parameters keyword group)

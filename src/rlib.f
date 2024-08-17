@@ -176,7 +176,8 @@ c---------------------------------------------------------------------
 
       logical proj
 
-      double precision ialpha, vt, trv, pth, vdp, vdpbm3, gsixtr,
+      double precision ialpha, vt, trv, pth, vdp, vdpbm3, vdpbmt,
+     *                 gsixtr,
      *                 gstxgi, fs2, fo2, kt, gval, gmake, gkomab, kp,
      *                 a, b, c, gstxlq, glacaz, v1, v2, gmet, gmet2,
      *                 gterm2, km, kmk, lnfpur, gaq, ghkf, lamla2
@@ -487,6 +488,12 @@ c                                 temperature
 c                                 destabilize the phase
             vdp = thermo(3,id)**2*p
 
+         else if (lopt(68)) then
+c                                 finite strain alpha handling
+            vdp = vdpbmt (
+     *         thermo(3,id),ialpha,thermo(16,id),thermo(18,id)
+     *      )
+
          else
 
             vdp = vdpbm3 (vt,kt,thermo(18,id))
@@ -745,9 +752,6 @@ c---------------------------------------------------------------------
 
       integer iam
       common/ cst4 /iam
-
-      integer idspe,ispec
-      common/ cst19 /idspe(2),ispec
 
       integer ihy, ioh
       double precision gf, epsln, epsln0, adh, msol
@@ -3566,6 +3570,118 @@ c                                 45/Pi
 c     call endtim (3,.false.,'plg')
       end
 
+      double precision function vdpbmt (v0,ai,k,kprime)
+c-----------------------------------------------------------------------
+c vdpbmt computes the vdp integral of a compound identified by id
+c that is described by Birch-Murnaghan 3rd order EoS, but with the
+c modification that the thermal expansivity will not become negative.
+c this is accomplished by avoiding a model for K(T) [bulk modulus behavior
+c with changing temperature].
+c    v0 - is the volume at Pr & Tr
+c    ai - is the integral(alpha(T),Tr..T)
+c    k  - is the bulk modulus at Pr & Tr
+c    kprime - is -K' at Pr and Tr
+c-----------------------------------------------------------------------
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      integer itic, jerk
+
+      double precision k, kt, v0, vt, vpt, ai, rat, rat2, c0, c1, c2,
+     *                 c3, c4, c5, a0, a1, v, df, f, ft, af, dv, kprime,
+     *                 vint
+
+      double precision p,t,xco2,u1,u2,tr,pr,r,ps
+      common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
+
+      double precision units, r13, r23, r43, r59, zero, one, r1
+      common/ cst59 /units, r13, r23, r43, r59, zero, one, r1
+
+      save jerk
+      data jerk /0/
+c----------------------------------------------------------------------
+c                                 constants:
+      a0 = 0.375d0 * v0 * k
+      a1 = -0.125d0 * v0**2 * k
+      c0 = (-28d0 -6d0 * kprime) * v0 * a0
+      c1 = (12d0 + 3d0 * kprime) * v0**2 * a0
+      c2 = (16d0 + 3d0 * kprime) * a0
+      c3 = a1 * v0 * (-196d0 - 42d0 * kprime)
+      c4 = a1 * (80d0 + 15d0 * kprime)
+      c5 = a1 * v0 * (108d0 + 27d0 * kprime)
+c                                 use murnaghan guess for volume. GH, 6/23/16
+c                                 initial guess for volume:
+      dv = 1d0
+      v = v0 * (1d0 - kprime*p/k)**(dv/kprime)
+      itic = 0
+
+      do while (dabs(dv/(1d0+v)).gt.nopt(51))
+
+         itic = itic + 1
+         rat = (v0/v)**r13
+         rat2 = rat**2
+         f = p  + ((c0*v*rat+c1+c2*v**2*rat2)/v**3)
+         df = (c3/rat2+c4*v/rat+c5)/v**4
+         dv = f/df
+         v = v - dv
+
+         if (v.le.0d0.or.v.gt.1d6.or.itic.gt.20) then
+
+            if (jerk.lt.iopt(1)) then
+
+               jerk = jerk + 1
+               write (*,1000) t,p
+
+               if (jerk.eq.iopt(1)) call warn (49,r,369,'VDPBMT')
+
+            end if
+
+            vdpbmt = 1d2*p
+
+            return
+
+         end if
+
+      end do
+c                                 finite strain parameter to calculate decrease
+c                                 of alpha with p; see Helffrich (2017) AM 102
+c                                 1690-1695; based on Murnaghan EOS, which might
+c                                 be questionable.
+      f = 0.5d0*((v0/v)**r23-1d0)
+c     af = (1d0 + 2d0*f)**-2.5d0 * (1d0 + 1d0/(1d0 + 2d0*f)**2) * 0.5d0
+      af = (1d0 + 1d0/(1d0 + 2d0*f)**2) / (2d0 * sqrt(1d0 + 2d0*f)**5)
+c                                 V(p,t)
+      vpt = v*exp(af*ai)
+c                                 V(0,t)
+      vt = v0*exp(ai)
+c                                 effective f from V(P=0,T) to V(P,T)
+      ft = ((vt/vpt)**r23-1d0) * 0.5d0
+c                                 effective k from V(P=0,T) to V(P,T)
+      kt = (p-pr) /
+     *   (3d0*ft*(1d0 + 2d0*ft)**2.5d0 * (1d0-ft*3d0*(4d0+kprime)/2d0))
+c                                 and the vdp integral is:
+c                                 checked in BM3_integration.mws
+c                                 compared to a numerical derivative of
+c                                 dG/dP, this expression gives v(p,t) that
+c                                 is 1-2% smaller than vpt at core pressures.
+c                                 the expr. is mathematically correct though.
+c                                 in contrast, vdpbm3 (same expression for the
+c                                 integral) gives a numerical derivative
+c                                 identical to vpt.  to be investigated; a
+c                                 kludge is an empirical correction to vint
+c                                 good to ~0.5% to core pressures.
+      vint = p*vpt - vt*(pr-4.5d0*kt*ft**2*(1d0-ft*(4d0+kprime)))
+      vdpbmt = vint*(1d0 + 0.766d-2*asinh(2d0*p/k))
+
+1000  format (/,'**warning ver369** failed to converge at T= ',f8.2,' K'
+     *       ,' P=',f9.1,' bar',/,'Using Birch-Murnaghan ',
+     *        'EoS, probably for Ghiorso et al. MELTS/PMELTS endmember',
+     *        ' data.',/,
+     *        'The affected phase will be destabilized.',/)
+
+      end
+
       double precision function vdpbm3 (vt,k,kprime)
 c-----------------------------------------------------------------------
 c vdpbm3 computes the vdp integral of a compound identified by id
@@ -3737,9 +3853,6 @@ c----------------------------------------------------------------------
 
       integer ids,isct,icp1,isat,io2
       common/ cst40 /ids(h5,h6),isct(h5),icp1,isat,io2
-
-      integer idspe,ispec
-      common/ cst19 /idspe(2),ispec
 
       integer ifct,idfl
       common/ cst208 /ifct,idfl
@@ -6470,10 +6583,10 @@ c----------------------------------------------------------------------
 c                                 redlich kistler is a special case
 c                                     wk(1) = w0 cst
 c                                     wk(2) = wT coefficient on T
-c                                     wk(3) = wP some term in brosh's murnaghan-like excess term
+c                                     wk(3) = wP0 some term in brosh's murnaghan-like excess term
 c                                     wk(4) = wP1 some term in brosh's murnaghan-like excess term
 c                                     wk(5) = wP2 some term in brosh's murnaghan-like excess term
-c                                     wk(6) = wP0 coefficient on P
+c                                     wk(6) = wP coefficient on P
          do i = 1, jterm(id)
             do j = 1, rko(i,id)
 
@@ -12012,6 +12125,13 @@ c-----------------------------------------------------------------------
       double precision x3, caq
       common/ cxt16 /x3(k5,h4,mst,msp),caq(k5,l10),na1,na2,na3,nat,kd
 
+      integer kkp,np,ncpd,ntot
+      double precision cp3,amt
+      common/ cxt15 /cp3(k0,k19),amt(k19),kkp(k19),np,ncpd,ntot
+
+      integer iam
+      common/ cst4 /iam
+
       save badct
       data badct/0/
 c----------------------------------------------------------------------
@@ -12037,7 +12157,14 @@ c                                 values
 
          end do
 
+      else if (iam.eq.1) then 
+c                                 fractionation with simple back-calc
+         do i = 1, ns
+            ysp(i,jd) = pa3(jd,i)
+         end do
+
       end if
+
 c                                 set feos = .true. because can't be
 c                                 sure that the last solvent calculation was
 c                                 at the present p-t condition.
@@ -12067,6 +12194,31 @@ c                                 back calculated bulk composition
          return
 
       end if
+
+      if (iam.eq.1) then
+c                                 aqrxdo is being called by VERTEX this is only done
+c                                 for fractionation calculations when lagged speciation is
+c                                 off. In this case AQRXDO computes a 
+c                                 pseudo composition by simple back-calculation
+c                                 to be fractionated. The resulting calculations
+c                                 will not conserve mass, additionally all other
+c                                 phase properties will be those of the pure solvent.
+
+c                                 want molar composition in units of moles/mol-solvent-species
+c                                 cp3(j,jd) is already loaded with solvent composition
+c                                 msol is the mass of 1 mole of pure solvent computed 
+c                                 by slvnt3, ergo
+         do i = 1, aqct
+c                                 total solute molality
+            do j = 1, kbulk
+               cp3(j,jd) = cp3(j,jd) + msol*mo(i)*aqcp(j,i)
+            end do
+
+         end do
+
+         return
+
+      end if
 c                                 compute charge balance error
       err = 0d0
 
@@ -12075,12 +12227,10 @@ c                                 compute charge balance error
       end do
 c                                 neutral pH
       ph0 = -lnkw/2d0/2.302585d0
-
-      do i = 1, kbulk
-         blk(i) = 0d0
-      end do
 c                                 total molality
       smot = 0d0
+
+      blk(1:kbulk) = 0d0
 c                                 compute mole fractions, total moles first
       do i = 1, ns
 c                                 moles/kg-solvent
@@ -12650,7 +12800,7 @@ c                                 no solution model found:
 c                                 turn off lagged speciation just to be sure
          lopt(32) = .false.
 
-        if (.not.lopt(25)) aqct = 0
+         if (.not.lopt(25)) aqct = 0
 
 c                                 else look for H2O
          do i = 1, ipoint
@@ -12683,6 +12833,28 @@ c                                refine_endmembers to true.
          end if 
 
       end if
+
+      if (lopt(67).and.icopt.gt.6) then
+
+         if (aqct.eq.0) then
+            lopt(25) = .false.
+            lopt(67) = .false.
+         end if
+c                                aq_fractionation_simpl is T, then for 
+c                                fractionation calculations shut off 
+c                                lagged speciation
+         if (lagged.and.lopt(67)) then
+
+            call warn (99,0d0,0,'aq_lagged_speciation is inconsistent w'
+     *            //'ith aq_fractionation_simple and will be disabled'//
+     *              ' (AQIDST)')
+
+            if (lopt(56)) call wrnstp
+
+         end if
+
+      end if
+
 c                                open a bad point file for lagged and
 c                                back-calculated speciation calculations
       if (lagged.and.iam.le.2) then
@@ -18688,9 +18860,6 @@ c----------------------------------------------------------------------
       integer ihy, ioh
       double precision gf, epsln, epsln0, adh, msol
       common/ cxt37 /gf, epsln, epsln0, adh, msol, ihy, ioh
-
-      integer idspe,ispec
-      common/ cst19 /idspe(2),ispec
 c-----------------------------------------------------------------------
 c                               initialization for each data set
 c                               for k10 endmembers
@@ -18718,13 +18887,14 @@ c                               transformations, read make definitions.
       call topn2 (0)
 c                               general input data for main program
 
-c                               reorder thermodynamic components
-c                               if the saturated phase components are 
-c                               present
+c                               reorder thermodynamic components if 
+c                               they include special components, this 
+c                               is archaic
       if (lopt(7)) then
 
          do k = 1, ispec 
-                             
+c                               check for special components in the the
+c                               thermodynamic composition space.
             do i = 1, icp
 
                if (cname(i).eq.cmpnt(idspe(k))) then 

@@ -1,0 +1,286 @@
+| comments are preceded by the "|" character
+
+| MC_inverter, the mode and expected format of the *.imc file is 
+| determined by the following flag:
+
+T      | invxpt, T => invert experimental data, F => inverse thermobarometry
+G F    | random, select Monte Carlo or grid-search
+       | T => new random number generation each time the program is run;
+       | F => for reproducible sequence (e.g., for debugging);
+       | G => grid search over all range; after a blank, T or F means use
+       |      random / reproducible search for minimum to evaluate uncertainty
+
+| Monte-Carlo logistical variables:
+
+0      | ntry, number of starting guesses used to find a best fit model
+0 0    | nunc: 1 or 2 numbers affecting uncertainty evaluation.
+       | 1st number (required), number of iterations to evaluate uncertainities
+       | after minimum found; 2nd number (optional, defaults to zero), number
+       | of subdivisions (n) of P/T uncertainty for each datum to explore for
+       | experiment scoring.  If zero, only P & T of experiment is used to
+       | evaluate a score; if > 0, then uncertainty range is explored in units
+       | of 1/n.  Use a small number here, < 5, or else there will be a
+       | combinatorial explosion..  For a grid search, 2nd number should be
+       | zero for faster searching.
+       | set nunc = 0 to suppress uncertainty evaluation.
+       |
+       | schema to understand how P/T uncertainty affects scoring
+       |
+       |                          P / T
+       |    <--------- -unc ----- value ----- +unc -------->
+       |   |-----|-----...-----|----X----|---...-----|------|
+       | -n/n -(n-1)/n ...   -1/n      +1/n  ... +(n-1)/n +n/n
+       | *unc  *unc          *unc      *unc        *unc   *unc
+       |
+       | For each datum, P or T is given as a nominal value X +/- an uncertainty
+       | (which may be zero).  If unc > 0, and the second nunc value (n) is
+       | also nonzero, then scores at P/T conditions X - 1/n*unc, X + 1/n*unc,
+       | X - 2/n*unc, X + 2/n*unc, ... X - n/n*unc, X + n/n*unc will be made,
+       | with the lowest score taken.  Hence there will be 1 + 2*n minimization
+       | problems solved for each datum.  This explains why n should be small.
+
+       | time cost is proportional to nunc + 1, i.e., the program will 
+       | do (nunc + 1) * ntry Nelder-Meade minimizations.
+
+       | Each Nelder-Mead minimization is allowed to do a maximum of kcount
+       | free energy minimization calculations plus a few extra (~10-50) if
+       | the minimum is to be fit to a surface (iquad = 1). I see 
+       | little value to the surface fitting, who cares if it's at a true 
+       | minimum? The result is still useful if it's better than the other 
+       | results.
+
+| Nelder-Mead MINIM algorithm variables
+
+5d3    | oktol, threshold at which a failed minim result will be considered a legitimate result
+1d-5   | tol, by trial and error
+1d-6   | simplx, trial and error
+0.2    | frac, fractional step size
+10     | conchk, how often to check for convergence
+0      | iprint, 0 => normal print, < 0 => silent, > 0 => verbose
+0      | iquad, 1 => fit surface to minimum, 0 => don't fit 
+3072   | kcount, max # of objective evaluations per try, recommended nparm*1024
+
+| Nelder-Mead Objective function weights
+
+1d0    | wcomp, compositional residual weight
+1d1    | wextra, extra phase amount residual weight
+1d1    | wmiss, missing phase residual weight
+
+| endmembers and solutions with free parameters
+
+begin_phase_free_parameters
+
+liq-FeH                          | compound to vary
+parameter K                      | bulk modulus
+range        300e4 400e4 11
+parameter K'                     | pressure derivative
+range        -6   -4      5
+parameter V0                     | V0 = 0.742229 was Tagawa data fit
+range        0.73  0.75  21
+
+end_list                         | end of parameter list
+
+FCC-FeH                          | compound to vary
+parameter HJTc                   | Curie temperature
+range        2000  3000  11
+parameter HJB                    | Magnetic enthalpy parameter
+range        1.5 2.5     11
+
+end_list                         | end of parameter list
+
+end_phase_free_parameters
+
+| the remainder of the file lists the observations to be used for inversion
+| all numerical quantities are followed by their uncertainties (<=0 indicates no uncertainty)
+
+begin_exp
+
+liq69-2740
+
+69e4   7e4  | pressure (bar)
+2740   120  | temperature (K)
+
+begin_bulk
+Fe  1   0
+H2  0.5 0
+end_bulk
+
+liq-FeH
+
+end_exp
+
+begin_exp
+
+sol67-2480
+
+67e4   7e4  | pressure (bar)
+2480   110  | temperature (K)
+
+begin_bulk
+Fe  1   0
+H2  0.5 0
+end_bulk
+
+FCC-FeH
+
+end_exp
+
+begin_exp
+
+liq152-4630
+
+152e4  15e4 | pressure (bar)
+4630   220  | temperature (K)
+
+begin_bulk
+Fe  1   0
+H2  0.5 0
+end_bulk
+
+liq-FeH
+
+end_exp
+
+begin_exp
+
+liq121-3860
+
+121e4  12e4 | pressure (bar)
+3860   180  | temperature (K)
+
+begin_bulk
+Fe  1   0
+H2  0.5 0
+end_bulk
+
+liq-FeH
+
+end_exp
+
+begin_exp
+
+liq142-4210
+
+142e4  14e4 | pressure (bar)
+4210   200  | temperature (K)
+
+begin_bulk
+Fe  1   0
+H2  0.5 0
+end_bulk
+
+liq-FeH
+
+end_exp
+
+begin_exp
+
+liq45-2110
+
+45e4   4e4  | pressure (bar)
+2110    90  | temperature (K)
+
+begin_bulk
+Fe  1   0
+H2  0.5 0
+end_bulk
+
+liq-FeH
+
+end_exp
+
+begin_exp
+
+liq47-2170
+
+47e4   5e4  | pressure (bar)
+2170    90  | temperature (K)
+
+begin_bulk
+Fe  1   0
+H2  0.5 0
+end_bulk
+
+liq-FeH
+
+end_exp
+
+begin_exp
+
+sol149-3900
+
+149e4   15e4 | pressure (bar)
+3900    110  | temperature (K)
+
+begin_bulk
+Fe  1   0
+H2  0.5 0
+end_bulk
+
+FCC-FeH
+
+end_exp
+
+begin_exp
+
+sol113-3560
+
+113e4   11e4 | pressure (bar)
+3560    160  | temperature (K)
+
+begin_bulk
+Fe  1   0
+H2  0.5 0
+end_bulk
+
+FCC-FeH
+
+end_exp
+
+begin_exp
+
+sol135-3610
+
+135e4   13e4 | pressure (bar)
+3610    170  | temperature (K)
+
+begin_bulk
+Fe  1   0
+H2  0.5 0
+end_bulk
+
+FCC-FeH
+
+end_exp
+
+begin_exp
+
+sol43-1830
+
+43e4   4e4 | pressure (bar)
+1830    80  | temperature (K)
+
+begin_bulk
+Fe  1   0
+H2  0.5 0
+end_bulk
+
+FCC-FeH
+
+end_exp
+
+begin_exp
+
+sol30-1600
+
+30.5e4 0.8e4 | pressure (bar)
+1600   100   | temperature (K)
+
+begin_bulk
+Fe  1   0
+H2  0.5 0
+end_bulk
+
+FCC-FeH
+
+end_exp

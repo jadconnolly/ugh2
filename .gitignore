@@ -664,6 +664,7 @@ BP002.dat
 maxkcmas_auto_refine.txt
 
 *.txt
+!MC_fit-example/README.txt
 
 fort.7
 
@@ -714,3 +715,11 @@ andrea_fractionated_bulk.dat
 fatg.dat
 
 fort.16
+
+junk/
+
+MC_fit-example/MC_*.dat
+
+MC_fit-example/*.out
+
+MC_fit-example/*.bst

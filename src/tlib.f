@@ -36,9 +36,9 @@ c----------------------------------------------------------------------
       integer n
 
       write (n,'(/,a,//,a)') 
-     *     'Perple_X release 7.1.6, Jan 21, 2024.',
+     *     'Perple_X release 7.1.7b May 23, 2024.',
 
-     *     'Copyright (C) 1986-2023 James A D Connolly '//
+     *     'Copyright (C) 1986-2024 James A D Connolly '//
      *     '<www.perplex.ethz.ch/copyright.html>.'
 
       end
@@ -580,6 +580,10 @@ c                                 fluid_shear_modulus
       lopt(65) = .true.
 c                                 compute_FD_increments for MINFRC
       lopt(66) = .false.
+c                                 aq_fractionation_simpl
+      lopt(67) = .true.
+c                                 finite_strain_alpha
+      lopt(68) = .false.
 c                                 phi_d
       nopt(65) = 0.36
 c                                 initialize mus flag lagged speciation
@@ -658,6 +662,10 @@ c                                 phase composition key
          else if (key.eq.'aq_lagged_speciation') then 
 
             if (val.eq.'T') lopt(32) = .true.
+
+         else if (key.eq.'aq_fractionation_simpl') then 
+
+            if (val.eq.'F') lopt(67) = .false.
 
          else if (key.eq.'aq_oxide_components') then 
 
@@ -1428,6 +1436,10 @@ c                                 handle missing shear moduli
                valu(15) = val
                iopt(16) = 2
             end if   
+
+         else if (key.eq.'finite_strain_alpha') then 
+c                                 finite strain alpha handling
+            lopt(68) = 0 .ne. index('tT',val(1:1))
           
          else if (key.eq.'lop_28') then
 c                                 reserved values for debugging, etc
@@ -1922,10 +1934,10 @@ c                                 generic subdivision parameters:
          end if 
 c                                 generic thermo parameters:
          write (n,1012) nval1,
-     *                  nopt(12),nopt(20),lopt(8),lopt(4),nopt(5),
-     *                  iopt(21),nopt(10),lopt(63),
+     *                  nopt(12),nopt(20),lopt(8),lopt(4),lopt(68),
+     *                  nopt(5),iopt(21),nopt(10),lopt(63),
      *                  iopt(25),iopt(26),iopt(27),
-     *                  lopt(32),lopt(44),lopt(36),lopt(46),
+     *                  lopt(32),lopt(67),lopt(44),lopt(36),lopt(46),
      *                  nopt(38),nopt(34)
 c                                 for meemum add fd stuff
          if (iam.eq.2) write (n,1017) nopt(31),nopt(26),nopt(27)
@@ -1955,7 +1967,8 @@ c                                 WERAMI input/output options
 c                                 WERAMI info file options
          write (n,1241) lopt(12)       
 c                                 WERAMI thermodynamic options
-         write (n,1016) lopt(8),lopt(4),iopt(25),iopt(26),iopt(27)
+         write (n,1016) lopt(8),lopt(4),lopt(68),
+     *                  iopt(25),iopt(26),iopt(27)
          write (n,1017) nopt(31),nopt(26),nopt(27)
 
       else if (iam.eq.2) then 
@@ -1982,7 +1995,8 @@ c                                 seismic property options
 
       if (iam.eq.5) then 
 c                                 FRENDLY thermo options
-         write (n,1016) lopt(8),lopt(4),iopt(25),iopt(26),iopt(27)
+         write (n,1016) lopt(8),lopt(4),lopt(68),
+     *                  iopt(25),iopt(26),iopt(27)
          write (n,1017) nopt(31),nopt(26),nopt(27)
 
       end if 
@@ -2066,6 +2080,7 @@ c                                 generic thermo options
      *        4x,'T_melt (K)             ',f6.1,5x,'[873]',/,
      *        4x,'approx_alpha            ',l1,9x,'[T] F',/,
      *        4x,'Anderson-Gruneisen      ',l1,9x,'[F] T',/,
+     *        4x,'finite_strain_alpha     ',l1,9x,'[F] T',/,
      *        4x,'speciation_precision   ',g7.1E1,4x,
      *           '[1d-5] <1; absolute',/,
      *        4x,'speciation_max_it      ',i4,7x,'[100]',/,
@@ -2077,6 +2092,7 @@ c                                 generic thermo options
      *        4x,'hybrid_EoS_CO2          ',i1,9x,'[4] 0-4, 7',/,
      *        4x,'hybrid_EoS_CH4          ',i1,9x,'[0] 0-1, 7',/,
      *        4x,'aq_lagged_speciation    ',l1,9x,'[F] T',/,
+     *        4x,'aq_fractionation_simple ',l1,9x,'[T] F',/,
      *        4x,'aq_ion_H+               ',l1,9x,'[T] F => use OH-',/,
      *        4x,'aq_oxide_components     ',l1,9x,'[F] T',/,
      *        4x,'aq_solvent_solvus       ',l1,9x,'[T] F',/,
@@ -2102,6 +2118,7 @@ c                                 thermo options for frendly
 1016  format (/,2x,'Thermodynamic options:',//,
      *        4x,'approx_alpha            ',l1,9x,'[T] F',/,
      *        4x,'Anderson-Gruneisen      ',l1,9x,'[F] T',/,
+     *        4x,'finite_strain_alpha     ',l1,9x,'[F] T',/,
      *        4x,'hybrid_EoS_H2O          ',i4,6x,'[4] 0-2, 4-7',/,
      *        4x,'hybrid_EoS_CO2          ',i4,6x,'[4] 0-4, 7',/,
      *        4x,'hybrid_EoS_CH4          ',i4,6x,'[0] 0-1, 7')
@@ -4048,7 +4065,10 @@ c                                 there is a non-blank data character
 
          do i = 2, com
 c                                 strip out '+' and '*' chars
-            if (chars(i).eq.'+'.or.chars(i).eq.'*') chars(i) = ' '
+c                                 except for e+.. d+.. (number exponents)
+c           if (chars(i).eq.'+'.or.chars(i).eq.'*') chars(i) = ' '
+            if ((chars(i).eq.'+'.and.0.eq.index('eEdD',chars(i-1)))
+     *          .or.chars(i).eq.'*') chars(i) = ' '
 c                                 eliminate blanks after '/' and '-'
 c                                 and double blanks
             if ((chars(ict).eq.'/'.and.chars(i  ).ne.' ') .or. 
@@ -4384,9 +4404,6 @@ c----------------------------------------------------------------------
       integer ictr, itrans
       double precision ctrans
       common/ cst207 /ctrans(k0,k0),ictr(k0),itrans
-
-      integer idspe,ispec
-      common/ cst19 /idspe(2),ispec
 
       integer ikind,icmpn,icout,ieos
       double precision comp,tot
@@ -5845,9 +5862,6 @@ c----------------------------------------------------------------------
       integer ikind,icmpn,icout,ieos
       double precision comp,tot
       common/ cst43 /comp(k0),tot,icout(k0),ikind,icmpn,ieos
-
-      integer idspe,ispec
-      common/ cst19 /idspe(2),ispec
 c-----------------------------------------------------------------------
 c                                 recombine components:
       do 
@@ -6029,9 +6043,6 @@ c----------------------------------------------------------------------
       integer length,com
       character chars*1
       common/ cst51 /length,com,chars(lchar)
-
-      integer idspe,ispec
-      common/ cst19 /idspe(2),ispec
 
       integer ipot,jv,iv1,iv2,iv3,iv4,iv5
       common/ cst24 /ipot,jv(l2),iv1,iv2,iv3,iv4,iv5
@@ -7270,8 +7281,8 @@ c-----------------------------------------------------------------------
       lmake = .false.
 
       write (n8,1233) valu(19),nopt(6),lopt(17),valu(15),nopt(1),
-     *                valu(14),lopt(20),lopt(4),.false.,lopt(65),
-     *                nopt(65)
+     *                valu(14),lopt(20),lopt(4),lopt(68),.false.,
+     *                lopt(65),nopt(65)
 
       write (n8,1030)
 
@@ -7421,6 +7432,7 @@ c-----------------------------------------------------------------------
      *        4x,'seismic_output          ',a3,7x,'[some] none all',/,
      *        4x,'poisson_test            ',l1,9x,'[F] T',/,
      *        4x,'Anderson-Gruneisen      ',l1,9x,'[F] T',/,
+     *        4x,'finite_strain_alpha     ',l1,9x,'[F] T',/,
      *        4x,'Tisza_test              ',l1,9x,'[F] T',/,
      *        4x,'fluid_shear_modulus     ',l1,9x,'[T] F',/,
      *        4x,'phi_d                   ',f4.2,6x,'[0.36] 0->1',/)
@@ -11793,9 +11805,6 @@ c-----------------------------------------------------------------------
       integer ikind,icmpn,icout,ieos
       double precision comp,tot
       common/ cst43 /comp(k0),tot,icout(k0),ikind,icmpn,ieos
-
-      integer idspe,ispec
-      common/ cst19 /idspe(2),ispec
 
       integer cl
       character cmpnt*5, dname*80

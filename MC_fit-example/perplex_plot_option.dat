@@ -1,0 +1,3 @@
+field_fill       T            | shade fields for variance
+replicate_label  0            | label all phase fields
+plot_extra_data  T
