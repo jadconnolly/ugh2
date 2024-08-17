@@ -106,6 +106,16 @@ c 31 32 33 34 35 36 37 38  x 40
 c 41 42  x  x  x  x  x 48 49 50
 c 51 52  x 54 55 56 57  x  x  x
 c  x  x  x  x 65
+c
+c references in code to iopt as of Aug. 17, 2024 (subst. iopt in pattern above)
+c
+c iopt: (x = unused; max i10)
+c  1  2  3  4  x  6  7  x  x  x  0x
+c  x  x 13 14 15 16  x 18  x 20  1x
+c 21  x 23 24 25 26 27 28 29 30  2x
+c 31 32  x 34  x 36 37 38 39  x  3x
+c  x  x  x  x  x  x  x  x  x  x  4x
+c  x 52  x  x  x  x  x  x  x  x  5x
 
 c option variables - keyword associations
 
@@ -396,6 +406,8 @@ c                                 error_ver109 - exit on bad endmember EoS invol
       lopt(79) = .true.
 c                                 do_not_reset_options
       lopt(80) = .false.
+c                                 hyb_h2 - eos to be used for pure h2o, 0-2, 4-5, 6-8
+      iopt(23) = 0
 c                                 solution_names 0 - model, 1 - abbreviation, 2 - full
       iopt(24) = 0
       valu(22) = 'mod'
@@ -746,7 +758,7 @@ c                                  options as set.
 
             read (strg,*) iopt(25)
 
-            if (iopt(25).lt.0.or.iopt(25).gt.7.or.iopt(25).eq.3) then 
+            if (iopt(25).lt.0.or.iopt(25).gt.8.or.iopt(25).eq.3) then 
                write (*,1180) strg,key
                call errpau
             end if 
@@ -755,7 +767,8 @@ c                                  options as set.
 
             read (strg,*) iopt(26)
 
-            if (iopt(26).lt.0.or.(iopt(26).gt.4.and.iopt(26).ne.7)) then 
+            if (iopt(26).lt.0.or.(iopt(26).gt.4.and.
+     *         .not.(iopt(26).eq.7.or.iopt(26).ne.8))) then 
                write (*,1180) strg,key
                call errpau
             end if
@@ -764,7 +777,17 @@ c                                  options as set.
 
             read (strg,*) iopt(27)
 
-            if (iopt(27).lt.0.or.(iopt(27).gt.1.and.iopt(27).ne.7)) then 
+            if (iopt(27).lt.0.or.(iopt(27).gt.1.and.
+     *         .not.(iopt(27).eq.7.or.iopt(27).eq.8))) then 
+               write (*,1180) strg,key
+               call errpau
+            end if 
+
+         else if (key.eq.'hybrid_EoS_H2') then
+
+            read (strg,*) iopt(23)
+
+            if (iopt(23).lt.0.or.(iopt(23).gt.1.and.iopt(23).ne.8)) then 
                write (*,1180) strg,key
                call errpau
             end if 

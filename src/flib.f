@@ -444,7 +444,7 @@ c----------------------------------------------------------------------
 
       integer i, j, nhyb, icheck, nout
 
-      parameter (nhyb=7)
+      parameter (nhyb=8)
    
       character hyname(0:nhyb)*32
 
@@ -454,7 +454,7 @@ c----------------------------------------------------------------------
 
       save hyname 
 
-      data (hyname(i), i = 0, 7)/
+      data (hyname(i), i = 0, nhyb)/
      *  'MRK DeSantis et al 1974',
      *  'HSMRK Kerrick & Jacobs 1981',
      *  'CORK Holland & Powell 1998',
@@ -462,20 +462,23 @@ c----------------------------------------------------------------------
      *  'PSEoS Pitzer & Sterner 1994',
      *  'Haar et al 1982',
      *  'Zhang & Duan 2005',
-     *  'Zhang & Duan 2009'/
+     *  'Zhang & Duan 2009',
+     *  'CSRK'/
 c----------------------------------------------------------------------
 
       if (icheck.lt.0) then 
 
          write (nout,1000)
 
-         do j = 1, 3
+         do j = 1, 4
             if (j.eq.1) then 
                write (nout,1020) specie(j),hyname(iopt(25))
             else if (j.eq.2) then 
                write (nout,1020) specie(j),hyname(iopt(26))
             else if (j.eq.3) then 
                write (nout,1020) specie(j+1),hyname(iopt(27))
+            else if (j.eq.4) then 
+               write (nout,1020) specie(j+1),hyname(iopt(23))
             end if 
          end do 
 
@@ -493,6 +496,8 @@ c----------------------------------------------------------------------
                write (nout,1020) specie(j),hyname(iopt(26))
             else if (j.eq.4) then 
                write (nout,1020) specie(j),hyname(iopt(27))
+            else if (j.eq.5) then 
+               write (nout,1020) specie(j),hyname(iopt(23))
             end if 
 
          end do
@@ -2898,6 +2903,78 @@ c subroutine to help calculate the CSRK volumes using Newton-Raphson
       csrkp = -num / den
       end
 
+      subroutine csrk (isp, g, v, f)
+c subroutine to calculate the CSRK fluid volumes, g, and log fugacity
+
+      implicit none
+
+      include 'perplex_parameters.h'
+
+      integer isp, i, j
+
+      double precision g, v, f, rt, dsqrtt, ac(3), aij, bx
+
+      double precision csrkp,hserh2,xi,gt,z,gam
+ 
+      double precision p,t,xco2,u1,u2,tr,pr,rbar,ps
+      common/ cst5  /p,t,xco2,u1,u2,tr,pr,rbar,ps
+
+      double precision frtob, faost, brtsqt, a8, fosqtb
+      common/ csrkcm /frtob, faost, brtsqt, a8, fosqtb
+
+      double precision r, a(3,5), b(5), crp(2,5)
+      data crp/
+c         1 = H2O 2 = CO2 3 = CO (unimplemented) 4 = CH4 5 = H2
+     * 647.3d0,  220.6d0,  304.18d0,  73.80d0, 0d0, 0d0,
+     * 190.564d0, 45.922d0, 41.2d0,   21.1d0
+     */
+      data a/
+     *  1.08193d0,  0.0296910d0,-0.337474d0,
+     *  0.389276d0, 0.195472d0,  0d0,
+     *  0d0,        0d0,         0d0,
+     * -0.0798752d0,0.220581d0,  0.474302d0,
+     * -2.17856d0,  0d0,         0d0 
+     */
+      data b/
+     * 0.117309, 0.135557, 0d0, 0.133213, 0.080398
+     */
+ 
+      data r /8.31441/
+
+      dsqrtt = dsqrt(t)
+      rt = r*t
+      
+      ac = a(1,isp)*sqrt(crp(1,isp))**3 / crp(2,isp) *
+     *     (/ crp(1,isp), t, crp(1,isp)**2/t /)
+      aij = r**2*sum(ac)
+      bx = r*b(isp)*crp(1,isp)/crp(2,isp)
+
+c     CSRK for H2 (taking out 10xR factor in RT)
+      frtob = 0.4*rt/bx
+      faost = 16.d0*aij/(dsqrtt*bx**2)
+      brtsqt = bx*rt*dsqrtt
+      fosqtb = 4.d0/(dsqrtt*bx**2)
+      a8 = 8.d0*aij
+      xi = 0.5d0
+      z = 1.d0
+      do j = 1,50
+         if (abs(z) .le. 1e-9) exit
+         z = csrkp(xi)
+         xi = min(0.7404d0, max(0.d0, xi + z))
+      end do
+      if (j.ge.50) xi = 0.7404d0
+      v = bx/(4.d0*xi)
+      z = p*v/rt
+      gam = z - 3.d0 - dlog(z) - (xi**2 - 2.d0)/(1.d0 - xi)**2 -
+     *      aij/brtsqt * dlog(4*xi + 1.d0)
+c     RT log(gamma*p): volume part only
+c     f = gam + dlog(p)
+c     G(T)/RT + log(gamma*p): no caloric & volume data in thermo data file
+      g = hserh2(t)
+      f = g/rt + gam + dlog(p)
+
+      end
+
       subroutine mrkpur (ins, isp)
 c-----------------------------------------------------------------------
 c subroutine to calculate the log fugacities and volume of single
@@ -2979,7 +3056,7 @@ c----------------------------------------------------------------------
          aij = a(i)
          bx = b(i)
 
-         if (i .eq. 5) then
+         if (.false.) then
 c           CSRK for H2 (taking out 10xR factor in RT)
             frtob = 0.4*rt/bx
             faost = 16.d0*aij/(dsqrtt*bx**2)
@@ -7881,6 +7958,10 @@ c                                 zhang & duan 2005
 c                                 zhang & duan 2009
                call zd09pr (v(j),f(j),j)
 
+            else if (iopt(25).eq.8) then 
+c                                 CSRK
+               call csrk (j,g(j),v(j),f(j))
+
             end if 
 c                                 the fugacity coefficient of the pure gas
             g(j) = dexp(f(j))/p
@@ -7914,6 +7995,10 @@ c                                 pseos, pitzer & sterner 1994
 c                                 zhang & duan 2009
                call zd09pr (v(j),f(j),j)
 
+            else if (iopt(26).eq.8) then 
+c                                 CSRK
+               call csrk (j,g(j),v(j),f(j))
+
             end if 
 c                                 the fugacity coefficient of the pure gas
             g(j) = dexp(f(j))/p
@@ -7931,6 +8016,20 @@ c                                 methane hsmrk kerrick and jacobs 1981.
             else if (iopt(27).eq.7) then 
 c                                 zhang & duan 2009
                call zd09pr (v(j),f(j),j)
+
+            else if (iopt(27).eq.8) then 
+c                                 CSRK
+               call csrk (j,g(j),v(j),f(j))
+
+            end if
+
+         else if (j.eq.5) then
+c                                H2
+            if (iopt(23).eq.0) then 
+c                                 mrk, already called, do nothing
+            else if (iopt(23).eq.8) then 
+c                                 CSRK
+               call csrk (j,g(j),v(j),f(j))
 
             end if
 
@@ -8020,6 +8119,10 @@ c                                 zhang & duan 2005
 c                                 zhang & duan 2009
             call zd09pr (v(j),ftemp,1)
 
+         else if (iopt(25).eq.8) then 
+c                                 CSRK
+            call csrk (j, g(j), v(j), ftemp)
+
          end if
 
       else if (ins(1).eq.2) then 
@@ -8044,6 +8147,10 @@ c                                 pseos, pitzer & sterner 1994
 c                                 zhang & duan 2009
             call zd09pr (v(j),ftemp,1)
 
+         else if (iopt(26).eq.8) then
+c                                 CSRK
+            call csrk (j, g(j), v(j), ftemp)
+
          end if
 
       else if (j.eq.4) then
@@ -8055,6 +8162,18 @@ c                                 methane hsmrk kerrick and jacobs 191.
          else if (iopt(27).eq.7) then 
 c                                 zhang & duan 2009
             call zd09pr (v(j),ftemp,1)
+
+         else if (iopt(27).eq.8) then 
+c                                 CSRK
+            call csrk (j, g(j), v(j), ftemp)
+
+         end if
+
+      else if (j.eq.5) then
+c                                H2
+         if (iopt(23).eq.8) then 
+c                                 CSRK
+            call csrk (j, g(j), v(j), ftemp)
 
          end if
 
