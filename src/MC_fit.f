@@ -1178,6 +1178,7 @@ c                                 which parameters are getting varied?
       end do
 
       if (n6out) write (n6,'(80(''-''))')
+      flush(n6)
 
       if (nparm.eq.0) call errdbg ('no free parameters! no free lunch!')
 
