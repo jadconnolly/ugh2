@@ -2904,6 +2904,7 @@ c subroutine to help calculate the CSRK volumes using Newton-Raphson
       end
 
       subroutine csrk (isp, g, v, f)
+c-----------------------------------------------------------------------
 c subroutine to calculate the CSRK fluid volumes, g, and log fugacity
 
       implicit none
@@ -2939,18 +2940,18 @@ c         1 = H2O 2 = CO2 3 = CO (unimplemented) 4 = CH4 5 = H2
      * 0.117309, 0.135557, 0d0, 0.133213, 0.080398
      */
  
-      data r /8.31441/
+      data r /8.31441d0/
 
       dsqrtt = dsqrt(t)
       rt = r*t
       
-      ac = a(1,isp)*sqrt(crp(1,isp))**3 / crp(2,isp) *
+      ac = a(1:3,isp)*sqrt(crp(1,isp))**3 / crp(2,isp) *
      *     (/ crp(1,isp), t, crp(1,isp)**2/t /)
       aij = r**2*sum(ac)
       bx = r*b(isp)*crp(1,isp)/crp(2,isp)
 
-c     CSRK for H2 (taking out 10xR factor in RT)
-      frtob = 0.4*rt/bx
+c     Iterate to CSRK hard-sphere packing fraction xi after setting up constants
+      frtob = 4.d0*rt/bx
       faost = 16.d0*aij/(dsqrtt*bx**2)
       brtsqt = bx*rt*dsqrtt
       fosqtb = 4.d0/(dsqrtt*bx**2)
@@ -2970,7 +2971,13 @@ c     CSRK for H2 (taking out 10xR factor in RT)
 c     RT log(gamma*p): volume part only
 c     f = gam + dlog(p)
 c     G(T)/RT + log(gamma*p): no caloric & volume data in thermo data file
-      g = hserh2(t)
+c     Probably want to hook this into a choice of EOS for each gas, or leave
+c     it to the caller to provide g.
+      if (isp.eq.5) then
+         g = hserh2(t)
+      else
+         g = 0d0
+      end if
       f = g/rt + gam + dlog(p)
 
       end
@@ -8005,6 +8012,8 @@ c                                 CSRK
                call csrk (j,g(j),v(j),f(j))
 
             end if
+
+            vol = v(j)
 
          end if
 c                                 the hybrid delta volume (hyb-mrk), it's 

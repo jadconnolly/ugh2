@@ -1936,7 +1936,7 @@ c                                 generic thermo parameters:
          write (n,1012) nval1,
      *                  nopt(12),nopt(20),lopt(8),lopt(4),lopt(68),
      *                  nopt(5),iopt(21),nopt(10),lopt(63),
-     *                  iopt(25),iopt(26),iopt(27),
+     *                  iopt(25),iopt(26),iopt(27),iopt(23),
      *                  lopt(32),lopt(67),lopt(44),lopt(36),lopt(46),
      *                  nopt(38),nopt(34)
 c                                 for meemum add fd stuff
@@ -1996,7 +1996,7 @@ c                                 seismic property options
       if (iam.eq.5) then 
 c                                 FRENDLY thermo options
          write (n,1016) lopt(8),lopt(4),lopt(68),
-     *                  iopt(25),iopt(26),iopt(27)
+     *                  iopt(25),iopt(26),iopt(27),iopt(23)
          write (n,1017) nopt(31),nopt(26),nopt(27)
 
       end if 
@@ -2088,9 +2088,10 @@ c                                 generic thermo options
      *           '[0.8] sets x in tol = epsmch^x',/,
      *        4x,'GFSM                    ',l1,9x,
      *           '[F] T GFSM/special_component toggle',/,
-     *        4x,'hybrid_EoS_H2O          ',i1,9x,'[4] 0-2, 4-7',/,
-     *        4x,'hybrid_EoS_CO2          ',i1,9x,'[4] 0-4, 7',/,
-     *        4x,'hybrid_EoS_CH4          ',i1,9x,'[0] 0-1, 7',/,
+     *        4x,'hybrid_EoS_H2O          ',i1,9x,'[4] 0-2, 4-8',/,
+     *        4x,'hybrid_EoS_CO2          ',i1,9x,'[4] 0-4, 7,8',/,
+     *        4x,'hybrid_EoS_CH4          ',i1,9x,'[0] 0-1, 7,8',/,
+     *        4x,'hybrid_EoS_H2           ',i1,9x,'[0] 0, 8',/,
      *        4x,'aq_lagged_speciation    ',l1,9x,'[F] T',/,
      *        4x,'aq_fractionation_simple ',l1,9x,'[T] F',/,
      *        4x,'aq_ion_H+               ',l1,9x,'[T] F => use OH-',/,
@@ -2119,9 +2120,10 @@ c                                 thermo options for frendly
      *        4x,'approx_alpha            ',l1,9x,'[T] F',/,
      *        4x,'Anderson-Gruneisen      ',l1,9x,'[F] T',/,
      *        4x,'finite_strain_alpha     ',l1,9x,'[F] T',/,
-     *        4x,'hybrid_EoS_H2O          ',i4,6x,'[4] 0-2, 4-7',/,
-     *        4x,'hybrid_EoS_CO2          ',i4,6x,'[4] 0-4, 7',/,
-     *        4x,'hybrid_EoS_CH4          ',i4,6x,'[0] 0-1, 7')
+     *        4x,'hybrid_EoS_H2O          ',i4,6x,'[4] 0-2, 4-8',/,
+     *        4x,'hybrid_EoS_CO2          ',i4,6x,'[4] 0-4, 7,8',/,
+     *        4x,'hybrid_EoS_CH4          ',i4,6x,'[0] 0-1, 7,8',/,
+     *        4x,'hybrid_EoS_H2           ',i4,6x,'[0] 0, 8')
 1017  format (4x,'fd_expansion_factor     ',f3.1,7x,'[2] >0',/,
      *        4x,'finite_difference_p     ',1pg7.1,0p,3x,'[1d4] >0; ',
      *           'fraction = ',1pg7.1,0p,3x,'[1d-3]')
