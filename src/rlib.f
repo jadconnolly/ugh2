@@ -550,7 +550,7 @@ c    *         -0.3213822427D7 / t + 0.6464888248D6 - 0.1403012026D3*t
          else if (eos(id).ge.610.and.eos(id).le.654) then
 c                                 lacaze & Sundman (1990) EoS for Fe-Si-C alloys and compounds
 c                                 Xiong et al., 2011 for Fe-Cr alloys
-            gval = gval + glacaz(eos(id)) + thermo(1,id)
+            gval = gval + glacaz(eos(id))
 
 c        else if (eos(id).eq.800) then
 
