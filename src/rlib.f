@@ -11070,11 +11070,11 @@ c                            HCP FeH Helffrich '21
          end if
          glacaz = gtmp + febcc(t) + 0.5d0*hserh2(t)
 c        Zinkevich'02 original
-c    *      + 34000d0 + 42.7d0*t
+     *      + 34000d0 + 42.7d0*t
 c        antonov.R fit
 c    *      + 17269d0 + 61.28d0*t
 c        guess S similar to FCC FeHx
-     *      - 10000d0 + 88.0d0*t
+c    *      - 10000d0 + 88.0d0*t
 
       else if (id.eq.653) then
 c                            HCP Fe for use with HCP FeH Helffrich '23
