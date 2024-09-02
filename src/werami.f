@@ -3648,7 +3648,7 @@ c                                 21-30
 c                                 31-39
      *         25,26,27,20,21, 0, 45, 0, 28/
 c----------------------------------------------------------------------
-      if ((lop.eq.6.or.lop.eq.36).and..not.warned) then
+      if (lop.eq.36.and..not.warned) then
 c                                this warning could be shifted to where
 c                                the phase/system option is chosen.
          if (lopt(23)) then

@@ -1480,7 +1480,7 @@ c                                 b1-b12
 c                                 b13 on return
      *            thermo(23,id),
 c                                 ref stuff
-     *            tr,pr,r,0)
+     *            tr,0)
 
                   exit 
 

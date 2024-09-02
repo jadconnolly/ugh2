@@ -10904,7 +10904,7 @@ c---------------------------------------------------------------------
 
       subroutine conver (g,s,v,a,b,c,d,e,f,gg,c8,
      *                   b1,b2,b3,b4,b5,b6,b7,b8,
-     *                   b9,b10,b11,b12,b13,tr,pr,r,ieos)
+     *                   b9,b10,b11,b12,b13,tr,ieos)
 c---------------------------------------------------------------------
 c convert thermodynamic equation of state from a pr tr reference state
 c to minimize references to to reference conditions and constants.
@@ -10916,12 +10916,19 @@ c---------------------------------------------------------------------
       integer ieos
 
       double precision g,s,v,a,b,c,d,e,f,gg,c8,b1,b2,b3,b4,b5,b6,b7,b8,
-     *                 b9,b10,b11,b12,b13,tr,pr,n,v0,k00,k0p, dadt0,
-     *                 gamma0,q0,etas0,g0,g0p,r,c1,c2, alpha0, beta0,
-     *                 yr,theta,psi,eta
+     *                 b9,b10,b11,b12,b13,tr,n,v0,k00,k0p, dadt0,
+     *                 gamma0,q0,etas0,g0,g0p,c1,c2, alpha0, beta0,
+     *                 yr, theta, psi, eta
 
       double precision emodu
       common/ cst318 /emodu(k15)
+c                                raw transition data for STX 24:
+      integer ilam,jlam,idiso,lamin,idsin
+      double precision tm,td
+      common/ cst202 /tm(m7,m6),td(m8),ilam,jlam,idiso,lamin,idsin
+c                                T for STX 24
+      double precision p,t,xco2,u1,u2,trx,pr,r,ps
+      common/ cst5 /p,t,xco2,u1,u2,trx,pr,r,ps
 c                                constants for anderson electrolyte extrapolation (ieos = 15)
       save alpha0, beta0, dadt0
       data alpha0, beta0, dadt0 /25.93d-5,45.23d-6,9.5714d-6/
@@ -11015,10 +11022,43 @@ c                              stixrude & lithgow-bertelloni GJI '05
          etas0  = f
          g0     =  emodu(1)
          g0p    =  emodu(2)
-c                                 for backward compatability beta_el and gamma_el are read under b1 and b2, move
-c                                 them to b13 and c8 (thermo 23/24 on return).
+c                                 =====================================
+c                                 STX 24 additions:
+c                                 F_electric for backward compatability beta_el and 
+c                                 gamma_el are read under b1 and b2, move them to b13 
+c                                 and c8 (thermo 23/24 on return).
          b13 = b1
          c8 = b2
+
+c        if (jlam.eq.9) then
+c                                 According to B Myhill, Stixrude zero's the H&J 0 K 
+c                                 entropy, this and corrections would be computed here.
+c                                 This would make sense if STX24 used H&J but
+c                                 actually it uses a modified fit that goes
+c                                 to zero at T=0 with dg/dT = 0 (function stxhil).
+c           oldt = t
+
+c           t = 0d0
+
+c           ds = stxhil (tm(1,1),tm(2,1))
+
+c           t = 1d-12
+
+c           ds = (stxhil (tm(1,1),tm(2,1)) - ds) / t
+c                                 ds is now the negative of the nominal (numeric)
+c                                 0 K J&H entropy, subtract from the configurational
+c                                 entropy in gg (c7)
+c           gg = gg + ds
+c                                 next "correct" g0 (F0) to account for the spurious 0K
+c           t = oldt
+
+c           ds = stxhil (tm(1,1),tm(2,1))
+
+c           g = g + gg*tr -ds
+
+c        end if
+c                                 end of STX 24 additions.
+c                                 =====================================
 c                                 nr9
          b1 = 9d0*n*r
 c                                 c1
@@ -12466,6 +12506,13 @@ c----------------------------------------------------------------------
       if (t.lt.tc) then
 c                                 partially disordered:
          q2 = dsqrt((tc-t)/tc0)
+c                                 HeFESTO code landauqr.f comments
+c                                 state q2 is limited to < qmax2 = 1.5^2 to prevent
+c                                 nepheline from becoming stable at super-earth 
+c                                 pressures; however qmax2 is actually set to 2,
+c                                 which suffices to prevent quartz from becoming 
+c                                 a stable hi-p pyrolite phase.
+         if (q2.gt.4d0) q2 = 4d0 
 
       else
 
@@ -13539,6 +13586,46 @@ c -----------
       an = (n-1d0)/(3d0*Bpo-1d0)
       xn = 1d0/(1d0 - an + an*(1d0 + n/(3*an) * p/Bo)**(1d0/real(n)))
       end function xn
+
+      double precision function stxhil (tc,smax)
+c----------------------------------------------------------------------
+c this subroutine is modified from Lar Stixrude's hillert.f routine.
+c Expression for the magnetic terms according to Hillert's book, pg. 523.  
+c See also dorogokupetsetal_17 Eqs. 20,21.
+c p is the fraction of the total magnetic enthalpy that is absorbed at T>T_c, 
+c Stixrude's routine is hardwired for p = 0.4, hence the variable is eliminated
+c here. 
+
+c jacobsschmidfetzer_10 (Eqs. 20a,20b) provide approximate numerical 
+c values of coefficients by evaluating the exact expressions given in 
+c the references above and assuming p=0.40.
+c Recast so that the Gibbs free energy is zero at zero temperature.
+
+      double precision tc,t0,smax,gfunc,afe,bfe,cfe
+
+      double precision p,t,xco2,u1,u2,tr,pr,r,ps
+      common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
+
+      save afe, bfe, cfe
+      data afe, bfe, cfe/0.9052993827d0,0.9180500783d0,0.641731208d0/
+c----------------------------------------------------------------------
+c     denom = 518./1125. + 11692./15975.*(1./pee - 1.)
+c     afe = 79./(140.*pee)/denom
+c     bfe = 474./497.*(1./pee - 1.)/denom
+c     cfe = 1./denom
+
+      t0 = t/tc
+
+      if (t0 .le. 1d0) then
+         gfunc =  -bfe*(t0**3/6d0 + t0**9/135d0 + t0**15/600d0)
+      else
+         gfunc = -cfe*(t0**(-5)/10d0 + t0**(-15)/315d0 
+     *           + t0**(-25)/1500d0) - 1d0 + afe/t0
+      end if
+
+      stxhil = smax*t*gfunc
+
+      end function stxhil
 
       double precision function gmags (tc,b,pee,itype)
 c-----------------------------------------------------------------------

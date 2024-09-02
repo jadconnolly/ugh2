@@ -922,8 +922,7 @@ c                               b1-b12
 c                               b13 on return
      *             thermo(23,id),
 c                               ref stuff
-     *             tr,pr,r,eos(id))
-
+     *             tr,eos(id))
 
       if (tr.eq.0d0) then
          thermo(1,id) = thermo(1,k10)
@@ -1053,7 +1052,7 @@ c                                 dummies (b1-b12)
      *                     z(14),z(2),z(3),z(4),z(5),z(6),z(7),z(8),
      *                     z(9),z(10),z(11),z(12),z(13),
 c                                 ref stuff
-     *                     tm(1,k),pr,r,0)
+     *                     tm(1,k),0)
 
             end do
 
@@ -3389,7 +3388,7 @@ c                                 cold part derivatives
          dfc = (c3*f+c1)*f*df
          d2fc = (2d0*c3*f+c1)*df**2+(c3*f+c1)*f*d2f
 c                                 electric part derivatives F_el(T) - F_el(Tr)
-         fel = -beta*(v/v0)**gammel * delt2
+         fel = -beta/2d0 * (v/v0)**gammel * delt2
          dfel = fel*gammel/v
          d2fel = dfel*(gammel - 1d0)/v
 c                                 debye T/T (tht)
@@ -3493,7 +3492,7 @@ c                                 final estimate for tht
 c                                 helmholtz energy
       a = thermo(1,id) + c1*f**2*(0.5d0 + c2*f)
      *    + nr9*(t/tht**3*plg(tht ) -tr/tht0**3*plg(tht0))
-     *    - beta*(v/v0)**gammel * delt2
+     *    - beta/2d0*(v/v0)**gammel * delt2
 
       gstxgi = a + p*v - t*thermo(10,id)
 c                                 z = (theta/theta0)^2
@@ -3569,8 +3568,7 @@ c-----------------------------------------------------------------------
       integer itic, jerk
 
       double precision k, kt, v0, vt, vpt, ai, rat, rat2, c0, c1, c2,
-     *                 c3, c4, c5, a0, a1, v, df, f, ft, af, dv, kprime,
-     *                 vint
+     *                 c3, c4, c5, a0, a1, v, df, f, ft, af, dv, kprime
 
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
@@ -22168,9 +22166,9 @@ c----------------------------------------------------------------------
 
       integer id
 
-      double precision gval, dg, vdp, gmags, lamla2
+      double precision gval, dg, vdp, gmags, lamla2, stxhil
 
-      external gmags, lamla2
+      external gmags, lamla2, stxhil
 
       integer eos
       common/ cst303 /eos(k10)
@@ -22230,28 +22228,30 @@ c                                 holland and powell bragg-williams model
             gval = gval + dg
 
          else if (ltyp(id).eq.7) then
-
-c                                 in the 2021 relative to the low T phase,
+c                                 SLB 2021 landau relative to the low T phase,
 c                                 used pointlessly for magnetic entropy of
-c                                 almost all Fe-bearing endmembers. 
+c                                 almost all Fe-bearing endmembers.
+c                                 Stixrude also introduces an adhoc fix that
+c                                 limits q <= qmax.
             gval = gval + lamla2(lmda(id))
 
-         else if (ltyp(id).eq.8.or.ltyp(id).eq.9) then
-c                                 George's Hillert & Jarl magnetic transition model,
-c                                 arguments are tc, b, pee. Needs to pass parameters
+         else if (ltyp(id).eq.9) then
+c                                 SLB 2024 version of Hillert & Jarl.
+            gval = gval + stxhil (therlm(1,1,lmda(id)),
+     *                            therlm(2,1,lmda(id)))
+
+         else if (ltyp(id).eq.8) then
+c                                 George's version of the Hillert & Jarl magnetic transition 
+c                                 model, arguments are tc, b, pee. Needs to pass parameters
 c                                 because of call to gmag2 by special FeCr model.
             gval = gval + gmags (therlm(1,1,lmda(id)),
      *                           therlm(2,1,lmda(id)),
      *                           therlm(3,1,lmda(id)), ltyp(id))
 
-c            told = t
-c            t = tr
-
-c            gval = gval - gmags (therlm(1,1,lmda(id)),
-c     *                           therlm(2,1,lmda(id)),
-c     *                           therlm(3,1,lmda(id)), ltyp(id))
-
-c           t = told
+         else if (ltyp(id).eq.9) then
+c                                 SLB 2024 version of Hillert & Jarl.
+            gval = gval + stxhil (therlm(1,1,lmda(id)),
+     *                            therlm(2,1,lmda(id)))
 
          else
 

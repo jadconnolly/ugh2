@@ -734,6 +734,7 @@ cpx_gt.bst
 
 cpx_gt.out
 
+<<<<<<< Updated upstream
 *.out
 
 vin1.bay
@@ -744,3 +745,8 @@ intel/enc_temp_folder/*
 
 
 vinod.bay
+=======
+*.bay
+>>>>>>> Stashed changes
+
+lars24/
