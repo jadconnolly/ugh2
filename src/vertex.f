@@ -2754,7 +2754,7 @@ c                               increments at each level
 
       call setvar
 c                               init progress info
-      dinc = 1d2/real(loopx/kinc + 1)
+      dinc = 1d2/real((loopx-1)/kinc + 1)
       tot = 0d0
 
 c     if (lopt(28)) call begtim (11)
@@ -2771,6 +2771,7 @@ c                               flush stdout for paralyzer
          flush (6)
 
       end do
+      write (*,1030)
 
 c     if (lopt(28)) call endtim (11,.true.,'low level grid')
 c                               output interim plt file
