@@ -207,12 +207,6 @@ c---------------------------------------------------------------------
       integer jfct,jmct,jprct,jmuct
       common/ cst307 /jfct,jmct,jprct,jmuct
 
-      double precision vnumu
-      common/ cst44 /vnumu(i6,k10)
-
-      double precision mmu
-      common/ cst39 /mmu(i6)
-
       save kt,trv,iwarn,oldid
       data kt,trv,iwarn,oldid/0d0,1673.15d0,0,0/
 c---------------------------------------------------------------------
@@ -717,9 +711,6 @@ c---------------------------------------------------------------------
 
       double precision delta
       common/ cst325 /delta(11)
-
-      double precision vnumu
-      common/ cst44 /vnumu(i6,k10)
 
       integer jfct,jmct,jprct,jmuct
       common/ cst307 /jfct,jmct,jprct,jmuct
@@ -1673,12 +1664,6 @@ c-----------------------------------------------------------------------
 
       integer jfct,jmct,jprct,jmuct
       common/ cst307 /jfct,jmct,jprct,jmuct
-
-      integer imaf,idaf
-      common/ cst33 /imaf(i6),idaf(i6)
-
-      double precision mmu
-      common/ cst39 /mmu(i6)
 c----------------------------------------------------------------------
       do i = 1, jmct
 
@@ -1703,7 +1688,8 @@ c                                 activity
 
                end if
 
-               mmu(i) = gref + r*v(2)*v(3+i)*2.302585093d0
+               mmu(i) =  (gref + r*v(2)*v(3+i)*2.302585093d0) /
+     *                   vnumu(i,idaf(i))
 
              end if
 
@@ -13458,9 +13444,6 @@ c                                 working arrays
       double precision p,t,xco2,mu1,mu2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,mu1,mu2,tr,pr,r,ps
 
-      double precision mmu
-      common/ cst39 /mmu(i6)
-
       logical mus
       double precision mu
       common/ cst330 /mu(k8),mus
@@ -13813,12 +13796,6 @@ c----------------------------------------------------------------------
 
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
-
-      double precision mmu
-      common/ cst39 /mmu(i6)
-
-      double precision vnumu
-      common/ cst44 /vnumu(i6,k10)
 
       integer eos
       common/ cst303 /eos(k10)
@@ -14563,8 +14540,8 @@ c                                 adaptive coordinates
       common/ cxt7 /y(m4),z(m4),pa(m4),p0a(m4),x(h4,mst,msp),w(m1),
      *              wl(m17,m18),pp(m4)
 
-      double precision p,t,xco2,mmu,tr,pr,r,ps
-      common/ cst5 /p,t,xco2,mmu(2),tr,pr,r,ps
+      double precision p,t,xco2,u1,u2,tr,pr,r,ps
+      common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
 
       integer ids,isct,icp1,isat,io2
       common/ cst40 /ids(h5,h6),isct(h5),icp1,isat,io2
@@ -18740,17 +18717,11 @@ c----------------------------------------------------------------------
       integer jfct,jmct,jprct,jmuct
       common/ cst307 /jfct,jmct,jprct,jmuct
 
-      integer imaf,idaf
-      common/ cst33 /imaf(i6),idaf(i6)
-
       integer eos
       common/ cst303 /eos(k10)
 
       integer ikp
       common/ cst61 /ikp(k1)
-
-      double precision vnumu
-      common/ cst44 /vnumu(i6,k10)
 
       integer iam
       common/ cst4 /iam

@@ -677,5 +677,12 @@ c                                 fractionation
       double precision dcomp
       common/ frct2 /dcomp(k5)
 
+      double precision mmu
+      common/ cst39 /mmu(i6)
 
+      integer imaf,idaf
+      common/ cst33 /imaf(i6),idaf(i6)
+
+      double precision vnumu
+      common/ cst44 /vnumu(i6,k10)
       

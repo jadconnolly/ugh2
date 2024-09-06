@@ -6007,9 +6007,6 @@ c----------------------------------------------------------------------
       integer ipot,jv,iv1,iv2,iv3,iv4,iv5
       common/ cst24 /ipot,jv(l2),iv1,iv2,iv3,iv4,iv5
 
-      integer imaf,idaf
-      common/ cst33 /imaf(i6),idaf(i6)
-
       integer jfct,jmct,jprct,jmuct
       common/ cst307 /jfct,jmct,jprct,jmuct
 c-----------------------------------------------------------------------
@@ -9221,9 +9218,6 @@ c-----------------------------------------------------------------------
 
       integer ipot,jv,iv
       common/ cst24 /ipot,jv(l2),iv(l2)
-
-      integer imaf,idaf
-      common/ cst33 /imaf(i6),idaf(i6)
 
       character*162 title
       common/ csta8 /title(4)

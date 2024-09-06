@@ -59,9 +59,6 @@ c-----------------------------------------------------------------------
       integer jfct,jmct,jprct,jmuct
       common/ cst307 /jfct,jmct,jprct,jmuct
 
-      integer imaf,idaf
-      common/ cst33 /imaf(i6),idaf(i6)
-
       integer grid
       double precision rid 
       common/ cst327 /grid(6,2),rid(5,2)
@@ -1086,9 +1083,6 @@ c----------------------------------------------------------------------
 
       external readyn
 
-      integer imaf,idaf
-      common/ cst33 /imaf(i6),idaf(i6)
-
       double precision vmax,vmin,dv
       common/ cst9  /vmax(l2),vmin(l2),dv(l2)
 
@@ -1236,9 +1230,6 @@ c---------------------------------------------------------------------------
 
       integer ipot,jv,iv
       common/ cst24 /ipot,jv(l2),iv(l2)
-
-      integer imaf,idaf
-      common/ cst33 /imaf(i6),idaf(i6)
 
       integer ifct,idfl
       common/ cst208 /ifct,idfl

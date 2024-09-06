@@ -2771,6 +2771,7 @@ c                               flush stdout for paralyzer
          flush (6)
 
       end do
+
       write (*,1030)
 
 c     if (lopt(28)) call endtim (11,.true.,'low level grid')
