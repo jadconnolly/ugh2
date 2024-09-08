@@ -156,6 +156,11 @@ alpha(anao)        1
 alpha(mag)         0.08293
 end_van_laar_sizes
 
+begin_dqf_corrections
+DQF(mag) = 20
+end_dqf_corrections
+
+
 end_of_model Wus
 |                      --------------------------------------------------------
 begin_model Sp

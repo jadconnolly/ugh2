@@ -9664,7 +9664,7 @@ c                                 vertex/meemum need static pseudocompounds
             do i = 1, kstot
 
                id = kdsol(knsp(i,im))
-               if (iend(knsp(i,im)).eq.0) ikp(id) = im
+               if (iend(iorig(knsp(i,im))).eq.0) ikp(id) = im
 
             end do
 

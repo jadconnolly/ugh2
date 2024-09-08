@@ -49,8 +49,8 @@ end excluded phase list
 begin solution phase list
 end solution phase list
 
-   20e4         1400.00        0.00000        0.00000        0.00000     max p, t, xco2, mu_1, mu_2
-   1.00000        400.000        0.00000        0.00000        0.00000     min p, t, xco2, mu_1, mu_2
+   120e4         4000.00        0.00000        0.00000        0.00000     max p, t, xco2, mu_1, mu_2
+   1.00000        300.000        0.00000        0.00000        0.00000     min p, t, xco2, mu_1, mu_2
    0.00000        0.00000        0.00000        0.00000        0.00000     unused place holder post 06
 
  1  2  4  5  3   indices of 1st & 2nd independent & sectioning variables
