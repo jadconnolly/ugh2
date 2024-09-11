@@ -4,6 +4,9 @@
 
 | Stixrude, L. and Lithgow-Bertelloni, C. (2024)
 
+| The models are to be used with the Perple_X thermodynamic data file stx24ver.dat. Refer to 
+| the header of that file for additional implementation notes. JADC, 9/11/24 
+
 | The solution model names used here are:
 
 | O
@@ -57,28 +60,6 @@ end_of_model C2/c
 begin_model Wus
 
                                       Wuestite solution. aka ferropericlase (FP)
-                                      assuming no hs/ls site preference,
-                                      no configurational entropy is associated
-                                      with T-site Fe2+ (mag) or M-site vacancies
-                                      in the mag endmember, likewise none is 
-                                      associated with NaAl.
-
-                                      STX24 states an equimolar mag + wu mix has
-                                      a configurational entropy of 2 ln 2 EU, 
-                                      presumably this is a typo or the effective
-                                      M-site muliplicity must be reduced to 2.
-
-                                                      M         T
-                                                     _____________
-
-                                      Mutliplicity    4         8
-                                                     _____________
-
-                                      1 pe            Mg        V
-                            Species:  2 wu            Fe2+      V
-                                      3 wuls          Fe2+      V
-                                      4 mag           VFe3+     Fe2+
-                                      5 anao          NaAl      V
 
                                       From HeFESTO output it seems STX24
                                       actually uses the 2 site model:
@@ -100,6 +81,14 @@ begin_model Wus
                                       S/R = 2 ln 2 for 50/50 wu-mag
 
                             JADC, 9/4/2024.
+
+                            mag/Wuestite and smag/Spinel are degenerate in SLB 24,
+                            to prevent mag/Wuestite from being computed
+                            as the stable phase in close proximity to the
+                            Fe3O4 composition the mag endmember has been
+                            destabilized relative to smag by 100 J/mol. 
+
+                            JADC, 9/11/24
 
 Wus
 
@@ -180,6 +169,13 @@ begin_model Sp
                             smag is identical to mag used in Wus
 
                             JADC, 9/4/2024.
+
+                            to prevent mag/Wuestite from being computed
+                            as the stable phase in close proximity to the
+                            Fe3O4 composition the mag endmember has been
+                            destabilized by 100 J/mol. 
+
+                            JADC, 9/11/24
 
 Sp
 

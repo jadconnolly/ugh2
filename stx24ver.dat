@@ -4,16 +4,47 @@
 
 Stixrude and Lithgow-Bertelloni, JGI, 2024 |<= data base title
 
-|         JADC, Sept 1, 2024.
+|         JADC, Sept 11, 2024.
 
 |         Notes:
 
-|          1) The Landau 1 bar transition T for St to, presumably, CaCl2 structure is given as -4350 K, in HeFESTO 
-|             the negative transition T appears to be a flag that prevents evaluation of the transition effect. 
+|          0) In SLB 24, smag and mag are degenerate Fe3O4 compounds. For the Fe-O system in Perple_X this 
+|             degeneracy causes Wuestite, which contains the mag endmember, to be stable near the magnetite
+|             composition. This feature is cosmetic and has been eliminated in this implementation by destabilizing
+|             the mag endmember by 100 J/mole (see mag entry below).
+
+|          1) The Landau 1 bar transition T for Stishovite to, presumably, CaCl2 structure SiO2 is given as -4350 K, in  
+|             HeFESTO the negative transition T appears to be a flag that prevents evaluation of the transition effect. 
 |             The transition has been commented out here as it, in any case, has negligible energetic consequences.
 
 |          2) HeFESTO has a special routine to evaluate the effect of strain softening in stishovite on its shear
 |             modulus during the transition (at P = ca 55 GPa). This effect is not evaluated in Perple_X.
+
+|          3) This file is to be used with the solution models in stx24_solution_model.dat, see the header of that
+|             file for a list of the solution model names.
+
+|          4) Back calculation of HeFESTO oxygen fugacity output (qout) to 8 Significant figures gives the gas constant
+|             as 8.314472327 J/mol/K this is discrepant with the accepted value of 8.3144126 J/mol/K, as used in
+|             Perple_X. The discrepancy might be explained by ln(10) roundoff in HeFESTO. 
+
+|          5) SLB 24 does not provide reference data for the O2 gas species necessary to convert oxygen chemical 
+|             potentials to oxygen fugacities, the data provided here is from Holland & Powell (2011) and yield
+|             reference energies roughly 700 J/mol_O2 higher than those indicated in HeFESTO output. The effect
+|             causes a discrepancy of < 0.02 log10 units such that those computed by Perple_X due to the effect
+|             are 0.02 log10 units lower than HeFESTO. Oxygen fugacity is a back-calculated property for isochemical
+|             systems, therefore this discrepancy has no computational consequences for computed mineral or bulk
+|             properties.
+
+|          6) Endmember Gibbs energies output by HeFESTO and Perple_X benchmark to with 10 J/mol (species_props.txt).
+
+|          7) Discrepancies in the location of oxygen chemical potential dependent phase boundaries in the phase
+|             diagrams shown in SLB 24 Fig 7 are typically O(0.1) log10 units but approach 1 log10 unit at both
+|             low and high pressure in the isothermal (1500 K) section. The latter phase diagrams also depicts 
+|             phase boundaries of oxygen chemical potential independent phase equilibria that are discrepant by
+|             as much as 1.5 GPa. These discrepancies are too large to be explained by the issues mentioned in 
+|             notes 4-6.
+
+|          8) Perple_X implementation checked with the maple script stx24_verification.mws
 
 
 begin_standard_variables |<= name (<9 characters), reference value, tolerance
@@ -139,7 +170,7 @@ m0 = 753374.1 m1 = 1.71384
 end
 
 
-cen      EoS = 6 | Mg_1Mg_1Si_2O_6        Clinoenstatite   
+cen      EoS = 6 | Mg_1Mg_1Si_2O_6        Clinoenstatite
 MgO(2)SiO2(2)
 G0 = -2904584.98 S0 = -10 V0 = -6.25
 c1 = 1137599 c2 = 4.8061 c3 = 805.59286 c4 = 1.00921 c5 = 0.60142 c6 = 1.42387
@@ -147,7 +178,7 @@ m0 = 768103.1 m1 = 1.71384
 end
 
 
-co       EoS = 6 | Al_1Al_1O_3            Corundum    
+co       EoS = 6 | Al_1Al_1O_3            Corundum
 Al2O3(1)
 G0 = -1582443.14 S0 = -5 V0 = -2.5577
 c1 = 2525857.2 c2 = 3.88671 c3 = 932.21586 c4 = 1.3081 c5 = 1.71245 c6 = 2.84761
@@ -155,7 +186,7 @@ m0 = 1632000 m1 = 1.64704
 end
 
 
-coes     EoS = 6 | Si_1O_2                Coesite     
+coes     EoS = 6 | Si_1O_2                Coesite
 SiO2(1)
 G0 = -853834.92 S0 = -3 V0 = -2.0657
 c1 = 1035379.9 c2 = 2.9007 c3 = 875.22323 c4 = 0.29043 c5 = 1 c6 = 2.75631
@@ -181,7 +212,7 @@ transition = 1 type = 7  t1 = 5  t2 = 23.05213
 end
 
 
-crpv     EoS = 6 | Cr_1Cr_1O_3            Cr-Perovskite    
+crpv     EoS = 6 | Cr_1Cr_1O_3            Cr-Perovskite
 Cr2O3(1)
 G0 = -1186685.95 S0 = -5 V0 = -2.8189
 c1 = 2505653.5 c2 = 4.13438 c3 = 758.1187 c4 = 1.54466 c5 = 0.83352 c6 = 2.83537
@@ -190,7 +221,7 @@ transition = 1 type = 7  t1 = 5  t2 = 23.05213
 end
 
 
-di       EoS = 6 | Ca_1Mg_1Si_2O_6        Diopside    
+di       EoS = 6 | Ca_1Mg_1Si_2O_6        Diopside
 MgO(1)SiO2(2)CaO(1)
 G0 = -3029614.78 S0 = -10 V0 = -6.6039
 c1 = 1137599 c2 = 4.8061 c3 = 782.57306 c4 = 1.00921 c5 = 0.60142 c6 = 1.06175
