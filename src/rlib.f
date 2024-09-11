@@ -3613,7 +3613,8 @@ c                                 of alpha with p; see Helffrich (2017) AM 102
 c                                 1690-1695; based on Murnaghan EOS, which might
 c                                 be questionable.
       f = 0.5d0*((v0/v)**r23-1d0)
-      af = (1d0 + 2d0*f)**-2.5d0 * (1d0 + 1d0/(1d0 + 2d0*f)**2) * 0.5d0
+      af = (1d0 + 2d0*f)**(-2.5d0) * 
+     *     (1d0 + 1d0/(1d0 + 2d0*f)**2) * 0.5d0
 c                                 V(p,t)
       vpt = v*exp(af*ai)
 c                                 V(0,t)
