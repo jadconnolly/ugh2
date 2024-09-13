@@ -11,7 +11,7 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical first, fake, err
+      logical first, fake, err, nwstrt
 
       integer imode, ierr, i
 
@@ -49,6 +49,7 @@ c                                 initialize some flags
       outprt = .false.
       fake   = .false.
       rxn = .false.
+      nwstrt = .false.
 c                                 this could be eliminated by passing first 
 c                                 to chsprp.
       do i = 1, h9
@@ -77,7 +78,7 @@ c                                 read thermodynamic data on unit n2:
 c                                 read autorefine lists
       call setau1 
 c                                 read data for solution phases on n9:
-      call input9 (fake)
+      call input9 (fake,nwstrt)
 c                                 seismic data summary file
       if (lopt(50)) call outsei
 

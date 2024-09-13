@@ -9478,7 +9478,7 @@ c                                 amounts of the ordered endmembers
 
       end
 
-      subroutine input9 (first)
+      subroutine input9 (first,nwstrt)
 c-----------------------------------------------------------------------
 c given a list of solution phase names (fname(h9)) input9 searches a
 c data file (on unit n9) for the relevant data and subdivides the
@@ -9490,7 +9490,7 @@ c-----------------------------------------------------------------------
 
       integer i, j, im, id, ids, ixct, gcind, irjct, infnd, ifnd
 
-      logical first, chksol, wham, ok, found
+      logical first, chksol, wham, ok, found, nwstrt
 
       character sname(h9)*10, new*3, tn1*6, tn2*22, rjct(h9)*10, 
      *          nfnd(h9)*10
@@ -9598,6 +9598,12 @@ c                                 istot is zero, if eof:
 c                                 -------------------------------------
 c                                 check the solution model:
          call cmodel (im,ids,first,found)
+         
+         if (jsmod.eq.39.and.ispec.gt.0) then
+            lopt(63) = .true.
+            nwstrt = .true.
+            return
+         end if
 
          if (jstot.eq.1.and.jsmod.eq.39.and.lopt(32)) then
 c                                  lagged aqueous speciaton with a pure water solvent.

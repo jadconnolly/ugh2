@@ -2655,7 +2655,7 @@ c----------------------------------------------------------------------
  
       include 'perplex_parameters.h'
 
-      integer i, j, k, id, jds, tictoc
+      integer i, j, id, jds, tictoc
 
       logical abort, stic, bad
 
@@ -2773,14 +2773,13 @@ c                                 amounts
       if (jbulk.gt.icp) then  
 c                                 get the amounts of the saturated phases:
          do i = icp+1, jbulk
-c                                 k is the saturated component pointer
-            k = i - icp
-c                                 initialize bulk
-            c(k) = cblk(i)
+c                                 corrected to use full component indexing
+c                                 in C. JADC 9/13/2023
+            c(i) = cblk(i)
 c                                 subtract the amount of the component in the 
 c                                 phases in the thermodynamic c-space
             do j = 1, npt 
-               c(k) = c(k)- amt(j)*cp3(i,j)
+               c(i) = c(i)- amt(j)*cp3(i,j)
             end do 
 
          end do 
@@ -2800,7 +2799,7 @@ c                                  meemum
                stop 
             end if 
 c                                  amount of the staurated phase
-            amt(npt) = c(i-icp)/cp(i,id)
+            amt(npt) = c(i)/cp(i,id)
 c                                  warn on undersaturation
             if (amt(npt).lt.nopt(9)) then 
                if (amt(npt).lt.-nopt(9).and.tictoc.lt.1) call warn (99,
@@ -2812,7 +2811,7 @@ c                                  warn on undersaturation
                exit
             end if 
 c                                  remove the saturated phase from 
-c                                  the bulk composition.
+c                                  the temporary bulk composition
             do j = icp+1, i - 1
                c(j) = c(j) - amt(npt)*cp(j,id)
             end do 
@@ -3386,17 +3385,17 @@ c                                 compute derivative properties
 
       subroutine iniprp
 c----------------------------------------------------------------------
-c iniprp - read data files and initialization for meemum
+c iniprp - read data files and initialization for meemum and vertex
 c----------------------------------------------------------------------
       implicit none
 
       include 'perplex_parameters.h'
 
+      logical first, err, nwstrt
+
       character tname*10
       logical refine, lresub
       common/ cxt26 /refine,lresub,tname
-
-      logical first, err 
 c-----------------------------------------------------------------------
 c                                 version info
       call vrsion (6)
@@ -3416,7 +3415,13 @@ c                                 read thermodynamic data on unit n2:
 c                                 allow reading of auto-refine data 
       call setau1 
 c                                 read data for solution phases on n9:
-      call input9 (first)
+      call input9 (first,nwstrt)
+
+      if (nwstrt) then
+         call input1 (first,err)
+         call input2 (first)
+         call input9 (first,nwstrt)
+      end if
 c                                 load static compositions for manual autorefine
       if (refine) then
          call reload (refine)
