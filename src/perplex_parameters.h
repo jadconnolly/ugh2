@@ -669,9 +669,9 @@ c                                 excess energy variables
       integer jterm, jord, extyp, rko, jsub
       common/ cxt2i /jterm(h9),jord(h9),extyp(h9),rko(m1,h9),
      *               jsub(m2,m1,h9)
-c                                 coordinate file name
-      character*100 cfname
-      common/ cst227 /cfname
+c                                 common file names
+      character*100 cfname,n1name,n2name,n9name
+      common/ cst227 /cfname,n1name,n2name,n9name
 c                                 bulk composition increments during 
 c                                 fractionation
       double precision dcomp

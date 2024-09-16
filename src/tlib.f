@@ -4241,8 +4241,6 @@ c-----------------------------------------------------------------------
       implicit none
 
       include 'perplex_parameters.h'
- 
-      character*100 n2name
 
       integer iam
       common/ cst4 /iam
@@ -5444,8 +5442,6 @@ c------------------------------------------------------------------------
       implicit none
  
       include 'perplex_parameters.h'
- 
-      character n1name*100
 
       integer ierr
 
@@ -6260,14 +6256,14 @@ c                                 echo formatted header data for ctransf/actcor:
      *                          //'requires elemental entropies in the '
      *                          //'component list below',
      *                         'begin_components | < 6 chars, '//
-     *                         'molar weight (g), elemental entropy (R)'
+     *                         'molar mass (g),  elemental entropy (R)'
             write (n8,'(a5,2x,f9.4,3x,f9.4)') (cmpnt(i),atwt(i),sel(i),
      *                                        i = 1, icmpn)
 
          else 
 
             write (n8,'(a)') 'begin_components | < 6 chars, '//
-     *                       'molar weight (g)'
+     *                       'molar mass (g)'
             write (n8,'(a5,1x,f9.4)') (cmpnt(i),atwt(i), i = 1, icmpn)
 
          end if 
@@ -8680,7 +8676,7 @@ c                                 in jlist
 
       end
 
-      subroutine fopen (n2name,prt,n9name,err)
+      subroutine fopen (prt,err)
 c-----------------------------------------------------------------------
 c open files for subroutine input1.
 c-----------------------------------------------------------------------
@@ -8692,7 +8688,7 @@ c-----------------------------------------------------------------------
 
       integer ier
 
-      character n2name*100, prt*3, name*100, n9name*100
+      character prt*3, name*100
 
       integer io3,io4,io9
       common / cst41 /io3,io4,io9
@@ -8831,7 +8827,7 @@ c----------------------------------------------------------------------
 c setau1 sets autorefine dependent parameters. called by vertex, werami,
 c pssect, convex, and meemum.
 
-c output is set to false if autorefine mode is not auto (i.e., iopt(6) = 2) 
+c outprt is set to false if autorefine mode is not auto (i.e., iopt(6) = 2) 
 c or it is auto and in the second cycle.
 c----------------------------------------------------------------------
       implicit none
@@ -9037,10 +9033,6 @@ c                                 that depend on refinement
 
       end if
 
-
-
-
-
       if (iopt(6).eq.2.and..not.refine) then
 c                                 this means it must be in the exploratory
 c                                 stage
@@ -9204,12 +9196,14 @@ c-----------------------------------------------------------------------
  
       logical eof, first, err
 
-      character*100 blank*1,string(3)*8,rname*5,name*8,strg*80,n2name,
-     *              n9name,y*1,sname*10,prt*3,plt*3
+      character*100 blank*1,string(3)*8,rname*5,name*8,strg*80,
+     *              y*1,sname*10,prt*3,plt*3
 
-      integer idum, nstrg, i, j, k, ierr, icmpn, jcont, kct
+      integer idum, nstrg, i, j, k, ierr, icmpn, jcont, kct, nblen
 
       double precision tot
+
+      external nblen
 
       logical fileio, flsh, anneal, verbos, siphon, colcmp, usecmp
       integer ncol, nrow
@@ -9301,9 +9295,8 @@ c                                 read computational option file
          call fopen1
       
       else 
-c                                 create the file name
-         call mertxt (tfname,prject,'.dat',0)
-         open (n1, file = tfname, iostat = ierr, status = 'old')
+c                                 filename already available:
+         open (n1, file = n1name, iostat = ierr, status = 'old')
          if (ierr.ne.0) call error (120,r,n1,tfname)
 
       end if 
@@ -9450,8 +9443,6 @@ c                                 read to the beginning of the component list
 c                                 count (icp) and save names (cname)
       icp = 0
       jbulk = 0
- 
-
       tot = 0
 
       do 
@@ -9487,7 +9478,7 @@ c                                 unblank the name
             call unblnk (xname(icp))
             if (icp.gt.k5) call error (197,r,icp,'INPUT1')
 
-         end if 
+         end if
 c                                 check for compositional constraints
          read (strg,*,err=998) icont
 
@@ -9637,6 +9628,16 @@ c                                 chemical potential
                
          end if 
 
+      end do
+c                                 check for replicated names:
+      do i = 1, icomp
+         do j = i+1, icomp
+            if (cname(i).eq.cname(j)) then
+               call errdbg ('component '//cname(i)(1:nblen(cname(i)))//
+     *                      ' is specified more than once in '//
+     *                      n1name(1:nblen(n1name)))
+             end if
+          end do
       end do
 c                             the ifct flag can probably be set later if fluid
 c                             is in the thermodynamic composition space.   
@@ -9860,7 +9861,7 @@ c                                 remove leading blanks
 
       if (icopt.ne.0) close (n1)
 c                                 open files requested in input
-      call fopen (n2name,prt,n9name,err)
+      call fopen (prt,err)
 c                                 err only set for unsplt (iam.eq.14)
       if (err) return
 c                                 read auxilliary input for 2d fractionation
@@ -9871,8 +9872,7 @@ c                                 get runtime parameters
 
       goto 999
 c                                 archaic error trap
-998   call mertxt (n2name,prject,'.dat',0)
-      call error (27,r,i,n2name)
+998   call error (27,r,i,n1name)
 
 999   end
 

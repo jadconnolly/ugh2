@@ -18,8 +18,9 @@ c                                 MC_fit uses the MEEMUM iam flag value
 c                                 perplexwrap.f flags
       getInput = .true.
       sWarn = .false.
-c                                 initialization, read files etc.
+c                                 read input normal thermo files, etc
       call iniprp
+c                                 -------------------------------------
 c                                 open inversion problem file
       call opnimc
 c                                 do the inversion

@@ -4752,7 +4752,6 @@ c---------------------------------------------------------------------
       integer ixct,ifact
       common/ cst37 /ixct,ifact
 
-
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
 
@@ -4921,6 +4920,38 @@ c                                 is possible
              jstot = 1
 
          end if
+
+      else if (jsmod.eq.39.and.ispec.gt.0) then
+c                                 tests for GFSM if special components have
+c                                 been specified
+         do i = 1, jstot
+
+            ok = .true.
+
+            do j = 1, ispec
+                  if (idspe(j).eq.kdsol(i)) then
+                     ok = .false.
+                     exit
+                  end if
+            end do
+
+               if (ok) cycle
+c                                got a live one, three cases:
+c               if (ifct.gt.0) then
+c                                user has specified a saturated phase
+c                                with a common species to the GFSM.
+                  
+
+
+
+
+
+
+
+
+
+
+         end do
 
       end if
 
@@ -9599,11 +9630,15 @@ c                                 -------------------------------------
 c                                 check the solution model:
          call cmodel (im,ids,first,found)
          
-         if (jsmod.eq.39.and.ispec.gt.0) then
-            lopt(63) = .true.
-            nwstrt = .true.
-            return
-         end if
+c        if (jsmod.eq.39.and.ispec.gt.0.and.found) then
+c           lopt(63) = .true.
+c           nwstrt = .true.
+c           return
+c        end if
+         
+
+
+
 
          if (jstot.eq.1.and.jsmod.eq.39.and.lopt(32)) then
 c                                  lagged aqueous speciaton with a pure water solvent.
@@ -18739,18 +18774,12 @@ c----------------------------------------------------------------------
 c-----------------------------------------------------------------------
 c                               initialization for each data set
 c                               for k10 endmembers
-      do i = 1, k10
-         make(i) = 0 
-         names(i) = ' '
-      end do
+      make = 0 
+      names = ' '
 c                               for k1 phases:
-      do i = 1, k1
-         ikp(i) = 0
-      end do 
+      ikp = 0
 c                               other counters and flags:
-      do i = 1, h5
-         isct(i) = 0
-      end do 
+      isct = 0
 c                               counters for bounds
       iphct = 0
       lamin = 0 
@@ -18796,13 +18825,11 @@ c                               thermodynamic composition space.
          end do 
 
       end if  
-c                              load the old cbulk array
+c                                 load the old cbulk array
       if (ifct.gt.0) iphct = 2
-c                               identify nonzero components.
-c                               initialize icout(i) = 0
-      do i = 1, icmpn
-         icout(i) = 0
-      end do
+c                                 identify nonzero components.
+c                                 initialize icout(i) = 0
+      icout = 0
 
       do i = 1, icomp
 
@@ -18821,7 +18848,11 @@ c                               initialize icout(i) = 0
                icout(j) = 1
 
                do k = 1, ispec
-                  if (j.eq.idspe(k)) then 
+                  if (j.eq.idspe(k)) then
+c                                 iff(k) points to the location of special
+c                                 component k if it exists among the thermodynamic
+c                                 components, idfl counts the number of special
+c                                 components in the thermodynamic composition space.
                      iff(k) = i
                      idfl = idfl + 1
                   end if 
@@ -19310,7 +19341,7 @@ c                                 components or in the thermodynamic
 c                                 composition space:
       if (ifct.gt.0) then
 
-         do i = ifct+1, iphct
+         do i = ifct+1, kphct
 
             if (eos(i).gt.100.and.eos(i).lt.200) then 
 c                                 got one

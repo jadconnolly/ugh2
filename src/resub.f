@@ -3399,13 +3399,19 @@ c----------------------------------------------------------------------
 c-----------------------------------------------------------------------
 c                                 version info
       call vrsion (6)
-c                                 stage flag
+c                                 iniprp resets refine if starting from 
+c                                 autorefine stage. not clear if refine really
+c                                 need to be initialized, probably not.
       refine = .false.
-
-      first = .true.
-c                                 initialize outprt to .false. to force input1 to 
-c                                 read input, subsequently outprt is set in setau2
+c                                 outprt must be initialized to .false. 
+c                                 to force input1 to read project file name.
+c                                 subsequently outprt is set in setau2
       outprt = .false.
+c                                 first controls whether input1 reads the
+c                                 option file, some initializations in 
+c                                 input2, and whether input2 and input9
+c                                 write summaries to console
+      first = .true.
 c                                 -------------------------------------------
 c                                 open statements for units n1-n5 and n9
 c                                 are in subroutine input1
@@ -3418,9 +3424,17 @@ c                                 read data for solution phases on n9:
       call input9 (first,nwstrt)
 
       if (nwstrt) then
+c                                 set GFSM to T
+         lopt(63) = .true.
+
+         outprt = .true.
+
+         first = .false.
+
          call input1 (first,err)
          call input2 (first)
          call input9 (first,nwstrt)
+
       end if
 c                                 load static compositions for manual autorefine
       if (refine) then

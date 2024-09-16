@@ -28,7 +28,7 @@ c-----------------------------------------------------------------------
 
       double precision c(0:4)
 
-      character mnames(k16*k17)*8, n9name*100, dsol*100, opname*100,
+      character mnames(k16*k17)*8, dsol*100, opname*100,
      *          mname(k5)*5, oname(k5)*5, kname(k5)*5,
      *          uname(k0)*5, group*28, aname(i9)*6, amount*5, new*3, 
      *          text*256, dtext*200, title*162, lname(i9)*22,

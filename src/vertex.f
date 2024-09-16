@@ -98,8 +98,9 @@ c                                    iam = 15 - convex
 c                                 perplexwrap.f flags
       getInput = .true.
       sWarn = .false.
-c                                 initialization
+c                                 read input files, etc
       call iniprp
+c                                 -------------------------------------
 c                                 start the total timer (30)
       if (lopt(61)) call begtim (30)
 
@@ -1437,6 +1438,7 @@ c                                 possibility.
       if (idead.eq.0) call lpopt0 (idead)
 c                                 if idead = 0 optimization was ok
       if (idead.ne.0) idead = k2
+
       call isgood (i,j,idead)
 
       end 

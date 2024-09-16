@@ -366,9 +366,9 @@ c                                 special conditions for H2O-CO2-NaCl EoS
          end if 
 c                                get the salt content (elag):
          if (ibuf.eq.1) then 
-            write (*,1210) 'weight'
+            write (*,1210) 'mass '
          else if (ibuf.eq.2) then 
-            write (*,1210) 'molar '
+            write (*,1210) 'molar'
          end if 
 
          read (*,*,iostat=ier) elag
@@ -421,7 +421,7 @@ c                                get the salt content (elag):
      *          'i.e., Y(CO2)* may vary from 0 -> 1 ',
      *          'regardless of salt content',//,
      *          'Choose how salt content is to be specified:',/,
-     *          ' 1 - weight fraction',/,
+     *          ' 1 - mass fraction',/,
      *          ' 2 - mole fraction',/)
 1210  format (/,'Enter ',a,' salt fraction (0->1) in the fluid:',/)
 56    format (/,'**warning ver056** C-O-H hybrid cannot be specified ',
