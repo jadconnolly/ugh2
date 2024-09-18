@@ -57,7 +57,7 @@ c                                 perplexwrap.f flags
 c                                 version info
       call vrsion (6)
 c                                 assign data files
-      call fopen2 (2,opname)
+      call fopen2 (2)
 c                                 read options
       opname = 'perplex_option.dat'
       call redop1 (.false.,opname)

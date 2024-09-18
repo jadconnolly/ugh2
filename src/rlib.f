@@ -665,9 +665,6 @@ c---------------------------------------------------------------------
       integer icomp,istct,iphct,icp
       common/ cst6 /icomp,istct,iphct,icp
 
-      integer ipoint,kphct,imyn
-      common/ cst60  /ipoint,kphct,imyn
-
       character*8 name
       common/ csta6 /name
 
@@ -799,6 +796,7 @@ c                                 in ifp array, this is only used by gcpd.
       if (eos(id).eq.3.or.eos(id).eq.9.or.eos(id).eq.11) then
 c                                 liquid
          ifp(id) = -1
+         if (lopt(6)) gflu = .true.
 
       else if (eos(id).eq.10.or.eos(id).gt.100.and.eos(id).le.202.or.
      *         eos(id).eq.605) then
@@ -1781,8 +1779,8 @@ c----------------------------------------------------------------------
       common/ cst18a /mname(m4)
 
       integer length,com
-      character chars*1
-      common/ cst51 /length,com,chars(lchar)
+      character chars*1, card*(lchar)
+      common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
       ier = 0
 
@@ -1840,8 +1838,8 @@ c----------------------------------------------------------------------
       double precision rnums(*)
 
       integer length,com
-      character chars*1
-      common/ cst51 /length,com,chars(lchar)
+      character chars*1, card*(lchar)
+      common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
 c                                 read card scans for non blank data
 c                                 card:
@@ -1935,8 +1933,8 @@ c----------------------------------------------------------------------
      *      rkord(m1),iterm,iord,istot,jstot,kstot
 
       integer length,com
-      character chars*1
-      common/ cst51 /length,com,chars(lchar)
+      character chars*1, card*(lchar)
+      common/ cst51 /length,com,chars(lchar),card
 
       character*2 strgs*3, mstrg, dstrg, tstrg*3, wstrg*3, e16st*3
       common/ cst56 /strgs(32),mstrg(6),dstrg(m8),tstrg(m7),wstrg(m16),
@@ -2124,8 +2122,8 @@ c----------------------------------------------------------------------
      *          strg*40, strg1*40
 
       integer length,com
-      character chars*1
-      common/ cst51 /length,com,chars(lchar)
+      character chars*1, card*(lchar)
+      common/ cst51 /length,com,chars(lchar),card
 
       integer indq,idqf
       double precision dqf
@@ -2244,8 +2242,8 @@ c----------------------------------------------------------------------
       double precision nums(m3)
 
       integer length,com
-      character chars*1
-      common/ cst51 /length,com,chars(lchar)
+      character chars*1, card*(lchar)
+      common/ cst51 /length,com,chars(lchar),card
 
       integer kstot,jend,i,ict
 c----------------------------------------------------------------------
@@ -2341,8 +2339,8 @@ c----------------------------------------------------------------------
       double precision nums(m3)
 
       integer length,com
-      character chars*1
-      common/ cst51 /length,com,chars(lchar)
+      character chars*1, card*(lchar)
+      common/ cst51 /length,com,chars(lchar),card
 
       integer jend,i,idqf,indq
       double precision dqf
@@ -2431,8 +2429,8 @@ c----------------------------------------------------------------------
       common/ cst18a /mname(m4)
 
       integer length,com
-      character chars*1
-      common/ cst51 /length,com,chars(lchar)
+      character chars*1, card*(lchar)
+      common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
       ier = 0
 
@@ -2555,8 +2553,8 @@ c----------------------------------------------------------------------
       character name*8, tname*10, tag*3
 
       integer length,com
-      character chars*1
-      common/ cst51 /length,com,chars(lchar)
+      character chars*1, card*(lchar)
+      common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
       ict = 0
       do i = 1, k7
@@ -4712,9 +4710,11 @@ c---------------------------------------------------------------------
 
       logical first, ok, found
 
-      character missin(m4)*8
+      character missin(m4)*8, temp*8
 
-      integer imiss, im, ids, i, j, h, ineg, ipos
+      integer imiss, im, ids, i, j, h, ineg, ipos, nblen
+
+      external nblen
 
       character tname*10
       logical refine, lresub
@@ -4722,9 +4722,6 @@ c---------------------------------------------------------------------
 
       integer eos
       common/ cst303 /eos(k10)
-
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
 
       character fname*10, aname*6, lname*22
       common/ csta7 /fname(h9),aname(h9),lname(h9)
@@ -4757,6 +4754,13 @@ c---------------------------------------------------------------------
 
       integer nq,nn,ns
       common/ cxt337 /nq,nn,ns
+
+      integer ifct,idfl
+      common/ cst208 /ifct,idfl
+
+      character specie*4
+      integer isp, ins
+      common/ cxt33 /isp,ins(nsp),specie(nsp)
 c----------------------------------------------------------------------
       jstot = 0
       ineg = 0
@@ -4921,35 +4925,52 @@ c                                 is possible
 
          end if
 
-      else if (jsmod.eq.39.and.ispec.gt.0) then
+      else if (jsmod.eq.39) then
 c                                 tests for GFSM if special components have
-c                                 been specified
-         do i = 1, jstot
+c                                 been specified in the thermodynamc data file
+         do i = 1, istot
+c                                 endmember i is not in the model
+            if (kdsol(i).eq.0) cycle
+c                                 saturated phase constraints composants
+c                                 are hardwired into positions 1 and 2 of
+c                                 the thermodynamic array
+            if (kdsol(i).le.ifct) then
+c                                 user has specified a saturated phase
+c                                 with a composant of the GFSM.
+               write (*,1020) tname(1:nblen(tname)),
+     *                        names(kdsol(i))(1:nblen(names(kdsol(i)))),
+     *                        n1name(1:nblen(n1name))
+               call errpau
 
-            ok = .true.
+            else if (kdsol(i).le.kphct) then
+c                                 user has specified a saturated component
+c                                 with a composant of the GFSM.
+               write (*,1030) tname(1:nblen(tname)),
+     *                        names(kdsol(i))(1:nblen(names(kdsol(i)))),
+     *                        n1name(1:nblen(n1name))
+               call errpau
 
-            do j = 1, ispec
-                  if (idspe(j).eq.kdsol(i)) then
-                     ok = .false.
+            else if (eos(kdsol(i)).gt.200) then
+
+               temp = names(kdsol(i))(1:nblen(names(kdsol(i))))
+
+               write (*,1040) tname(1:nblen(tname)),
+     *                        temp(1:nblen(temp)),
+     *                        n2name(1:nblen(n2name)),
+     *                        temp(1:nblen(temp)),
+     *                        n1name(1:nblen(n1name)),
+     *                        temp(1:nblen(temp))
+c                                 set the GFSM option
+               lopt(63) = .true.
+c                                 locate the species
+               do j = 1, nsp
+                  if (temp.eq.specie(j)) then
+                     eos(kdsol(i)) = 100 + j
                      exit
                   end if
-            end do
+               end do
 
-               if (ok) cycle
-c                                got a live one, three cases:
-c               if (ifct.gt.0) then
-c                                user has specified a saturated phase
-c                                with a common species to the GFSM.
-                  
-
-
-
-
-
-
-
-
-
+            end if
 
          end do
 
@@ -4993,7 +5014,24 @@ c                                missing endmember warnings:
      *       'ution model ',a,/,'flagging is disabled for solidus/liq',
      *       'uidus calculations.',/,a,'will be treated as a normal e',
      *       'ndmember of ',a)
-
+1020  format (/,'**error ver116** GFSM solution model ',a,
+     *       ' has a species (',a,') that is specified',/,'as a ',
+     *       'composant of the saturated phase. Eliminate ',
+     *       'either the saturated phase constraint ',/,
+     *       'or the GFSM model from your input (',a,').')
+1030  format (/,'**error ver117** GFSM solution model ',a,
+     *       ' has a species (',a,') subject to a',/,
+     *       'component saturation constraint. Eliminate either ',
+     *       'the saturation constraint or',/,
+     *       'or the GFSM model from your input (',a,').')
+1040  format (/,'**warning ver117** GFSM solution model ',a,' has a ',
+     *       'species (',a,') that is a composant of',/,'a special ',
+     *       'component specified in ',a,'. ',a,' will be reclassified',
+     *       ' as a GFSM species.',/,'This reclassification has the ',
+     *       'consequence that the choice of EoS specified for this',/,
+     *       'species in ',a,' will be overridden by the hybrid_EoS_',a,
+     *       ' option and that special',/,'components will be disabled.'
+     *       ,/)
       end
 
       subroutine redep (jkill)
@@ -5661,9 +5699,6 @@ c-----------------------------------------------------------------------
       logical mus
       double precision mu
       common/ cst330 /mu(k8),mus
-
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
 c---------------------------------------------------------------------
       if (id.le.ipoint) then
 
@@ -6736,11 +6771,12 @@ c---------------------------------------------------------------------
 
       logical add, wham, zbad, bad
 
-      integer im, nloc, i, j, id, jd, k, m, n, ii, killct, killid(20)
+      integer im, nloc, i, j, id, jd, k, m, n, ii, killct, killid(20),
+     *        volind(k5+nsp), outvol, invol, nblen
 
       double precision dx, gcpd, stinc, getstr, zsite(m10,m11), dinc
 
-      external gcpd, zbad, stinc, getstr
+      external gcpd, zbad, stinc, getstr, nblen
 
       character tname*10
       logical refine, lresub
@@ -7319,8 +7355,7 @@ c                                 relict equipartion warning:
 
          call warn (17,r,i,tname)
 
-         if (lopt(56)) call wrnstp
-
+         call wrnstp
 
       end if
 c                                 -------------------------------------
@@ -7438,6 +7473,7 @@ c                                 flag to fluid species indices
          do i = 1, j
             k = eos(kdsol(insp(i)))
             if (k.gt.200) then
+c                                 obsolete test 7.1.8+
                write (*,1000) tname, names(kdsol(insp(i)))
 
 1000  format (/,'**error ver888** a special component endmember cannot',
@@ -7628,6 +7664,68 @@ c                                 configured these will set ins/isp arrays only
 c                                 once. therefore some parameters and indices
 c                                 can be saved in simple arrays
          call setsol (im,wham)
+c                                 check if there are unused fluid species
+         invol = 0
+c                                 make a list of volatile indices
+         do i = 1, ipoint
+            if (ifp(i).eq.1) then
+               invol = invol + 1
+               volind(invol) = i
+            end if
+         end do
+c                                 check each endmember against the list
+         do i = 1, lstot(im)
+
+            do j = 1, invol
+               if (volind(j).eq.kdsol(insp(i))) then
+                  volind(j) = 0
+                  exit
+               end if
+            end do
+
+         end do
+c                                  make a list of the unmatched volatiles
+         outvol = 0
+
+         do i = 1, invol
+
+            if (volind(i).ne.0) then
+               outvol = outvol + 1
+               volind(outvol) = volind(i)
+            end if
+
+         end do
+
+         if (outvol.gt.0) then 
+
+            write (*,1010) tname(1:nblen(tname))
+
+            do i = 1, outvol, 7
+
+               if (i + 6.gt.outvol) then
+                  k = outvol
+               else 
+                  k = i + 6
+               end if
+
+               write (*,1020) (names(volind(j)), j = i, k)
+
+            end do
+
+            write (*,1030)
+
+            call wrnstp
+
+         end if
+
+1010  format (/,'**warning ver413** the following fluid species are ',
+     *    'present but not included',/,'in the solution model ',a,':',/)
+1020  format (7(2x,a8))
+1030  format (/,'In general including fluid species that are not ',
+     *       'paired with a solution model',/,'is bad practice. ',
+     *       'Remedies:',//,4x,'1 - exclude the unpaired species.',
+     *       /,4x,'2 - add the unpaired species to the fluid solution',
+     *       ' model.',/)
 
       end if
 c                                 set independent species names and counters for output
@@ -9482,8 +9580,8 @@ c---------------------------------------------------------------------
       character begin*5, tag*3, tname*10
 
       integer length,com
-      character chars*1
-      common/ cst51 /length,com,chars(lchar)
+      character chars*1, card*(lchar)
+      common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
 
       call readcd (n9,ier,.true.)
@@ -9509,7 +9607,7 @@ c                                 amounts of the ordered endmembers
 
       end
 
-      subroutine input9 (first,nwstrt)
+      subroutine input9 (first)
 c-----------------------------------------------------------------------
 c given a list of solution phase names (fname(h9)) input9 searches a
 c data file (on unit n9) for the relevant data and subdivides the
@@ -9521,7 +9619,7 @@ c-----------------------------------------------------------------------
 
       integer i, j, im, id, ids, ixct, gcind, irjct, infnd, ifnd
 
-      logical first, chksol, wham, ok, found, nwstrt
+      logical first, chksol, wham, ok, found
 
       character sname(h9)*10, new*3, tn1*6, tn2*22, rjct(h9)*10, 
      *          nfnd(h9)*10
@@ -9529,9 +9627,6 @@ c-----------------------------------------------------------------------
       double precision zt
 
       external chksol
-
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
 
       character tname*10
       logical refine, lresub
@@ -9629,16 +9724,6 @@ c                                 istot is zero, if eof:
 c                                 -------------------------------------
 c                                 check the solution model:
          call cmodel (im,ids,first,found)
-         
-c        if (jsmod.eq.39.and.ispec.gt.0.and.found) then
-c           lopt(63) = .true.
-c           nwstrt = .true.
-c           return
-c        end if
-         
-
-
-
 
          if (jstot.eq.1.and.jsmod.eq.39.and.lopt(32)) then
 c                                  lagged aqueous speciaton with a pure water solvent.
@@ -9677,13 +9762,16 @@ c                                 that the name is duplicated in the solution mo
 
          end if
 
+         
+
+c                                 this warning is redundant 7.1.8+
          if (jsmod.eq.39.and.ifct.gt.0) then
 c                                 check that a GFSM model is not being 
 c                                 used together with a saturated fluid 
 c                                 constraint
-               write (*,1060) tname, tname
+            write (*,1030) tname, tname
 
-               call wrnstp
+            call wrnstp
 
          end if 
 c                                 save solution name
@@ -10283,9 +10371,6 @@ c-----------------------------------------------------------------------
       integer ikp
       common/ cst61 /ikp(k1)
 
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
-
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
 
@@ -10667,9 +10752,6 @@ c---------------------------------------------------------------------
       integer npt,jdv
       double precision cptot,ctotal
       common/ cst78 /cptot(k19),ctotal,jdv(k19),npt
-
-      integer ipoint,kphct,imyn
-      common/ cst60  /ipoint,kphct,imyn
 
       integer tphct
       double precision g2, cp2, c2tot
@@ -12057,8 +12139,8 @@ c-----------------------------------------------------------------------
       common/ cxt2 /aqg(m4),qq(m4),rt,jnd(m4)
 
       integer length,com
-      character chars*1
-      common/ cst51 /length,com,chars(lchar)
+      character chars*1, card*(lchar)
+      common/ cst51 /length,com,chars(lchar),card
 
       integer idaq, jdaq
       logical laq
@@ -12658,9 +12740,6 @@ c-----------------------------------------------------------------------
       integer eos
       common/ cst303 /eos(k10)
 
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
-
       character specie*4
       integer ins, isp
       common/ cxt33 /isp,ins(nsp),specie(nsp)
@@ -12810,7 +12889,7 @@ c                                lagged speciation
      *            //'ith aq_fractionation_simpl and will be disabled'//
      *              ' (AQIDST)')
 
-            if (lopt(56)) call wrnstp
+            call wrnstp
 
          end if
 
@@ -12946,9 +13025,6 @@ c-----------------------------------------------------------------------
 
       integer iam
       common/ cst4 /iam
-
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
 
       integer ipot,jv,iv1,iv2,iv3,iv4,iv5
       common/ cst24 /ipot,jv(l2),iv1,iv2,iv3,iv4,iv5
@@ -13096,9 +13172,6 @@ c-----------------------------------------------------------------------
 
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xco2,u1,u2,tr,pr,r,ps
-
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
 
       integer ikp
       common/ cst61 /ikp(k1)
@@ -13456,9 +13529,6 @@ c-----------------------------------------------------------------------
 
       integer icomp,istct,iphct,icp
       common/ cst6 /icomp,istct,iphct,icp
-
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
 
       double precision g
       common/ cst2 /g(k1)
@@ -13912,9 +13982,6 @@ c                                 local variables:
 c                                 -------------------------------------
       double precision goodc, badc
       common/ cst20 /goodc(3),badc(3)
-
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
@@ -14567,8 +14634,8 @@ c                                 adaptive coordinates
       common/ cxt2 /aqg(m4),qq(m4),rt,jnd(m4)
 
       integer length,com
-      character chars*1
-      common/ cst51 /length,com,chars(lchar)
+      character chars*1, card*(lchar)
+      common/ cst51 /length,com,chars(lchar),card
 
       integer idaq, jdaq
       logical laq
@@ -17164,8 +17231,8 @@ c----------------------------------------------------------------------
       character name*8, eod*3, tname*10
 
       integer length,com
-      character chars*1
-      common/ cst51 /length,com,chars(lchar)
+      character chars*1, card*(lchar)
+      common/ cst51 /length,com,chars(lchar),card
 
       integer iend,isub,insp,iterm,iord,istot,jstot,kstot,rkord
       double precision wg,wk
@@ -18364,9 +18431,6 @@ c-----------------------------------------------------------------------
       logical refine, lresub
       common/ cxt26 /refine,lresub,tname
 
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
-
       integer iam
       common/ cst4 /iam
 c-----------------------------------------------------------------------
@@ -18712,12 +18776,15 @@ c----------------------------------------------------------------------
 
       double precision twt(k5),tsel(k5),tcox(k5),cst
  
-      integer i, j, k, l, im, ict, ifer,inames, jphct, imak(k16), iox
+      integer i, j, k, l, im, ict, ifer,inames, jphct, imak(k16), iox, 
+     *        nblen
 
       logical eof, good, first, tpro(k5)
 
+      external nblen
+
       integer icomp,istct,iphct,icp
-      common/ cst6  /icomp,istct,iphct,icp  
+      common/ cst6  /icomp,istct,iphct,icp
 
       character name*8
       common/ csta6 /name
@@ -18752,9 +18819,6 @@ c----------------------------------------------------------------------
       integer ion, ichg, jchg
       double precision q, q2, qr
       common/ cstaq /q(l9),q2(l9),qr(l9),jchg(l9),ichg,ion
-
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
 
       integer jfct,jmct,jprct,jmuct
       common/ cst307 /jfct,jmct,jprct,jmuct
@@ -18866,7 +18930,8 @@ c                                 components in the thermodynamic composition sp
 c                               write error message if a component
 c                               was not found:
          if (im.eq.0) then 
-            write (*,1230) cname(i), (cmpnt(k), k = 1, icmpn)
+            write (*,1230) cname(i)(1:nblen(cname(i))), 
+     *                     (cmpnt(k), k = 1, icmpn)
             write (*,1240)
             stop
          end if 
@@ -18917,7 +18982,7 @@ c                                 defined by a make definition:
 c                                 loop to read reference phase data for
 c                                 activity/fugacity variables
       ict = 0 
-
+c                                 ifact is the mobile component counter
       if (ifact.gt.0) then
 c                                 rewind and read 'til end of header
          call eohead (n2)
@@ -18959,7 +19024,7 @@ c                                 gphase from calling the EoS.
                   else if (lopt(7)) then 
 c                                 check for special component names
 c                                 this is necessary because loadit 
-c                                 will not set isfp if ifct > 0.
+c                                 will not set fp if ifct > 0.
                      do k = 1, ispec
                         if (name.ne.cmpnt(idspe(k))) cycle
                         eos(iphct) = 100 + k 
@@ -20057,9 +20122,6 @@ c----------------------------------------------------------------------
       include 'perplex_parameters.h'
 
       integer i, ids, jd, ld
-
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp

@@ -38,7 +38,7 @@ c-----------------------------------------------------------------------
       integer i, k, l, iind, im, idum, ivct, jcth, j, ier, idep, 
      *        gct(i9), gid(i9,i9), ict, idsol, inames, nblen
 
-      logical eof, good, oned, findph, first, feos, chksol, readyn, 
+      logical eof, good, oned, findph, first, chksol, readyn, 
      *        liqdus
 
       external chksol, findph, readyn, nblen
@@ -66,9 +66,6 @@ c-----------------------------------------------------------------------
       integer ictr, itrans
       double precision ctrans
       common/ cst207 /ctrans(k0,k0),ictr(k0),itrans
-
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
 
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
@@ -138,7 +135,7 @@ c                                 initialize strings (necessary for some OS).
 c                                 name and open computational option file (unit n1)      
       call fopen1 
 c                                 choose and open thermo data file (unit n2)
-      call fopen2 (1,opname)
+      call fopen2 (1)
 c                                 get computational option file name
       write (*,1170) 
       read (*,'(a)') opname
@@ -198,7 +195,7 @@ c                                 2d gridded minimization
 
       end if
 c                                 choose chemical components
-      call compch (ivct,feos,mname,kname,oname,uname)
+      call compch (ivct,mname,kname,oname,uname)
 c                                 physical variable choices and ranges
 c                                 set icopt to its internal value:
       call varich (c,ivct,iind,oned,idep,iord,jcth,amount,dtext,opname,
@@ -336,47 +333,10 @@ c                                 Excluded phases:
         end if
  
       end if
-c                                check for fluid species EoS if no special components:
-c                                as of 3/16/2016 this was incorrect, so far as i can 
-c                                an EoS is automatically associated with fluid species
-c                                if eos(i) = 10 (ideal) gas, or 117 > eos(i) > 103, therefore
-c                                101 (H2O) and 102 (CO2) are the only special cases that
-c                                require the user to specify an EoS
+c                                eliminated check for special component 
+c                                EoS 201/202 as set in compch. And, as of 7.1.8
+c                                overridden by GFSM.
 
-c                                for true ternary c-o-h fluid calculations H2O and CO2
-c                                should be excluded and this loop should not request that
-c                                the user specify an EoS
-      good = .true.
-
-      if (.not.feos) then
- 
-         do i = 1, iphct
-
-            if (eos(i).eq.201.or.eos(i).eq.202) then 
-
-               do j = 1, ixct
-
-                  if (exname(j).eq.names(i)) then
-                     good = .false.
-                     exit 
-                  end if  
-
-               end do 
-
-               if (.not.good) cycle
-c                               got one, get the EoS
-               write (*,'(/,a,/)') 
-     *               'One or more endmembers require a fluid EoS'
-
-               call rfluid (1) 
-
-               exit 
-
-            end if 
-
-         end do 
-
-      end if 
 c                                read solution phases.
       if (.not.liqdus) then
          write (*,2500)
@@ -1207,7 +1167,7 @@ c                                 find index in uname array
      *        ', and do not use leading blanks. Try again:',/)
       end
 
-      subroutine compch (ivct,feos,mname,kname,oname,uname)
+      subroutine compch (ivct,mname,kname,oname,uname)
 c---------------------------------------------------------------------------
 c interactively choose components for build.
 c---------------------------------------------------------------------------
@@ -1217,7 +1177,7 @@ c---------------------------------------------------------------------------
 
       integer i, j, jcmpn, ivct, igood, ier, jsat(h5), ima, jspec, jc(2)
 
-      logical satflu, mobflu, good, findph, eof, quit, feos, readyn
+      logical satflu, mobflu, good, findph, eof, quit, readyn
 
       character mname(*)*5, qname(k0)*5, char5*5, uname(*)*5,
      *          oname(*)*5, nname(k5)*5, char6*6, 
@@ -1259,7 +1219,6 @@ c---------------------------------------------------------------------------
       jcmpn = icmpn
       satflu = .false.
       mobflu = .false.
-      feos = .false.
       char5 = ' '
 c                                 Component stuff first:
       do i = 1, icmpn
@@ -1634,20 +1593,31 @@ c                                 in thermodynamic composition space.
       if (jspec.gt.0) then
 c                                 get fluid equation of state
 c                                 write explanation
-         write (*,1010) (mname(i), i = 1, jspec)
-         write (*,1020)
-
-         if (ifct.ne.0) write (*,1025) 
-
-         feos = .true.
-         call rfluid (1)
-         write (*,'(/)')
-c                                 eliminate composition variable
-c                                 for saturated fluid if constrained
-c                                 fugacity EoS is used:
+         if (ifct.ne.0) then
+c                                 a saturated phase constraint has
+c                                 been specified, get the EoS
+            call rfluid (4)
+            write (*,'(/)')
+c                                 eliminate saturated fluid composition variable
+c                                 if constrained fugacity EoS is selected.
 c                                 probably should change iv(3)?
-         if ((ifug.eq.9.or.ifug.eq.24).and.ifct.gt.1) 
-     *      ivct = ivct - 1
+            if (ifug.eq.9.or.ifug.eq.24) then
+
+               ivct = ivct - 1
+               iv(3)=4
+               iv(4)=5
+
+            end if
+
+         else
+c                                 the special components are in the
+c                                 thermodynamic or saturated component space
+            write (*,1010) (mname(i), i = 1, jspec)
+            write (*,1020)
+            call rfluid (1)
+            write (*,'(/)')
+
+         end if
 
       end if
 c                                 make kname into a list of retained (non-mobile) components
@@ -1689,17 +1659,10 @@ c                                 component pointers for chkphi
 1010  format ('Because the thermodynamic data file identifies:',
      *        5(1x,a5))
 1020  format ('as special components, you will be prompted next for ',
-     *        'the EoS to be used for ',/,'the ',
-     *        'corresponding composants and mixtures thereof. To over',
-     *        'ride this behavior, ',/,'e.g., to use a generic hybrid ',
-     *        'fluid EoS (GFSM) either:',//,
-     *        '  set/add the GFSM option to T in your option file',//,
-     *        '  or delete the special_component section ',
-     *        'from the thermodynamic data file header.')
-1025  format ('NOTE: the EoS choice specified here will override the ',
-     *        'EoS choice specified by',/,'the hybrid_EoS option, to',
-     *        'override this behavior delete the special_component',/,
-     *        'section from the the thermodynamic data file header.',/)
+     *        'the EoS to be used for',/,'the corresponding ',
+     *        'composants and mixtures thereof. This choice will ',/,
+     *        'be overriden if you subsequently specify a GFSM ',
+     *        'solution model',/)
 1030  format (/,'For C-O-H fluids it is only necessary to select ',
      *       'volatile species present in',/,'the solids of interest. ',
      *       'If the species listed here are H2O and CO2, then to',/,

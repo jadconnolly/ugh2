@@ -86,6 +86,7 @@ c---------------------------------------------------------------------
 c irk = 1 - write/read prompt for fluid equations of state
 c irk = 2 - write fluid equation of state for outtit to unit n3
 c irk = 3 - write fluid equation of state to console
+c irk = 4 - write/read prompt for saturated fluid equations of state
 c---------------------------------------------------------------------
       implicit none
    
@@ -189,7 +190,11 @@ c---------------------------------------------------------------------
       ibuf = 1
       dlnfo2 = 0d0
 
-10    write (*,1000)
+10    if (irk.eq.1) then
+         write (*,1000)
+      else
+         write (*,1005)
+      end if
 
       do i = 0, nrk
          if (i.eq.4.or.i.eq.6.or.i.eq.9.or.i.eq.18.or.i.eq.21.or.    
@@ -383,6 +388,8 @@ c                                get the salt content (elag):
       end if 
 
 1000  format (/,'Select fluid equation of state:',/)
+1005  format (/,'Select the EoS to be used for the saturated fluid ',/,
+     *          'constraint:',/)
 1010  format (/,'Select buffer: ',//,
      *          ' 1 - aQFM, 298-1200K',/,
      *          ' 2 - Maximum H2O content, 523-1273K, .5-30kbar',/,
@@ -4892,10 +4899,7 @@ c----------------------------------------------------------------------
       common/ cst5 /p,t,xc,u1,u2,tr,pr,r,ps
 
       double precision a0,a1,a2,a3 
-      common/ coeffs /a0,a1,a2,a3 
-
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
+      common/ coeffs /a0,a1,a2,a3
 
       integer iroots
       logical switch, rkmin, min
@@ -5198,9 +5202,6 @@ c      external gzero
       double precision p,t,xc,u1,u2,tr,pr,r,ps
       common/ cst5 /p,t,xc,u1,u2,tr,pr,r,ps
 
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
-
       double precision vol
       common/ cst26 /vol
 
@@ -5434,9 +5435,6 @@ c----------------------------------------------------------------------
 
       double precision a0,a1,a2,a3 
       common/ coeffs /a0,a1,a2,a3
-
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
 
       integer iroots
       logical switch, rkmin, min

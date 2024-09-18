@@ -31,9 +31,6 @@ c     double precision wbig(lwbig)
       integer hcp,idv
       common/ cst52  /hcp,idv(k7)
 
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
-
       double precision g
       common/ cst2 /g(k1)
 
@@ -465,9 +462,6 @@ c----------------------------------------------------------------------
       character tname*10
       logical refine, lresub
       common/ cxt26 /refine,lresub,tname
-
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
 c----------------------------------------------------------------------
 c                                 reset refinement point flags
       do i = 1, jpoint
@@ -1690,9 +1684,6 @@ c----------------------------------------------------------------------
 
       double precision x(*), slam(h9), clamda(*)
 
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
-
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
 
@@ -2684,9 +2675,6 @@ c                                 hcp is different from icp only if usv
       integer ids,isct,icp1,isat,io2
       common/ cst40 /ids(h5,h6),isct(h5),icp1,isat,io2
 
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
-
       logical mus
       double precision mu
       common/ cst330 /mu(k8),mus
@@ -3391,7 +3379,7 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      logical first, err, nwstrt
+      logical first, err
 
       character tname*10
       logical refine, lresub
@@ -3421,21 +3409,7 @@ c                                 read thermodynamic data on unit n2:
 c                                 allow reading of auto-refine data 
       call setau1 
 c                                 read data for solution phases on n9:
-      call input9 (first,nwstrt)
-
-      if (nwstrt) then
-c                                 set GFSM to T
-         lopt(63) = .true.
-
-         outprt = .true.
-
-         first = .false.
-
-         call input1 (first,err)
-         call input2 (first)
-         call input9 (first,nwstrt)
-
-      end if
+      call input9 (first)
 c                                 load static compositions for manual autorefine
       if (refine) then
          call reload (refine)

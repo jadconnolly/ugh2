@@ -64,9 +64,6 @@ c-----------------------------------------------------------------------
       logical refine, lresub
       common/ cxt26 /refine,lresub,tname
 
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
-
       integer icomp,istct,iphct,icp
       common/ cst6  /icomp,istct,iphct,icp
 
@@ -1566,9 +1563,6 @@ c-----------------------------------------------------------------------
       integer hcp,idv
       common/ cst52 /hcp,idv(k7)
 
-      integer ipoint,kphct,imyn
-      common/ cst60 /ipoint,kphct,imyn
-
       integer tphct
       double precision g2, cp2, c2tot
       common/ cxt12 /g2(k21),cp2(k5,k21),c2tot(k21),tphct
@@ -2548,8 +2542,8 @@ c----------------------------------------------------------------------
       integer i, ist, iend
 
       integer length,com
-      character chars*1
-      common/ cst51 /length,com,chars(lchar)
+      character chars*1, card*(lchar)
+      common/ cst51 /length,com,chars(lchar),card
 
       integer npt,jdv
       double precision cptot,ctotal
