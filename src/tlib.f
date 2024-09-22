@@ -4003,8 +4003,6 @@ c----------------------------------------------------------------------
 
       external iscan, iscnlt
 
-      character card*(lchar)
-
       integer length,com
       character chars*1, card*(lchar)
       common/ cst51 /length,com,chars(lchar),card
@@ -4367,7 +4365,7 @@ c----------------------------------------------------------------------
  
       include 'perplex_parameters.h'
  
-      integer i, it, j, ier, nblen, lenth
+      integer i, it, j, ier, nblen
 
       double precision ct
 
@@ -4401,10 +4399,7 @@ c----------------------------------------------------------------------
       common/ cst99 /commnt
 c----------------------------------------------------------------------
       eof = .false.
-c                                 for extracting comments
-c     lenth = len(chars)
-c     if (lenth.gt.len(cmmnt)) lenth = len(cmmnt)
-c
+
       do 
 
          call redcd1 (n2,ier,key,val,nval1,nval2,nval3,strg,strg1)
@@ -4428,8 +4423,9 @@ c                                 EoS
          read (nval2,*,iostat=ier) ieos
          if (ier.ne.0) exit
 c                                 look for comments
-         j = index(strg1,'|')
-         write (commnt,'(80a)') chars(com:com+79)
+         j = index(card,'|')
+         commnt = ' '
+         if (j.gt.0) write (commnt,'(a)') card(j:nblen(card))
 c                                 composition
          call formul (n2)
 c                                 thermodynamic data
@@ -4827,7 +4823,7 @@ c----------------------------------------------------------------------
 
       integer lun, ier, iscan, iscnlt, ibeg, iend, iblank
 
-      character card*(lchar), key*(*), values*(*), strg*(*)
+      character key*(*), values*(*), strg*(*)
 
       external iscan, iscnlt
 
@@ -4986,11 +4982,16 @@ c----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer lun, i, j, ibeg, iend, id, option, jcomp, siz
+      integer lun, i, j, ibeg, iend, id, option, jcomp, siz, nblen
 
       character text(14)*1
 
       double precision var, dg
+
+      external nblen
+
+      integer iam
+      common/ cst4 /iam
 
       double precision cp
       common/ cst12 /cp(k5,k10)
@@ -5029,8 +5030,8 @@ c----------------------------------------------------------------------
       double precision p,t,xco2,u1,u2,tr,pr,r,ps
       common/ cst5  /p,t,xco2,u1,u2,tr,pr,r,ps
 
-      character*80 commnt
-      common/delet/commnt
+      character commnt*lchar
+      common/ cst99 /commnt
 
       character*2 strgs*3, mstrg, dstrg, tstrg*3, wstrg*3, e16st*3
       common/ cst56 /strgs(32),mstrg(6),dstrg(m8),tstrg(m7),wstrg(m16),
@@ -5044,11 +5045,17 @@ c                                 name & EoS
       var = eos(id)
       call outthr (var,' EoS',4,ibeg) 
 
-      if (commnt.ne.' ') then 
-         chars(ibeg) = '|'
-         read (commnt,'(80a)') chars(ibeg+1:ibeg+80)
-         ibeg = ibeg + 80
-      end if 
+      if (iam.eq.6.or.iam.eq.9.or.iam.eq.10) then 
+c                                 actcor, ctransf, and rewrite are echoing
+c                                 input and may have read a comment, if so echo:
+         if (commnt.ne.' ') then 
+            i = nblen(commnt)
+            if (ibeg+i.gt.lchar) i = lchar - ibeg
+            read (commnt,'(400a)') chars(ibeg:ibeg+i-1)
+            ibeg = ibeg + i
+         end if
+
+      end if
 
       write (lun,'(400a)') chars(1:ibeg)
 c                                 =====================================

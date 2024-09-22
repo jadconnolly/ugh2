@@ -411,8 +411,6 @@ c----------------------------------------------------------------------
 
       external iscan, iscnlt
 
-      character card*(lchar)
-
       integer length,com
       character chars*1, card*(lchar)
       common/ cst51 /length,com,chars(lchar),card
