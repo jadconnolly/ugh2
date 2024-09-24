@@ -7696,7 +7696,7 @@ c                                  make a list of the unmatched volatiles
 
          end do
 
-         if (outvol.gt.0) then 
+         if (outvol.gt.0.and.iam.lt.3.or.iam.eq.15) then 
 
             write (*,1010) tname(1:nblen(tname))
 

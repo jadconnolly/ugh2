@@ -1,0 +1,42 @@
+.true.           DYNAMIC, if true dynamic P-T field
+.false.          TITRATE, if true non-zero basal mass flux
+.true.           ANNEAL, if true remove excess mobile phase from the initial column and renormalize all masses to 1kg
+.false.          VERBOS, if true composition and amount of fractionated phase are output to console
+.false.            SIPHON, if true move mobile phase through column without interacting with overlying nodes
+.true.          PZFUNC, P-T field specified by internal function or a file
+.true.           COLCMP, dump final column compositions to my_project_***.cmp => *** Z0 coordinate in km
+.true.           USECMP, read initial column compositions from my_project_***.cmp => fracd prompts for *.cmp file
+
+450.             ZBOX, box size (m)
+
+0.31             DPDZ, pressure-depth gradient (bar/m)
+
+20d3             Z0MIN, minimum value of the Z0-coordinate (depth of slab interface, m), number of increments is set by 1d_path option
+75.2d3             Z0MAX, value of Z0-coordinate
+
+900    ZLAY_1, vertical thickness of mantle (m), molar composition =>
+7.31, 0.4545, 1.101, 10.666, 0.116, 0, 0, 1.111, 0.455e-2, 0.3594e-2, 14.2033 CLAY_1_1-CLAY_1_C, serpentinite
+
+5850            ZLAY_2, vertical thickness of mantle (m), molar composition =>
+8.405, 3.21, 1.483, 1.94, 2.056, 0.723, 0.02, 0.389, 0.03637, 0.01719, 14.0312  CLAY_2_1-CLAY_2_C, gabbro.
+
+2250             ZLAY_3, vertical thickness of oceanic inrtusives (m), molar composition =>
+8.27, 3.19, 1.48,   1.78,  1.95,   0.716, 0.02,  1.67, 0.03637, 0.02344, 14.3953 CLAY_3_1-CLAY_3_C, MORB 
+
+450    ZLAY_4, vertical thickness of oceanic volcanics (m), molar composition =>
+10.36, 2.66, 0.79, 0.62, 0.67, 0.88, 0.57, 2.99, 0.38, 0.028, 15.77  CLAY_4_1-CLAY_4_C,   gloss
+
+0                ZLAY_5, zero thickness layer indicates end of data.
+
+##################### COMMENTS BELOW HERE #####################################################
+11.393, 1.09, 0.676, 0.9, 0.925, 0.4, 0.293, 3.817, 0.6, 0.844e-2, 16.32  CLAY_4_1-CLAY_4_C,   gloss 马里亚纳
+the lithologies and their thickness in the column are entered from the bottom of the column upwards. the compositions 
+are assumed to be in molar units and the order of the components must be identical to the order specified in the 
+computational option file. If ANNEAL is .true., then the compositional data is automatically renormalized so that the 
+representative mass is 1 kg. Otherwise care should be taken that the molar mass of each lithology is the same.
+
+See: www.perplex.ethz.ch/perplex/Perple_X_FRAC2D.html for additional
+
+ar Tony, thank you for the information, can you please tell me when the transferred assets will deposited in my inherited IRA account (413237706)? The original Wells Fargo account was in my father's name and split among my brothers and me, so far as I understand the positions specified in my transfer request amount to a complete liquidation of my share of the original account. James 
+
+P.S. If the assets have already been deposited in IRA account (413237706), they are not visible to me via Fidelity's website. In that case, is there something I need to change in the account settings to see the positions? 

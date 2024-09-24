@@ -1,0 +1,156 @@
+dew17hp622ver_elements.dat     thermodynamic data file                                                                                      
+no_print | print generates print output
+plot     | obsolete 6.8.4+
+solution_model.dat     | solution model file, blank = none                                                                                                                                                                                                      
+10 cm/y subduction rate, 40 ma plate age, mantle -> 2 wt% H2O                                                                                                                                                                                                   
+perplex_option.dat     | Perple_X option file                                                                                                                                                                                                            
+   11 calculation type: 0- composition, 1- Schreinemakers, 3- Mixed, 4- swash, 5- gridded min, 7- 1d fract, 8- gwash, 9- 2d fract, 10- 7 w/file input 11- 9 w/file input, 12- 0d infiltration
+PTcoor.txt
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 number component transformations
+   19 number of components in the data base
+    0 component amounts, 0 - molar, 1 weight
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 05
+    0 ifug EoS for saturated phase
+    2 gridded minimization dimension (1 or 2)
+    0 special dependencies: 0 - P and T independent, 1 - P(T), 2 - T(P)
+ 0.00000      0.00000      0.00000      0.00000      0.00000     Geothermal gradient polynomial coeffs.
+
+begin thermodynamic component list
+Si    0  0.00000      0.00000      0.00000     molar amount
+Al    0  0.00000      0.00000      0.00000     molar amount
+Fe    0  0.00000      0.00000      0.00000     molar amount
+Mg    0  0.00000      0.00000      0.00000     molar amount
+Ca    0  0.00000      0.00000      0.00000     molar amount
+Na    0  0.00000      0.00000      0.00000     molar amount
+K     0  0.00000      0.00000      0.00000     molar amount
+H2    0  0.00000      0.00000      0.00000     molar amount
+C     0  0.00000      0.00000      0.00000     molar amount
+S2    0  0.00000      0.00000      0.00000     molar amount
+O2    0  0.00000      0.00000      0.00000     molar amount
+end thermodynamic component list
+
+
+begin saturated component list
+end saturated component list
+
+
+begin saturated phase component list
+end saturated phase component list
+
+
+begin independent potential/fugacity/activity list
+end independent potential list
+
+
+begin excluded phase list
+
+LACTATE,
+GLUTARAT
+GLYCOLAT
+                          
+CO2,aq
+H2,aq
+O2,aq
+CO,aq
+H2S,aq
+SO2,aq
+METHANE,
+FORMATE,
+PROPANOA
+ACETATE
+ACETIC-A
+PROPANE,
+HEXANE,A
+ETHANE,A
+ETHANOL,
+ETHYLENE
+FORMIC-A
+BENZENE
+METHANOL
+LACTIC-A     
+PROPANOL
+PROPANOI
+TOLUENE,
+                          |solvent reference state fluid species:
+S2
+ SO2
+ H2S
+ CH4
+ CO
+H2
+O2
+                          |and, of course, it is necessary to exclude the usual nonsense h&p 
+                          |endmembers
+f3clin
+naph
+nta
+
+
+zo
+mic
+
+kals
+nasGL
+kalGL
+woGL
+foGL
+odo
+parg_dqf
+ts_dqf
+gl_dqf               
+wa
+liz
+fstp
+tro
+tan 
+mstp
+ta
+spr4
+spr7
+ iron
+lot
+end excluded phase list
+
+
+begin solution phase list
+Omph(GHP)  
+Chl(W)   
+O(JH)     
+MF        
+Sp(HP)    
+Gt(W)   
+COH-Fluid
+Do(HP)    
+A-phase   
+B         
+T         
+Po(HP)    
+Atg(PN)
+M(HP)
+Fsp(C1)          
+Ep(HP11)               
+Opx(HP)    
+Mica(W)   
+Ctd(W)    
+Pu  
+melt(HGPH)    
+end solution phase list
+
+
+   0.00000        0.00000        1.00000        0.00000        0.00000     max p, t, xco2, u1, u2
+   0.00000        0.00000        0.00000        0.00000        0.00000     min p, t, xco2, u1, u2
+   0.00000        0.00000        0.00000        0.00000        0.00000     unused place holder post 06
+
+ 1  2  3  4  3   indices of 1st & 2nd independent & sectioning variables
+

@@ -9504,12 +9504,10 @@ c                                 count (icp) and save names (cname)
          if (rname.eq.'end t') then 
 c                                 finished, check for no components
             if (icp.eq.0) then
-               write (*,*) 'No thermodynamic components'
-               goto 998
+               call errdbg ('No thermodynamic components specified.')
             else if (icopt.eq.5.and.jbulk.lt.icp) then 
-               write (*,*) 'All thermodynamic components must be ',
-     *                     'constrained.'
-               goto 998
+               call errdbg ('All thermodynamic components'
+     *                      //'must be constrained.')
             end if 
         
             exit 

@@ -955,16 +955,18 @@ c                                we have an endmember
             nkp(i) = kkp(i)
          end if
 
-      end do 
+      end do
+c                                commented out to allow zero mode test
+
 c                                check if any solutions
-      do i = 1, ntot
-         if (nkp(i).gt.0) goto 10
-      end do 
+c     do i = 1, ntot
+c        if (nkp(i).gt.0) goto 10
+c     end do 
 
-      np = 0
-      ncpd = ntot
+c     np = 0
+c     ncpd = ntot
 
-      goto 99
+c     goto 99
 c                                figure out how many solutions
 c                                are present:
 10    np = 0
