@@ -36,7 +36,7 @@ c----------------------------------------------------------------------
       integer n
 
       write (n,'(/,a,//,a)') 
-     *     'Perple_X release 7.1.8 Sep 24, 2024.',
+     *     'Perple_X release 7.1.8 Sep 26, 2024.',
 
      *     'Copyright (C) 1986-2024 James A D Connolly '//
      *     '<www.perplex.ethz.ch/copyright.html>.'
@@ -5988,8 +5988,8 @@ c                                 get the component stoichiometries:
 1070  format ('Enter old component to be replaced',
      *          ' with ',a,': ')
 1080  format ('Select the component from the set: ')
-1100  format (1x,a,' = ',6(f6.2,1x,a),/,9x,6(f6.2,1x,a))
-1110  format ('Is this correct (Y/N)? ')
+1100  format (/,2x,a,' = ',6(f6.2,1x,a),/,9x,6(f6.2,1x,a))
+1110  format (/,'Is this correct (Y/N)? ')
 2300  format (/,'You made a mistake, try again.',/
      *          'Check spelling and upper/lower case matches.',/)
 4030  format ('Enter stoichiometric coefficients of:',/,
