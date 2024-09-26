@@ -956,20 +956,9 @@ c                                we have an endmember
          end if
 
       end do
-c                                commented out to allow zero mode test
-
-c                                check if any solutions
-c     do i = 1, ntot
-c        if (nkp(i).gt.0) goto 10
-c     end do 
-
-c     np = 0
-c     ncpd = ntot
-
-c     goto 99
 c                                figure out how many solutions
 c                                are present:
-10    np = 0
+      np = 0
       ncpd = 0
       soltol = nopt(8)
 
@@ -1270,7 +1259,7 @@ c                                 compound composition into cp3 array
 
       ntot = np + ncpd
 
-99    end 
+      end 
 
       subroutine sollim (ids,jd)
 c----------------------------------------------------------------------

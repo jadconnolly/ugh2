@@ -36,7 +36,7 @@ c----------------------------------------------------------------------
       integer n
 
       write (n,'(/,a,//,a)') 
-     *     'Perple_X release 7.1.8 Sep 16, 2024.',
+     *     'Perple_X release 7.1.8 Sep 24, 2024.',
 
      *     'Copyright (C) 1986-2024 James A D Connolly '//
      *     '<www.perplex.ethz.ch/copyright.html>.'
@@ -532,18 +532,12 @@ c                                 aq_ion_H+
       lopt(44) = .true.
 c                                 fancy_cumulative_modes
       lopt(45) = .false.
-c                                 aq_solvent_solvus
-      lopt(46) = .true.
 c                                 sample_on_grid 
       lopt(48) = .true.
-c                                 refinement_switch
-      lopt(49) = .false.
 c                                 seismic_data_file
       lopt(50) = .true.
 c                                 structural formula options
       lopt(51) = .true.
-c                                 keep_auto
-      lopt(52) = .true.
 c                                 scatter-points
       lopt(54) = .true.
 c                                 re-refine
@@ -855,7 +849,7 @@ c                                 bad number key
 
          else if (key.eq.'speciation_factor') then
 
-c               obsolete
+            write (*,1190) key,'is an'
 
          else if (key.eq.'replicate_threshold') then 
 
@@ -900,7 +894,7 @@ c                                 "vapor" threshold
 
          else if (key.eq.'aq_max_molality') then
 
-c             obsolete
+            write (*,1190) key,'is an'
 
          else if (key.eq.'Tisza_test') then
 
@@ -912,7 +906,7 @@ c                                  allow for solvent immiscisibiliy
 
          else if (key.eq.'aq_solvent_solvus') then
 c                                  allow for solvent immiscisibiliy
-            if (val.eq.'F') lopt(46) = .false.
+            write (*,1190) key(1:nblen(key)),'is an'
 
          else if (key.eq.'aq_solvent_solvus_tol') then
 c                                  molecular species fractions must differ
@@ -1090,7 +1084,7 @@ c                                 p fraction
 
          else if (key.eq.'global_reach_increment') then
           
-            write (*,1190) 'global_reach_increment','is an'
+            write (*,1190) key(1:nblen(key)),'is an'
 
          else if (key.eq.'seismic_output') then 
 c                                 seismic data output WERAMI/MEEMUM/FRENDLY
@@ -1113,9 +1107,8 @@ c                                 refinement points
             end if
 
          else if (key.eq.'refinement_switch') then
-c                                 during iteration allow metastable 
-c                                 refinement points for stable solutions.
-            if (val.ne.'F') lopt(49) = .true.
+
+            write (*,1190) key(1:nblen(key)),'is an'
 
          else if (key.eq.'seismic_data_file') then
  
@@ -1123,6 +1116,7 @@ c                                 refinement points for stable solutions.
 
          else if (key.eq.'site_check'.or.
      *            key.eq.'speciation_tolerance') then 
+
             write (*,1190) key(1:nblen(key)),'is an'
 
          else if (key.eq.'structural_formulae') then
@@ -1131,11 +1125,11 @@ c                                 refinement points for stable solutions.
 
          else if (key.eq.'keep_auto') then
 
-            if (val.ne.'T') lopt(52) = .false. 
+            write (*,1190) key(1:nblen(key)),'is an'
 
          else if (key.eq.'keep_max') then 
-
-            read (strg,*) iopt(52)
+c                             
+            write (*,1190) key(1:nblen(key)),'is an'
 
          else if (key.eq.'max_aq_species_out') then 
 c                                 max number of aq species output for
@@ -1144,7 +1138,7 @@ c                                 back-calculated and lagged speciation
 
          else if (key.eq.'reach_increment_switch') then 
 c                                 reach_increment_switch
-            write (*,1190) 'reach_increment_switch','is an'
+            write (*,1190) key(1:nblen(key)),'is an'
 
          else if (key.eq.'stretch_factor') then
 c                                 stretch_factor key = b - 1       
@@ -1285,7 +1279,7 @@ c                                 default autorefine relative increment
 
          else if (key.eq.'dependent_potentials') then 
 
-            write (*,1190) 'dependent potentials','is an'
+            write (*,1190) key(1:nblen(key)),'is an'
 
          else if (key.eq.'hard_limits') then 
 
@@ -1313,6 +1307,8 @@ c                                 lower fractionation threshold
          else if (key.eq.'order_check') then 
 c                                 compare local and max disorder state for o-d models
 c                                 obsolete.
+            write (*,1190) key(1:nblen(key)),'is an'
+
          else if (key.eq.'linear_model') then   
 c                                 assume linear boundaries within a cell during gridded minimization
             if (val.eq.'off') then 
@@ -1704,7 +1700,7 @@ c                                 consequent value for k1
 1180  format (/,'Error: value ',a,' is invalid for Perple_X option ',
      *        'keyword ',a,/,'see www.perplex.ch/perplex_options.html ',
      *        'for a list of valid values',/)
-1190  format (a,1x,a,1x,'obsolete option, 6.9.1+')
+1190  format (/,a,1x,a,1x,'obsolete option, 7.1.8+',/)
       end 
 
       subroutine lpset
@@ -1872,7 +1868,7 @@ c                                 reaction format and lists
 c                                 adaptive optimization
             write (n,1180) nopt(49),iopt(37),iopt(20),nopt(21),
      *                     valu(38),valu(39),lopt(62),iopt(31),k5,
-     *                     lopt(49),lopt(54),nopt(48),nval2,nopt(9)
+     *                     lopt(54),nopt(48),nval2,nopt(9)
 c                                 gridding parameters
             if (iam.eq.1.and.icopt.eq.5.and.oned) then
 c                                 1d multilevel grid
@@ -1915,7 +1911,7 @@ c                                 generic thermo parameters:
      *                  nopt(12),nopt(20),lopt(8),lopt(4),lopt(68),
      *                  nopt(5),iopt(21),nopt(10),lopt(63),
      *                  iopt(25),iopt(26),iopt(27),
-     *                  lopt(32),lopt(67),lopt(44),lopt(36),lopt(46),
+     *                  lopt(32),lopt(67),lopt(44),lopt(36),
      *                  nopt(38),nopt(34)
 c                                 for meemum add fd stuff
          if (iam.eq.2) write (n,1017) nopt(31),nopt(26),nopt(27)
@@ -2073,7 +2069,6 @@ c                                 generic thermo options
      *        4x,'aq_fractionation_simpl  ',l1,9x,'[F] T',/,
      *        4x,'aq_ion_H+               ',l1,9x,'[T] F => use OH-',/,
      *        4x,'aq_oxide_components     ',l1,9x,'[F] T',/,
-     *        4x,'aq_solvent_solvus       ',l1,9x,'[T] F',/,
      *        4x,'aq_solvent_solvus_tol   ',f3.1,7x,'[0.5] 0-1',/,
      *        4x,'aq_vapor_epsilon        ',f3.1,7x,'[1.]')
 1013  format (/,2x,'Input/Output options:',//,
@@ -2134,7 +2129,6 @@ c                                 thermo options for frendly
      *        4x,'static_LP_start         ',a3,7x,'[hot] cold warm',/,
      *        4x,'order_check             ',l1,9x,'[F] T',/,
      *        4x,'refinement_points       ',i2,8x,'[auto] 1->',i2,/,
-     *        4x,'refinement_switch       ',l1,9x,'[T] F',/,
      *        4x,'scatter-points          ',l1,9x,'[T] F',/,
      *        4x,'scatter-increment      ',g7.1E1,4x,
      *           '[1e-2] 1e-2 => 1e-7',/,
@@ -3358,7 +3352,6 @@ c----------------------------------------------------------------------
 
          write (*,58)
          write (*,582)
-         if (lopt(49)) write (*,584)
          write (*,585)
          if (lopt(32)) write (*,586)
          write (*,413)
@@ -3372,8 +3365,6 @@ c----------------------------------------------------------------------
 580   format (2x,'- increase parameter ',a,' and recompile ',
      *           'Perple_X')
 582   format (2x,'- set keep_auto to T or default ',
-     *           'in perplex_option.dat')
-584   format (2x,'- set refinement_switch to F ',
      *           'in perplex_option.dat')
 585   format (2x,'- reduce refinement_points (< c+2, > 0) ',
      *           'in perplex_option.dat')

@@ -943,10 +943,11 @@ c                                 n+1
 c                                 f
             therlm(8,1,lamin) = tm(5,1)/(tm(5,1) + 1d0)
 
-         else if (jlam.eq.4.or.jlam.eq.7) then
+         else if (jlam.eq.4.or.jlam.eq.7.or.jlam.eq.10) then
 c                                 holland and powell, landau model:
 c                                 4 - relative to the high T phase
 c                                 7 - relative to the low T phase (stixrude 2021).
+c                                10 - relative to the low T phase (stixrude 2024).
             smax = tm(2,1)
             t0 = tm(1,1)
             vmax = tm(3,1)
@@ -1091,7 +1092,7 @@ c                              + Stixrude & L-B, 2024, load into therlm: Tc, S_D
          end if
 
          if ((jlam.eq.4.or.jlam.eq.5.or.jlam.eq.7.or.jlam.eq.8
-     *       .or.jlam.eq.9).and.ilam.gt.1) call errdbg (
+     *       .or.jlam.eq.9.or.jlam.eq.10).and.ilam.gt.1) call errdbg (
      *            'only 1 transition of the specified type allowed for '
      *             //name)
 
@@ -22237,7 +22238,8 @@ c----------------------------------------------------------------------
 
       integer id
 
-      double precision gval, dg, vdp, gmags, lamla2, stxhil
+      double precision gval, dg, vdp, gmags, lamla2, stxhil, xp, xt, 
+     *                 dg1, dg2
 
       external gmags, lamla2, stxhil
 
@@ -22306,11 +22308,6 @@ c                                 Stixrude also introduces an adhoc fix that
 c                                 limits q <= qmax.
             gval = gval + lamla2(lmda(id))
 
-         else if (ltyp(id).eq.9) then
-c                                 SLB 2024 version of Hillert & Jarl.
-            gval = gval + stxhil (therlm(1,1,lmda(id)),
-     *                            therlm(2,1,lmda(id)))
-
          else if (ltyp(id).eq.8) then
 c                                 George's version of the Hillert & Jarl magnetic transition 
 c                                 model, arguments are tc, b, pee. Needs to pass parameters
@@ -22323,6 +22320,27 @@ c                                 because of call to gmag2 by special FeCr model
 c                                 SLB 2024 version of Hillert & Jarl.
             gval = gval + stxhil (therlm(1,1,lmda(id)),
      *                            therlm(2,1,lmda(id)))
+
+         else if (ltyp(id).eq.10) then
+c                                 SLB 2021 landau relative to the low T phase,
+c                                 used pointlessly for magnetic entropy of
+c                                 almost all Fe-bearing endmembers.
+c                                 Stixrude also introduces an adhoc fix that
+c                                 limits q <= qmax.
+
+            dg1 = lamla2(lmda(id))
+            gval = gval + lamla2(lmda(id))
+
+            xp = p
+            xt = t
+            t = tr
+            p = pr
+
+            dg2 = lamla2(lmda(id))
+            gval = gval - lamla2(lmda(id))
+
+            p = xp
+            t = xt
 
          else
 
