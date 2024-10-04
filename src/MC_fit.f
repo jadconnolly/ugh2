@@ -882,7 +882,7 @@ c-----------------------------------------------------------------------
      *      rkord(m1),iterm,iord,istot,jstot,kstot
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       integer ltyp,lct,lmda,idis
@@ -1645,7 +1645,7 @@ c----------------------------------------------------------------------
      *      rkord(m1),iterm,iord,istot,jstot,kstot
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
       ier = 0

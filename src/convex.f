@@ -58,7 +58,9 @@ c parameters are assigned in "perplex_parameter.h"
 c-----------------------------------------------------------------------
       include 'perplex_parameters.h'
 
-      logical first, pots, err  
+      logical first, pots, err
+
+      integer i
 
       integer io3,io4,io9
       common / cst41 /io3,io4,io9
@@ -76,11 +78,14 @@ c-----------------------------------------------------------------------
       logical refine, lresub
       common/ cxt26 /refine,lresub,tname
 
-      save err,first,pots
-      data err,first/.false.,.true./
+      integer eos
+      common/ cst303 /eos(k10)
 
       integer iam
       common/ cst4 /iam
+
+      save err,first,pots
+      data err,first/.false.,.true./
 c----------------------------------------------------------------------- 
 c                                 iam is a flag indicating the Perple_X program
 c                                    iam = 1  - vertex
@@ -130,6 +135,24 @@ c                                 blurb dumped by redop1
          call setau1 
 c                                 read data for solution phases on n9:
          call input9 (first)
+
+         if (lopt(7).and..not.lopt(63)) then
+c                                 special components are defined and may override
+c                                 hybrid EoS choices warning
+            err = .false.
+
+            do i = 1, ipoint
+
+               if (eos(i).eq.201.or.eos(i).eq.202) then
+                  call warn (56,0d0,i,names(i))
+                  err = .true.
+               end if
+
+            end do
+
+            if (err) write (*,'(80(''-''))')
+
+         end if
 
          call setau2
 c                                 initialize potentials

@@ -1,0 +1,77 @@
+stx24ver.dat     thermodynamic data file                                                                                                
+prstx     print file, blank = no output                                                                                                                                                                                                                      
+plstx     plot file, blank = no output                                                                                                                                                                                                                       
+stx24_solution_model.dat     solution model file, blank = no solutions                                                                                                                                                                                               
+Stixrude & Lithgow-Bertelloni, 2021, Figure 4.                                                                                                                                                                                                                                                             
+perplex_option.dat     computational option file                                                                                                                                                                                                                
+    5 calculation type: 0 - composition, 1 - Schreinemakers, 3 - Mixed, 4 - gwash, 5 - gridded min, 7 - 1d fract, 8 - gwash 9 - 2d fract, 10 - 7 w/file input
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 number component transformations
+    7 number of components in the data base
+    0 component amounts, 0 - molar, 1 weight
+    0 unused place holder, post 06
+    0 unused place holder, post 06
+    0 unused place holder, post 05
+    0 ifug EoS for saturated phase
+    2 gridded minimization dimension (1 or 2)
+    0 special dependencies: 0 - P and T independent, 1 - P(T), 2 - T(P)
+ 0.00000      0.00000      0.00000      0.00000      0.00000     Geothermal gradient polynomial coeffs.
+
+begin thermodynamic component list
+CaO   1  0.28734
+Al2O3 1  0.198425
+Na2O  1  1.0985d-2
+MgO   1  4.88475
+Fe    1  0.57874
+SiO2  1  3.79222
+Cr2O3 1  0.019065
+O     1  0.584515 | slightly oxidized
+end thermodynamic component list
+
+
+begin saturated component list
+end saturated component list
+
+begin saturated phase component list
+end saturated phase component list
+
+
+begin independent potential/fugacity/activity list
+end independent potential list
+
+
+begin excluded phase list
+end excluded phase list
+
+begin solution phase list
+Pl 
+Sp  
+O  
+Wad  
+Ring 
+Opx 
+Cpx
+Pv
+Ppv
+CF
+C2/c
+Wus
+Aki
+Gt
+NaAl
+end solution phase list
+
+40d4  2773.0     0.00000000  0.0000      0.0000     max p, t, xco2, u1, u2
+ 1      773.0     0.00000000  0.0000      0.0000     min p, t, xco2, u1, u2
+ 0.0000      0.0000     0.00000000  0.0000      0.0000     unused place holder post 06
+
+ 1  2  4  5  3   indices of 1st & 2nd independent & sectioning variables
+

@@ -20,7 +20,7 @@ c----------------------------------------------------------------------
       external iscan, iscnlt, elchk
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       character*2 strgs*3, mstrg, dstrg, tstrg*3, wstrg*3, e16st*3
@@ -412,7 +412,7 @@ c----------------------------------------------------------------------
       external iscan, iscnlt
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
 

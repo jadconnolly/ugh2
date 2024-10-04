@@ -473,7 +473,7 @@ c                                 just one group
 
             end if 
 
-            write (*,1180) 
+            write (*,1180) n9name(1:nblen(n9name))
 c                                 initialize tname, because reading a 
 c                                 null record may not do that. 
             tname  = ' '
@@ -734,7 +734,8 @@ c                                 check in the compound list
       else if (icopt.eq.0) then
 c                                 get conditions for composition
 c                                 diagrams:
-         if (ifct.eq.1) write (*,7150) 'fluid', vname(3) 
+         if (ifct.eq.1) write (*,7150) 'fluid', 
+     *                                  vname(3)(1:nblen(vname(3)))
 
          i = 0
 
@@ -777,7 +778,7 @@ c                                 diagrams:
  
 999   stop
 
-1000  format ('Specify computational mode:',//,
+1000  format (/,'Specify computational mode:',//,
      *    5x,'1 - liquidus [default]',/,5x,'2 - solidus',/)
 1010  format (i5,1x,a,a,a,a,a)
 1020  format (a,' does not exist in the selected data base')
@@ -787,9 +788,8 @@ c                                 diagrams:
 1170  format (/,'Enter the computational option file name ',
      *       '[default = perplex_option.dat]:',/,
      *       'See: www.perplex.ethz.ch/perplex_options.html')
-1180  format (/,'For details on these models see: ',
-     *        'www.perplex.ethz.ch/perplex_solution_model_glossary.html'
-     *      /,'or read the commentary in the solution model file.',/)
+1180  format (/,'For details on these models read the commentary in ',
+     *        a,/)
 1200  format (/,'In this mode the liquidus or solidus surface of a pha',
      *        'se is mapped by VERTEX over a 2-d',/,'composition space',
      *       ' as a function a thermodynamic potential (e.g., T or P).',
@@ -807,7 +807,7 @@ c                                 diagrams:
 1330  format (i2,1x,i2,1x,g13.6,1x,g13.6,1x,a)
 1340  format (5(g13.6,1x))
 1350  format (a,1x,a)
-1490  format ('Specify computational mode:',//,
+1490  format (/,'Specify computational mode:',//,
      *    5x,'1 - Convex-Hull minimization',/, 
      *    5x,'2 - Constrained minimization on a 2d grid [default]',/,
      *    5x,'3 - Constrained minimization on a 1d grid',/,
@@ -835,7 +835,7 @@ c                                 diagrams:
 2110  format (/,'Calculations with saturated components (Y/N)?')
 2310  format (/,a,' is invalid. Check spelling, upper/lower case match',
      *        ', and do not use leading blanks. Try again:',/)
-2500  format (/,'Include solution models (Y/N)?')
+2500  format ('Include solution models (Y/N)?')
 2510  format (/,'Select models from the following list, enter',
      *        ' 1 per line, press <enter> to finish',/)
 2520  format (/,'Melt phase(s) for liquidus finding.',/,
@@ -873,8 +873,8 @@ c                                 diagrams:
      *       )
 7050  format ('Try again (Y/N)?')
 7070  format (/,'Enter calculation title:')
-7150  format (/,'*Although only one component is specified for the ',a,
-     *       ' phase, its equation of state ',/,
+7150  format (/,'*Although only one component is specified for the ',
+     *       'saturated ',a,' phase, its EoS',/,
      *       'permits use of its compositional variable: ',a,'.',/) 
 
       end
@@ -1175,7 +1175,8 @@ c---------------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i, j, jcmpn, ivct, igood, ier, jsat(h5), ima, jspec, jc(2)
+      integer i, j, jcmpn, ivct, igood, ier, jsat(h5), ima, jspec,
+     *        jc(2), nblen
 
       logical satflu, mobflu, good, findph, eof, quit, readyn
 
@@ -1183,7 +1184,7 @@ c---------------------------------------------------------------------------
      *          oname(*)*5, nname(k5)*5, char6*6, 
      *          kname(*)*5, fugact(3)*8
 
-      external findph, readyn
+      external findph, readyn, nblen
 
       integer ic
       common/ cst42 /ic(k0)
@@ -1227,7 +1228,10 @@ c                                 Component stuff first:
          kname(i) = cmpnt(i)
       end do
 
-      if (lopt(7).and.icopt.ne.9) then 
+      if (lopt(7).and.icopt.ne.9) then
+c                                 icopt = 9 is frac2d, there's no fundamental
+c                                 reason to disable saturated phase constraints.
+
 c                                 components of saturated phase:
          write (*,2030)
 
@@ -1270,6 +1274,18 @@ c                                 blank input
                iv(3) = 3
                ivct = 3
             end if
+
+         end if
+
+      else
+c                                 write explanation why no saturated phase constraint
+         if (lopt(63).and.specn2) then
+c                                 special components present, but disabled by GFSM
+            write (*,1040) 
+
+         else if (.not.specn2) then
+
+            write (*,1050) n2name(1:nblen(n2name))
 
          end if
 
@@ -1449,7 +1465,7 @@ c                                 names contains the list of candidates
                         write (*,2310) name
                      end do
 
-                     write (*,1190) 
+                     write (*,1190) n9name(1:nblen(n9name))
 
                   end if
 
@@ -1662,13 +1678,18 @@ c                                 component pointers for chkphi
      *        'the EoS to be used for',/,'the corresponding ',
      *        'composants and mixtures thereof. This choice will ',/,
      *        'be overriden if you subsequently specify a GFSM ',
-     *        'solution model',/)
+     *        'solution model')
 1030  format (/,'For C-O-H fluids it is only necessary to select ',
      *       'volatile species present in',/,'the solids of interest. ',
      *       'If the species listed here are H2O and CO2, then to',/,
      *       'constrain O2 chemical potential to be consistent with ',
      *       'C-O-H fluid speciation',/,'treat O2 as a saturated ',
      *       'component. Refer to the Perple_X Tutorial for details.',/)
+1040  format (/,'**warning ver613** explicit phase saturation constrai',
+     *          'nts have been disabled',/,'by the GFSM option.',/)
+1050  format (/,'**warning ver614** explicit phase saturation constrai',
+     *          'nts cannot be implemented',/,'because ',a,' does not ',
+     *          'specify special components.',/)
 1070  format ('Ok, but don''t say i didn''t warn you.')
 1080  format ('Wise move, choose another component.')
 1190  format (/,'**warning ver064** in general it is wise to exclude ',
@@ -1854,13 +1875,17 @@ c                                 phase diagram calculations:
 
             if (icopt.ne.3.and.icopt.ne.10.and.icopt.ne.6) then 
 
-               write (*,1050) vname(1),vname(2)
+               write (*,1050) vname(1)(1:nblen(vname(1))),
+     *                        vname(2)(1:nblen(vname(2)))
                if (icopt.eq.4) write (*,1160)
 
                if (readyn()) then
 
                   do 
-                     write (*,1060) vname(1),vname(2),vname(2),vname(1)
+                     write (*,1060) vname(1)(1:nblen(vname(1))),
+     *                              vname(2)(1:nblen(vname(2))),
+     *                              vname(2)(1:nblen(vname(2))),
+     *                              vname(1)(1:nblen(vname(1)))
                      read (*,*,iostat=ier) idep
                      if (ier.eq.0) exit
                      call rerr
@@ -2286,8 +2311,8 @@ c                                 open c-space
 
       end if 
 
-1050  format (/,'The data base has ',a,' and ',a,' as default ',
-     *       'independent potentials.',/,'Make one dependent on the ',
+1050  format ('The data base has ',a,' and ',a,' as default ',
+     *       'independent potentials. Make',/,'one dependent on the ',
      *       'other, e.g., as along a geothermal gradient (y/n)? ')
 1060  format (/,'Select dependent variable:',//,'  1 - ',a,' = f(',a,')'
      *       ,/,'  2 - ',a,' = f(',a,')',/)
@@ -2310,10 +2335,10 @@ c                                 open c-space
      *        'present initially in the system:')
 1380  format (/,'The amounts you enter next need not be normalized;',
      *        ' regardless of units, they',/,
-     *        'define the molar amount of the system',/)
-1390  format (/,'Enter the ',a,' amounts of the components:')
+     *        'define the molar amount of the system.',/)
+1390  format ('Enter the ',a,' amounts of the components:')
 1410  format ('for the bulk composition of interest:')
-1420  format (/,'Specify component amounts by mass (Y/N)?')
+1420  format ('Specify component amounts by mass (Y/N)?')
 1430  format ('Constrain component ',a,' (Y/N)?')
 1450  format (/,'All thermodynamic components must be ',
      *         'constrained,',/'specify ',
@@ -2322,7 +2347,6 @@ c                                 open c-space
      *        ' component constraints.',/,
      *        'Answering no at any point',
      *        ' completes the set of constraints.',/)
-1470  format (5x,i1,' - Composition X_C1* (user defined)')
 1480  format (5x,i1,' - Composition X_C2 (user defined)')
 1500  format (//,'Specify number of independent potential variables:',
      *         /,5x,'0 - Composition diagram [default]',/,
@@ -2338,7 +2362,6 @@ c                                 open c-space
      *       'as:',/,a,/,
      *       'where X_C1 and X_C2 vary between 0 and 1, and C0, C1 ',
      *       'and C2 are the',/,'compositions specified next.')
-1570  format (/,'*X_C1 can not be selected as the y-axis variable',/)
 1590  format (5x,'2 - Sections and Schreinemakers-type diagrams')
 2010  format ('Enter the ',a,' file name [default = ',a,']:')
 2111  format (/,'Select x-axis variable:')
@@ -2375,9 +2398,6 @@ c                                 open c-space
      *            'electrolyte data',/,
      *         3x,' - set aq_lagged_speciation and refine_endmembers to'
      *           ,' true (T)')
-7150  format (/,'*Although only one component is specified for the ',a,
-     *       ' phase, its equation of state ',/,
-     *       'permits use of its compositional variable: ',a,'.',/) 
 
       end 
 
@@ -2394,7 +2414,9 @@ c----------------------------------------------------------------------
 
       logical oned
 
-      integer j, ivct, ier, ix, jc, jvct, jcont
+      integer j, ivct, ier, ix, jc, jvct, jcont, nblen
+
+      external nblen
 
       integer ifct,idfl
       common/ cst208 /ifct,idfl
@@ -2444,7 +2466,7 @@ c                                 bulk composition allowed
 c                                 bulk composition variable
             if (jcont.eq.1) write (*,1470) j
 c                                 saturated phase composition explanation
-            if (ifct.eq.1) write (*,7150) vname(3)
+            if (ifct.eq.1) write (*,7150) vname(3)(1:nblen(vname(3)))
 c                                 warn that the bulk composition
 c                                 variable can't be used on y
             if (.not.oned.and.jcont.eq.1) write (*,1570)
@@ -2482,11 +2504,11 @@ c                                 read limits
       end do
 
 1470  format (5x,i1,' - Composition X_C1* (user defined)')
-1570  format (/,'*X_C1 can not be selected as the y-axis variable',/)
+1570  format ('*X_C1 can not be selected as the y-axis variable.')
 2111  format (/,'Select ',a,' variable:')
 2140  format (5x,I1,' - ',a)
-7150  format (/,'*Although only one component is specified for the ',a,
-     *       ' phase, its equation of state',/,
-     *       ' permits use of its compositional variable: ',a,'.',/)
+7150  format ('*Although only one component is specified for the ',a,
+     *       ' phase, its EoS',/,
+     *       ' permits use of its compositional variable: ',a,'.')
 
       end

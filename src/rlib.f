@@ -712,9 +712,6 @@ c---------------------------------------------------------------------
       integer jfct,jmct,jprct,jmuct
       common/ cst307 /jfct,jmct,jprct,jmuct
 
-      character*8 eoscmp
-      common/ cst98 /eoscmp(2)
-
       integer iam
       common/ cst4 /iam
 
@@ -754,17 +751,16 @@ c                                        = 3, both
       if (lopt(7)) then
 
          do k = 1, ispec
-
-            if (name.ne.cmpnt(idspe(k)).and.name.ne.eoscmp(k)) cycle
+c                                 this used to also use eoscmp which is the components
+c                                 needed for a particular internal eos. 10/24
+            if (name.ne.cmpnt(idspe(k))) cycle
 c                                 this is an awful mess, if there is a saturated
 c                                 phase (ifct > 0) then ufluid will call the eos
 c                                 identified by ifug irrespective of the eos value.
             if (ifct.eq.0.or.iam.eq.5) then
-
-               if (ieos.gt.100.and.(iam.lt.5.or.iam.eq.15)) 
-     *            call warn (56,r,k,name)
-c                                 there is no saturated phase
-c                                 assign it the default molecular fluid eos
+c                                 there is no saturated phase assign it the default 
+c                                 saturated fluid eos, this is overriden if a GFSM
+c                                 model is found by input9
                eos(id) = 200 + k
 
             else if (k.eq.1.and.idfl.ne.2.or.
@@ -1780,7 +1776,7 @@ c----------------------------------------------------------------------
       common/ cst18a /mname(m4)
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
       ier = 0
@@ -1839,7 +1835,7 @@ c----------------------------------------------------------------------
       double precision rnums(*)
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
 c                                 read card scans for non blank data
@@ -1934,7 +1930,7 @@ c----------------------------------------------------------------------
      *      rkord(m1),iterm,iord,istot,jstot,kstot
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       character*2 strgs*3, mstrg, dstrg, tstrg*3, wstrg*3, e16st*3
@@ -2123,7 +2119,7 @@ c----------------------------------------------------------------------
      *          strg*40, strg1*40
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       integer indq,idqf
@@ -2243,7 +2239,7 @@ c----------------------------------------------------------------------
       double precision nums(m3)
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       integer kstot,jend,i,ict
@@ -2340,7 +2336,7 @@ c----------------------------------------------------------------------
       double precision nums(m3)
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       integer jend,i,idqf,indq
@@ -2430,7 +2426,7 @@ c----------------------------------------------------------------------
       common/ cst18a /mname(m4)
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
       ier = 0
@@ -2554,7 +2550,7 @@ c----------------------------------------------------------------------
       character name*8, tname*10, tag*3
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
       ict = 0
@@ -4954,8 +4950,9 @@ c                                 with a composant of the GFSM.
             else if (eos(kdsol(i)).gt.200) then
 
                temp = names(kdsol(i))(1:nblen(names(kdsol(i))))
-
-               write (*,1040) tname(1:nblen(tname)),
+c                                 no warning if pssect/werami
+               if (iam.ne.3.and.iam.ne.7) write (*,1040) 
+     *                        tname(1:nblen(tname)),
      *                        temp(1:nblen(temp)),
      *                        n2name(1:nblen(n2name)),
      *                        temp(1:nblen(temp)),
@@ -5002,18 +4999,16 @@ c                                missing endmember warnings:
             end if
          end do
 
-         if (first) then 
-            write (*,1000) tname,(missin(i), i = 1, imiss)
-            write (*,'(/)')
-         end if
+         if (first) write (*,1000) tname(1:nblen(tname)),
+     *                    (missin(i), i = 1, imiss)
 
       end if
 
-1000  format (/,'**warning ver114** the following endmembers',
-     *          ' are missing for ',a,//,4(8(2x,a)))
-1010  format (/,'**warning ver115** endmember ',a,' is flagged in sol',
+1000  format ('**warning ver114** the following endmembers',
+     *          ' are missing for ',a,':',/,6(2x,a))
+1010  format ('**warning ver115** endmember ',a,' is flagged in sol',
      *       'ution model ',a,/,'flagging is disabled for solidus/liq',
-     *       'uidus calculations.',/,a,'will be treated as a normal e',
+     *       'uidus calculations.',/,a,' will be treated as a normal e',
      *       'ndmember of ',a)
 1020  format (/,'**error ver116** GFSM solution model ',a,
      *       ' has a species (',a,') that is specified',/,'as a ',
@@ -5024,15 +5019,13 @@ c                                missing endmember warnings:
      *       ' has a species (',a,') subject to a',/,
      *       'component saturation constraint. Eliminate either ',
      *       'the saturation constraint or',/,
-     *       'or the GFSM model from your input (',a,').')
+     *       'the GFSM model from your input (',a,').')
 1040  format (/,'**warning ver117** GFSM solution model ',a,' has a ',
      *       'species (',a,') that is a composant of',/,'a special ',
      *       'component specified in ',a,'. ',a,' will be reclassified',
-     *       ' as a GFSM species.',/,'This reclassification has the ',
-     *       'consequence that the choice of EoS specified for this',/,
+     *       ' as a GFSM species.',/,'The EoS specified for this ',
      *       'species in ',a,' will be overridden by the hybrid_EoS_',a,
-     *       ' option and that special',/,'components will be disabled.'
-     *       ,/)
+     *       ' option.',/)
       end
 
       subroutine redep (jkill)
@@ -9581,7 +9574,7 @@ c---------------------------------------------------------------------
       character begin*5, tag*3, tname*10
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
 
@@ -12140,7 +12133,7 @@ c-----------------------------------------------------------------------
       common/ cxt2 /aqg(m4),qq(m4),rt,jnd(m4)
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       integer idaq, jdaq
@@ -14635,7 +14628,7 @@ c                                 adaptive coordinates
       common/ cxt2 /aqg(m4),qq(m4),rt,jnd(m4)
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       integer idaq, jdaq
@@ -17232,7 +17225,7 @@ c----------------------------------------------------------------------
       character name*8, eod*3, tname*10
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       integer iend,isub,insp,iterm,iord,istot,jstot,kstot,rkord
@@ -17291,7 +17284,9 @@ c---------------------------------------------------------------------
       logical first, killed, nokill
 
       integer kill, ikill, jkill, kill1, i, j, kosp(mst,msp), kill2,
-     *        k, l, im, ii, jpoly, jsimp, jvct, ksimp(mst)
+     *        k, l, im, ii, jpoly, jsimp, jvct, ksimp(mst), nblen
+
+      external nblen
 
       character tname*10
       logical refine, lresub
@@ -17419,7 +17414,7 @@ c                                 has been identified.
                if (first.and.isimp(ii).gt.1) call warn (100,0d0,101,
      *             'eliminated subcomposition '
      *             //poname(h0,poly(h0)+1,1,ii)/
-     *             /'during reformulation of '//tname//
+     *             /'during reformulation of '//tname(1:nblen(tname))//
      *             ' due to missing endmembers.')
                exit
 
@@ -17430,8 +17425,8 @@ c                                 has been identified.
          if (ipvert(ii).gt.0.and.killed.and.first.and.isimp(ii).gt.1) 
      *      call warn (100,0d0,102,
      *          'reformulated subcomposition '
-     *          //poname(h0,poly(h0)+1,1,ii)/
-     *          /' of '//tname//' due to missing endmembers.')
+     *          //poname(h0,poly(h0)+1,1,ii)//' of '//
+     *          tname(1:nblen(tname))//' due to missing endmembers.')
 c                                 next polytope
       end do
 c                                 clean up the model by eliminating empty/
@@ -18889,7 +18884,7 @@ c                               thermodynamic composition space.
 
          end do 
 
-      end if  
+      end if
 c                                 load the old cbulk array
       if (ifct.gt.0) iphct = 2
 c                                 identify nonzero components.
@@ -19354,7 +19349,7 @@ c                                write summary and checks
       else if (lopt(32).or.lopt(25)) then 
 
          if (first.and.iam.lt.4) 
-     *       call warn (99,0d0,0,' no data for aqueous species, '
+     *       call warn (99,0d0,0,'no data for aqueous species, '
      *                 //'aq_output and aq_lagged_speciation disabled.')
 
          lopt(32) = .false.

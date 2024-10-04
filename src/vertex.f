@@ -78,7 +78,7 @@ c-----------------------------------------------------------------------
 c----------------------------------------------------------------------- 
 c                                 iam indicates the Perple_X program
 c                                    iam = 1  - vertex
-c                                    iam = 2  - meemum
+c                                    iam = 2  - meemum, MC_fit
 c                                    iam = 3  - werami 
 c                                    iam = 4  - build 
 c                                    iam = 5  - frendly
@@ -2542,7 +2542,7 @@ c----------------------------------------------------------------------
       integer i, ist, iend
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       integer npt,jdv

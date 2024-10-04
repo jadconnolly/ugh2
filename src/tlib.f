@@ -2,7 +2,7 @@ c----------------------------------------------------------------------
 
 c TLIB - a library of subprograms called by the PERPLEX programs.
 
-c Copyright (C) 1986-2023 James A D Connolly
+c Copyright (C) 1986-2024 James A D Connolly
 
 c This file is part of Perple_X.
 
@@ -36,7 +36,7 @@ c----------------------------------------------------------------------
       integer n
 
       write (n,'(/,a,//,a)') 
-     *     'Perple_X release 7.1.8 Sep 26, 2024.',
+     *     'Perple_X release 7.1.8 Oct 2, 2024.',
 
      *     'Copyright (C) 1986-2024 James A D Connolly '//
      *     '<www.perplex.ethz.ch/copyright.html>.'
@@ -169,7 +169,7 @@ c----------------------------------------------------------------------
       common/ cst4 /iam
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       logical mus
@@ -573,17 +573,17 @@ c                                 initialize mus flag lagged speciation
 c                                 -------------------------------------
 c                                 for gridded minimization:
 c                                 # nodes in i direction
-      grid(1,1) = 10 
+      grid(1,1) = 20 
       grid(1,2) = 40
 c                                 # nodes in j direction
-      grid(2,1) = 10 
+      grid(2,1) = 20 
       grid(2,2) = 40
 c                                 # of levels
       grid(3,1) = 1
       grid(3,2) = 4
 c                                 1d fractionation path
       grid(4,1) = 40 
-      grid(4,2) = 150
+      grid(4,2) = 160
 c                                 -------------------------------------
 c                                 for schreinemakers etc:
 c                                 max variance 
@@ -2142,10 +2142,10 @@ c                                 thermo options for frendly
      *        4x,'grid_levels             ',i1,' /',i2,5x,'[1/4] >0, '
      *          ,'<',i2,/)
 1200  format (/,2x,'2D grid options:',//,
-     *        4x,'x_nodes                ',i3,' /',i3,3x,'[10/40] >0, '
+     *        4x,'x_nodes                ',i3,' /',i3,3x,'[20/40] >0, '
      *          ,'<',i4,'; effective x-resolution ',i4,' /',i4
      *          ,' nodes',/
-     *        4x,'y_nodes                ',i3,' /',i3,3x,'[10/40] >0, '
+     *        4x,'y_nodes                ',i3,' /',i3,3x,'[20/40] >0, '
      *          ,'<',i4,'; effective y-resolution ',i4,' /',i4,
      *           ' nodes',/
      *        4x,'grid_levels             ',i1,' /',i2,5x,'[1/4] >0, '
@@ -2154,7 +2154,7 @@ c                                 thermo options for frendly
 1205  format (4x,'liquidus_resolution    ',f4.2,7x,'[1] K or bar')
 1210  format (/,2x,'Fractionation path options:',//,
      *        4x,'1d_path               ',i3,' /',i3,4x,
-     *           '[20/150] >0, <',i4)
+     *           '[40/160] >0, <',i4)
 1220  format (/,2x,'Composition options:',//,
      *        4x,'closed_c_space          ',l1,9x,'[T] F')
 1230  format (/,2x,'Input/Output options:',//,
@@ -2260,7 +2260,7 @@ c----------------------------------------------------------------------
      *          nval1*12, nval2*12, nval3*12, strg*40, strg1*40
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------    
       ier = 0 
@@ -2391,7 +2391,7 @@ c----------------------------------------------------------------------
       character string(3)*8
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
 
@@ -2674,11 +2674,13 @@ c---------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer ier, int
- 
+      integer ier, int, nblen
+
       character char*(*), tag*3
 
       double precision realv
+
+      external nblen
 
       integer iam
       common/ cst4 /iam
@@ -2813,7 +2815,8 @@ c---------------------------------------------------------------------
       else if (ier.eq.56) then 
          write (*,56) k17
       else if (ier.eq.57) then 
-         write (*,57) char, char, char
+         write (*,57) char(1:nblen(char)), char(1:nblen(char)), 
+     *                char(1:nblen(char))
       else if (ier.eq.60) then 
          write (*,60) k22, char
       else if (ier.eq.61) then 
@@ -3064,7 +3067,7 @@ c                                 accordingly:
      *         ,', increase parameter K17 (',i2,') and recompile.',/)
 57    format (/,'**error ver057** failed on an accepted make definition'
      *         ,' for ',a,/,'routine INPUT2. Exclude ',a,' and restart',
-     *          ' the calculation.',/,'If ',a,/,' is legitimate. please'
+     *          ' the calculation.',/,'If ',a,' is legitimate. please'
      *         ,' report this error.',/)
 60    format (/,'**error ver060** too many coordinates generated by ',
      *        'refinement, increase dimension k22 (',i8,') routine: ',a)
@@ -3282,9 +3285,9 @@ c----------------------------------------------------------------------
       else if (ier.eq.24) then
          write (*,24) realv
       else if (ier.eq.25) then 
-         write (*,25) int, char
+         write (*,25) int, char(1:nblen(char))
       else if (ier.eq.26) then 
-         write (*,26) char
+         write (*,26) char(1:nblen(char))
       else if (ier.eq.27) then 
          write (*,27) int
       else if (ier.eq.28) then
@@ -3535,10 +3538,10 @@ c                                 generic warning, also 99
 24    format (/,'**warning ver024** wway, increment refined out of',
      *          ' range (',g8.1,')',/,'before the stable',
      *          ' extension of the equilibria was located')
-25    format (/,'**warning ver025** ',i1,' endmembers for ',a,
-     *          ' The solution will not be considered.',/)
+25    format ('**warning ver025** ',i1,' endmembers for ',a,
+     *          '. The solution will not be considered.')
 26    format ('**warning ver026** only one endmember for ',a,
-     *          ' The solution will not be considered.')
+     *          '. The solution will not be considered.')
 27    format (/,'**warning ver027** only ',i2,' user defined ',
      *      'compositions permitted.',/,'do multiple runs with WERAMI',
      *      'or redimension common block comps.',/)
@@ -3650,10 +3653,10 @@ c                                 generic warning, also 99
      *         ,' space. the compositions will not be considered.',/,
      *         'If this is problematic, then eliminate the component ',
      *         'saturation constraints',/,'or use convex.',/)
-56    format (/,'**warning ver056** the EoS specified by the hybrid_',
+56    format ('**warning ver056** the EoS specified by the hybrid_',
      *        'EoS_',a,' option will be',/,'overridden by the EoS sp',
      *        'ecified in the problem definition file. To prevent this',
-     *      /,'behavior set the GFSM option to True.',/)
+     *      /,'behavior set the GFSM option to True.')
 57    format (/,'**warning ver044** ordinarily ',a,' should > 0, value',
      *          's <= 0 may cause numerical',/,
      *          'instability. Specify a different value (Y/N)?')
@@ -3831,7 +3834,7 @@ c----------------------------------------------------------------------
       common/ cst37 /ixct,ifact
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
 
@@ -3951,7 +3954,7 @@ c-----------------------------------------------------------------------
       character name*(*)
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
 
@@ -3995,7 +3998,7 @@ c----------------------------------------------------------------------
       external iscan, iscnlt
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
 
@@ -4081,7 +4084,7 @@ c-----------------------------------------------------------------------
       character num*30
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
       ier = 0 
@@ -4148,7 +4151,7 @@ c-----------------------------------------------------------------------
       character num*30
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
       ier = 0 
@@ -4241,8 +4244,7 @@ c                                 first the thermo data file
 
          call fopen2 (2)
  
-         if (iam.eq.6) then 
-            write (*,1070) 'ctransf.dat'
+         if (iam.eq.6) then
             open (n8,file='ctransf.dat')
          else if (iam.eq.9) then 
             write (*,1070) 'actcor.dat'
@@ -4383,7 +4385,7 @@ c----------------------------------------------------------------------
       common/ cst4 /iam
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       character commnt*lchar
@@ -4520,7 +4522,7 @@ c----------------------------------------------------------------------
       common/ cst318 /emodu(k15)
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       character*2 strgs*3, mstrg, dstrg, tstrg*3, wstrg*3, e16st*3
@@ -4819,7 +4821,7 @@ c----------------------------------------------------------------------
       external iscan, iscnlt
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
 
@@ -4905,7 +4907,7 @@ c----------------------------------------------------------------------
       common/ cst43 /comp(k0),tot,icout(k0),ikind,icmpn,ieos
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       character tcname*5,xcmpnt*5
@@ -5009,7 +5011,7 @@ c----------------------------------------------------------------------
       common/ csta5 /cl(k0),cmpnt(k0),dname
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       integer ltyp,lct,lmda,idis
@@ -5034,7 +5036,7 @@ c                                 name & EoS
       read (names(id),'(8a)') chars(1:8)
       ibeg = 9
       var = eos(id)
-      call outthr (var,' EoS',4,ibeg) 
+      call outthr (var,'EoS',3,ibeg) 
 
       if (iam.eq.6.or.iam.eq.9.or.iam.eq.10) then 
 c                                 actcor, ctransf, and rewrite are echoing
@@ -5240,7 +5242,7 @@ c----------------------------------------------------------------------
       integer i, ibeg, iend, siz, len0, jend
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
       if (num.ne.0d0.or.strg.eq.'EoS') then 
@@ -5267,16 +5269,28 @@ c                                 trim out trailing blanks
          chars(iend+2) = '='
          chars(iend+3) = ' '
 
-         call numtxt (num,text,len0)
+         if (num.eq.0d0) then
+c                                 allow 0 as an EoS flag
+            chars(iend+4) = '0'
+            chars(iend+5) = ' '
+            chars(iend+6) = ' '
 
-         do i = 1, len0
-            chars(iend+3+i) = text(i)
-         end do
+            ibeg = iend + 6
 
-         chars(iend+3+i) = ' '
-         chars(iend+4+i) = ' '
+         else
 
-         ibeg = iend + 4 + i
+            call numtxt (num,text,len0)
+
+            do i = 1, len0
+               chars(iend+3+i) = text(i)
+            end do
+
+            chars(iend+3+i) = ' '
+            chars(iend+4+i) = ' '
+
+            ibeg = iend + 4 + i
+
+         end if
 
       end if 
 
@@ -5614,7 +5628,7 @@ c----------------------------------------------------------------------
       integer kscan, iscnlt, ierr, siz
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
 
@@ -5702,7 +5716,7 @@ c----------------------------------------------------------------------
       integer kscan, siz
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
       read (tfname,'(100a)') chars(1:100)
@@ -5737,7 +5751,7 @@ c-----------------------------------------------------------------------
 
       external readyn, nblen
 
-      data ddata/'hp02ver.dat   '/
+      data ddata/'hp62ver.dat   '/
 c-----------------------------------------------------------------------
 
       do 
@@ -5775,7 +5789,7 @@ c                                 BUILD, echo name to n1:
       end do 
  
 1000  format (/,'Enter thermodynamic data file name',
-     *          ' [default = hp02ver.dat]:')
+     *          ' [default = hp62ver.dat]:')
 1010  format (/,'**warning ver191** FOPEN2 cannot find file:',/,a
      *         ,//,'try again (y/n)?')
 1060  format (/,'O.K., I quit too.')
@@ -5801,7 +5815,7 @@ c----------------------------------------------------------------------
       character text*(*), text1*(*), text2*(*)
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
       chars(1:lchar) = ' '
@@ -5929,7 +5943,7 @@ c                                 components in the new component:
        
          write (*,4050) k5-1,char5(1:nblen(char5))
 30       read (*,'(a)') rname
-         if (rname.eq.'     ') goto 80
+         if (rname.eq.' ') goto 80
 
          do i = 1, icmpn
             if (rname.eq.cmpnt(i)) then 
@@ -5958,20 +5972,25 @@ c                                 get the component stoichiometries:
          if (readyn()) then
 
             sum = 0d0
-            ssum = 0d0             
+            ssum = 0d0
+
             do i = 1, ict
                sum = sum + ctrans(icout(i),itrans) * atwt(icout(i))
                ssum = ssum + ctrans(icout(i),itrans) * sel(icout(i))
-            end do 
+            end do
+
             atwt(icout(1)) = sum
             sel(icout(1)) = ssum
             cmpnt(icout(1)) = char5
             cl(icout(1)) = jscan(1,5,' ',char5) - 1
             tcname(itrans) = char5
             ictr(itrans) = icout(1)
+
          else
+
             itrans = itrans - 1
-            write (*,1000) 
+            write (*,1000)
+
          end if
 
       end do 
@@ -6045,7 +6064,7 @@ c----------------------------------------------------------------------
       common/ csta9 /tcname(k0),xcmpnt(k0)
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       integer ipot,jv,iv1,iv2,iv3,iv4,iv5
@@ -6216,7 +6235,9 @@ c                                 read special components, override by lopt(63)
 
       if (key.eq.'begin_special_componen') then
 
-         ispec = 0 
+         ispec = 0
+c                                 flag for build saturated phase warning:
+         specn2 = .true.
 
          do 
  
@@ -6240,6 +6261,8 @@ c                                 read special components, override by lopt(63)
 c                                 no saturated phase constraint possible
 c                                 set lopt(7) to false. 
          backspace(n2)
+
+         specn2 = .false.
 
       end if 
 
@@ -6484,7 +6507,7 @@ c-------------------------------------------------------------------
       character text*(*)
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c-------------------------------------------------------------------
       nchar = len(text)
@@ -6586,7 +6609,7 @@ c subprogram to filter blanks from text
       integer ist,iend,i,itic,igot,jend
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       itic = ist - 1
@@ -6637,7 +6660,7 @@ c----------------------------------------------------------------------
       character text*(*)
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
       nchar = len(text) + ibeg -1 
@@ -6692,7 +6715,7 @@ c----------------------------------------------------------------------
       integer ibeg, iend
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
 
@@ -6718,7 +6741,7 @@ c----------------------------------------------------------------------
       integer ibeg, iend, inc
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
       if (ibeg.gt.iend) then 
@@ -6749,7 +6772,7 @@ c----------------------------------------------------------------------
       integer ibeg, iend, inc
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
 
@@ -6824,7 +6847,7 @@ c----------------------------------------------------------------------
       character text*(*)
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c---------------------------------------------------------------------- 
       nchar = len(text) 
@@ -6861,7 +6884,7 @@ c----------------------------------------------------------------------
       character text*(*)
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c---------------------------------------------------------------------- 
       nchar = len(text) 
@@ -6988,7 +7011,7 @@ c----------------------------------------------------------------------
       character text*(*)
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
       nchar = len(text) 
@@ -7050,7 +7073,7 @@ c----------------------------------------------------------------------
       external iscan, iscnlt
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
       do i = 2, 3
@@ -7459,7 +7482,7 @@ c----------------------------------------------------------------------
       common / cst41 /io3,io4,io9
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       character tname*10
@@ -8642,7 +8665,7 @@ c id identifies the assemblage
       integer i, ist, iend, id, ids
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 c----------------------------------------------------------------------
       iend = 0
@@ -9428,7 +9451,10 @@ c                                 dummy variable place holders
 c                                 read code for choice of fluid equation
 c                                 of state from terminal. 
       read (n1,*,err=998) ifug
-      
+c                                 hu is set to 1 for EoS that project onto 
+c                                 H2 and O2.
+      hu = 0
+
       if (ifug.eq.8 .or.ifug.eq.10.or.ifug.eq.12.or.ifug.eq.16.or.
      *    ifug.eq.17.or.ifug.eq.19.or.ifug.eq.20.or.ifug.eq.24.or.
      *    ifug.eq.25) then

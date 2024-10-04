@@ -2948,9 +2948,8 @@ c-----------------------------------------------------------------------
  
       double precision f(nsp),ev(3),dsqrtt,rt,
      *                 d1,d2,d4,bx,v1,v2,aij,c1,c2,c3,pdv,r
-      double precision csrkp,hserh2,xi,gt,z,gam
 
-      integer ins(*), isp, k, iroots, i, ineg, ipos, j
+      integer ins(*), isp, k, iroots, i, ineg, ipos
  
       double precision p,t,xco2,u1,u2,tr,pr,rbar,ps
       common/ cst5  /p,t,xco2,u1,u2,tr,pr,rbar,ps

@@ -31,7 +31,7 @@
 
 |----------------------------------------------------------------------
 
-1d_path                   default | [40 150] exploratory and autorefine (grid parameters keyword group)
+1d_path                   default | [40 160] exploratory and autorefine (grid parameters keyword group)
 
 absolute                  default | [F] T => WERAMI - output absolute component amounts, lopt(41)
 Anderson-Gruneisen        default | [F] T => Anderson-Gruneisen parameter correction for polythermal Murnaghan and Birch-Murnaghan

@@ -59,7 +59,7 @@ c----------------------------------------------------------------------
       common/ cxt23 /jend(h9,m14+2)
 
       integer length,com
-      character chars*1, card*(lchar)
+      character chars*1, card*lchar
       common/ cst51 /length,com,chars(lchar),card
 
       integer jnd

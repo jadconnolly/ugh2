@@ -15,6 +15,10 @@ c----------------------------------------------------------------------
       integer eos
       common/ cst303 /eos(k10)
 
+      character specie*4
+      integer ins, isp
+      common/ cxt33 /isp,ins(nsp),specie(nsp)
+
       integer ikind,icmpn,icout,ieos
       double precision comp,tot
       common/ cst43 /comp(k0),tot,icout(k0),ikind,icmpn,ieos
@@ -65,6 +69,20 @@ c                                 component conversion
 
          names(k10) = name
 
+         if (ieos.eq.201.or.ieos.eq.202) then
+c                                 locate the species and reset the flag
+            do i = 1, nsp
+               if (name.eq.specie(i)) then
+                  ieos = 100 + i
+                  exit
+               end if
+            end do
+
+            if (ieos.gt.200) call errdbg (name//' has an invalid EoS'//
+     *                          'specification, execution terminated.')
+
+         end if
+
          eos(k10) = ieos
 
          lct(k10) = ilam
@@ -83,10 +101,14 @@ c                                 output new data
          call outdat (n8,k10,0)
 
       end do 
-      
+
+      write (*,1020)
+
 1000  format (//,'NO is the default answer to all Y/N prompts',/)
 1010  format (//,'**warning ver000** ctransf cannot reformat CALPHAD ',
      *          'format data',/,'the data for ',a,' will not be ',
      *          'written to ctransf.dat',//)
+1020  format (/,'The transformed dataset has been written to file: ',
+     *          'ctransf.dat')
 
       end
