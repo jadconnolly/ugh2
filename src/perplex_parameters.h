@@ -637,11 +637,9 @@ c                                 getInput must be set to true for any
 c                                 program that calls  fopen1, input1, or iniprp in tlib.f
       logical :: getInput, meemumInit, sWarn
       common/ libVars /getInput, meemumInit, sWarn
-c                                 special component indices and counter, specn2 is T if 
-c                                 the thermodynamic data file has a special component section
-      logical specn2
+c                                 special component indices and counter
       integer idspe, ispec
-      common/ cst19 /idspe(2),ispec,specn2
+      common/ cst19 /idspe(2),ispec
 c                                 component gram formula weights
       double precision atwt
       common/ cst45 /atwt(k0)
@@ -699,4 +697,3 @@ c                                 kphct - index of last saturated component/phas
 c                                 imyn - flag indicating mobile components
       integer ipoint, imyn, kphct
       common/ cst60 /ipoint,kphct,imyn
-      

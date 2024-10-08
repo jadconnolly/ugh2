@@ -81,29 +81,37 @@ c                                 bulk coordinates
 
       end
 
-      subroutine rfluid (irk)
+      subroutine rfluid (irk,jc)
 c---------------------------------------------------------------------
+c irk = 0 - check for special component matches (7.1.8)
 c irk = 1 - write/read prompt for fluid equations of state
 c irk = 2 - write fluid equation of state for outtit to unit n3
 c irk = 3 - write fluid equation of state to console
 c irk = 4 - write/read prompt for saturated fluid equations of state
+c           with special component check to eliminate invalid choices 
+c           (7.1.8) (BUILD)
+c irk = 5 - as in 1, but with special component check to eliminate
+c           invalid choices (7.1.8) (FRENDLY)
 c---------------------------------------------------------------------
       implicit none
    
       include 'perplex_parameters.h'
 
-      integer nrk,i,irk,ier
+      integer nrk, i, j, k, irk, ier, nblen, jc(2)
 
       parameter (nrk=27)
 
-      logical readyn
+      logical readyn, err, eosok(0:nrk)
 
-      character rkname(0:nrk)*63
+      character rkname(0:nrk)*63, eoscmp(2)*5, char5*5
 
-      external readyn
+      external readyn, nblen
 
       double precision buf
       common/ cst112 /buf(5)
+
+      integer icomp,istct,iphct,icp
+      common/ cst6  /icomp,istct,iphct,icp
 
       integer ibuf,hu,hv,hw,hx   
       double precision dlnfo2,elag,gz,gy,gx
@@ -114,6 +122,13 @@ c---------------------------------------------------------------------
 
       integer iam
       common/ cst4 /iam
+
+      integer ifct,idfl
+      common/ cst208 /ifct,idfl
+
+      integer cl
+      character cmpnt*5, dname*80
+      common/ csta5 /cl(k0),cmpnt(k0),dname
 
       save rkname 
 
@@ -172,6 +187,158 @@ c 25
      *'X(O) O-Si MRK Connolly 16',
      *'X(O)-X(C) C-O-H MRK hybrid-EoS*'/
 c---------------------------------------------------------------------
+      eosok = .true.
+
+      if (irk.eq.0.or.irk.eq.4.or.irk.eq.5) then
+c                                 only check fluid saturation constraints
+         if (ifct.eq.0) return
+c                                 hardwired fluid EoS endmember names
+         if (hu.eq.1.or.ifug.eq.16.or.ifug.eq.17) then 
+
+            eoscmp(1) = 'H2'
+            eoscmp(2) = 'O2'
+
+         else if (ifug.eq.26) then
+
+            eoscmp(1) = 'O'
+            eoscmp(2) = 'Si'
+
+         else if (ifug.eq.15.or.ifug.eq.13) then
+
+            eoscmp(1) = 'H2O'
+            eoscmp(2) = 'H2'
+
+         else
+
+            eoscmp(1) = 'H2O'
+            eoscmp(2) = 'CO2'
+
+         end if
+
+         if (irk.eq.0) then
+
+            do i = 1, ifct
+         
+               err = .true.
+
+               if (iam.eq.4.or.iam.eq.5) then 
+                  char5 = cmpnt(jc(i))
+               else 
+                  char5 = cname(icomp-ifct+i)
+               end if
+
+               do j = 1, 2
+
+                  if (eoscmp(j).eq.char5) then
+                     err = .false.
+                     exit
+                  end if
+
+               end do
+
+               if (err) exit
+
+            end do
+
+            if (err) then
+
+               write (*,1300) char5(1:nblen(char5)),
+     *                        eoscmp(1)(1:nblen(eoscmp(1))),
+     *                        eoscmp(2)(1:nblen(eoscmp(2))),
+     *                        rkname(ifug)(1:nblen(rkname(ifug))),
+     *                        n2name(1:nblen(n2name))
+
+               call errpau
+
+             end if
+
+             return
+
+
+1300  format (/,'**error ver918** Saturated phase component ',a,
+     *       ' does not match one of the independent',/,'components (',
+     *        a,' or ',a,') of the requested EoS:',/,7x,a,/,
+     *       'Choose a different EoS or change the special ', 
+     *       'components specified in: ',a)
+
+
+c              write (*,1300) n2name(1:nblen(n2name)),
+c    *                        (cmpnt(jc(i)),i=1,ifct)
+c              write (*,1310) eoscmp(1)(1:nblen(eoscmp(1))),
+c    *                        eoscmp(2)(1:nblen(eoscmp(2))),
+c    *                        rkname(ifug)(1:nblen(rkname(ifug)))
+c1310  format (/,'**error ver918**The components ',a,' and ',
+c     *        a,' constrained by the EoS (',a,')',/,
+c     *        'chosen to implement the phase ',
+c     *        'saturation constraint',/)
+
+         else
+c                                flag EoS ok with the database special
+c                                components, this'll only be called
+c                                before the eos choice
+            do i = 0, nrk
+
+               if (i.eq.4.or.i.eq.6.or.i.eq.9.or.i.eq.18.or.i.eq.21.or.i
+     *            .eq.3.or.i.eq.22.or.i.eq.23.or.i.eq.7.or.i.eq.11) then
+
+                    eosok(i) = .false.
+                    cycle
+
+               else
+c                                 at this point it is not known if the user 
+c                                 will project through C for COH EoS
+                  if (i.eq.16.or.i.eq.17) then 
+
+                    eoscmp(1) = 'H2'
+                    eoscmp(2) = 'O2'
+
+                  else if (i.eq.26) then
+
+                     eoscmp(1) = 'O'
+                     eoscmp(2) = 'Si'
+
+                  else if (i.eq.15.or.i.eq.13) then
+
+                     eoscmp(1) = 'H2O'
+                     eoscmp(2) = 'H2'
+
+                  else
+
+                     eoscmp(1) = 'H2O'
+                     eoscmp(2) = 'CO2'
+
+                  end if
+
+                  do k = 1, ifct
+         
+                     err = .true.
+         
+                     do j = 1, 2
+
+                        if (eoscmp(j).eq.cmpnt(jc(k))) then
+
+                           err = .false.
+                           exit
+
+                        end if
+
+                     end do
+
+                     if (err) then
+                        eosok(i) = .false.
+                        exit
+                     end if
+
+                  end do
+
+               end if
+
+            end do 
+
+         end if
+
+      end if
+
       if (irk.eq.2) then
 
          write (n3,1060) rkname(ifug)
@@ -190,9 +357,11 @@ c---------------------------------------------------------------------
       ibuf = 1
       dlnfo2 = 0d0
 
-10    if (irk.eq.1) then
-         write (*,1000)
+10    if (irk.eq.1.or.irk.eq.5) then
+c                                 suppress prompt for BUILD if irk = 1.
+         if (iam.ne.4.and.irk.eq.1) write (*,1000)
       else
+c                                 specify "saturated phase" eos.
          write (*,1005)
       end if
 
@@ -200,7 +369,7 @@ c---------------------------------------------------------------------
          if (i.eq.4.or.i.eq.6.or.i.eq.9.or.i.eq.18.or.i.eq.21.or.    
      *       i.eq.3.or.i.eq.22.or.i.eq.23.or.i.eq.7.or.i.eq.11) cycle 
 
-         write (*,1070) i,rkname(i)
+         if (eosok(i)) write (*,1070) i,rkname(i)
 
       end do 
 c                                 write hybrid eos blurb
@@ -388,7 +557,7 @@ c                                get the salt content (elag):
       end if 
 
 1000  format (/,'Select fluid equation of state:',/)
-1005  format (/,'Select the EoS to be used for the saturated fluid ',/,
+1005  format (/,'Select the EoS to be used for the saturated fluid ',
      *          'constraint:',/)
 1010  format (/,'Select buffer: ',//,
      *          ' 1 - aQFM, 298-1200K',/,
@@ -431,9 +600,15 @@ c                                get the salt content (elag):
      *          ' 1 - mass fraction',/,
      *          ' 2 - mole fraction',/)
 1210  format (/,'Enter ',a,' salt fraction (0->1) in the fluid:',/)
+c1300  format (/,'**error ver918** The special components designated in '
+c     *         ,a,':',2(1x,a))
+c1310  format (/,'**error ver918**The components ',a,' and ',
+c     *        a,' constrained by the EoS (',a,')',/,
+c     *        'chosen to implement the phase ',
+c     *        'saturation constraint',/)
 56    format (/,'**warning ver056** C-O-H hybrid cannot be specified ',
      *          'for saturated components',/,'or a saturated phase. To',
-     *          'use this EoS see:',/,
+     *          ' use this EoS see:',/,
      *          'perplex.ethz.ch/perplex/faq/calculations_with_un',
      *          'buffered_COH_fluids.txt',/)
 
@@ -4258,7 +4433,7 @@ c----------------------------------------------------------------------
      *                 p,v1,v2,rt,rid,sid,tid,uid,vid
 
       common/ cst5  /pbar,t,xco2,u1,u2,tr,pr,r,ps
-
+c----------------------------------------------------------------------
 c                                 these routines return volume cm3/mol
       call crkco2 (pbar,t,v2,fco2) 
       call crkh2o (pbar,t,v1,fh2o)
@@ -4287,9 +4462,9 @@ c                                 these routines return volume cm3/mol
       uid = sid
       vid = sid
 
-      if (x1.gt.1d-8) sid = x1*dlog(x1)
-      if (x2.gt.1d-8) sid = sid + x2*dlog(x2)  
-      if (x3.gt.1d-8) then
+      if (x1.gt.0d0) sid = x1*dlog(x1)
+      if (x2.gt.0d0) sid = sid + x2*dlog(x2)  
+      if (x3.gt.0d0) then
          sid = sid + x3*dlog(x3)
          rid = x3/(x1+x3)
          vid = x3*(    a1 * dlog(a1/(1d0+alpha*rid))
@@ -4297,8 +4472,8 @@ c                                 these routines return volume cm3/mol
      *         -x1*dlog(1d0+alpha*rid)
       end if 
 
-      if (x2+x3.gt.1d-8) uid = (x2*w3+x3*w4)/(x2+x3)
-      if (x2+x1.gt.1d-8) tid = 202046.4d0*(x1+x2)/(v1*x1+v2*x2)
+      if (x2+x3.gt.0d0) uid = (x2*w3+x3*w4)/(x2+x3)
+      if (x2+x1.gt.0d0) tid = 202046.4d0*(x1+x2)/(v1*x1+v2*x2)
 
       gex = rt*(sid+vid)+x2*(x1*tid+x3*(uid+x1*w5))+x1*x3*w2
 
@@ -4374,8 +4549,8 @@ c                                 from salt mole fraction:
 c                                 program or input error?
          call error (999,t,ibuf,'WADDAH')
       end if
-c                                 supposedly these routines 
-c                                 return volume in J/bar
+c                                 these routines 
+c                                 return volume in cm3/mol
       call crkco2 (pbar,t,v2,fco2) 
       call crkh2o (pbar,t,v1,fh2o)
        

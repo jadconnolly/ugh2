@@ -68,20 +68,9 @@ c                                 component conversion
          call getphi (name,.true.,eof)
 
          names(k10) = name
-
-         if (ieos.eq.201.or.ieos.eq.202) then
-c                                 locate the species and reset the flag
-            do i = 1, nsp
-               if (name.eq.specie(i)) then
-                  ieos = 100 + i
-                  exit
-               end if
-            end do
-
-            if (ieos.gt.200) call errdbg (name//' has an invalid EoS'//
-     *                          'specification, execution terminated.')
-
-         end if
+c                                  7.1.8 archaic trap
+         if (ieos.gt.200.and.ieos.lt.203) call errdbg (name//
+     *       ' has an invalid EoS specification, execution terminated.')
 
          eos(k10) = ieos
 

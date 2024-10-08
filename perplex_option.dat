@@ -83,7 +83,6 @@ fractionation_hi_limit    default | [0.] 0-1, upper fractionation threshold, mas
 fractionation_lo_limit    default | [0.] 0-1, lower fractionation threshold, mass fraction
 function_tolerance_exp    default | [0.8] > 0.5, < 0.9, exponent (nopt(10)) used to set function tolerance (nopt(51)) from machine precision
 
-GFSM                      default | [F] T => allow GFSM/disable saturated-phase constraints, may be reset automatically
 grid_levels               default | [1 4] exploratory and auto-refine (grid parameters keyword group)
 
 hard_limits               default | [off] on or off; on => strictly impose compositional limits specified in solution model
@@ -164,7 +163,7 @@ vrh/hs_weighting          default | [0.5] 0->1, weighting factor for the stiff a
 warning_ver637            default | [T] T => warn and cease interpolation in WERAMI when immiscible solutions are present, lopt(31)
 warn_interactive          default | [F] T => overrides interactive y/n warnings by setting the y answer, lopt(56)
 
-x_nodes                   default | [20 40] exploratory and auto-refine (grid parameters keyword group), lowest-level x grid resolution 
-y_nodes                   default | [20 40] exploratory and auto-refine (grid parameters keyword group), lowest-level y grid resolution
+x_nodes                   80 80 default | [20 40] exploratory and auto-refine (grid parameters keyword group), lowest-level x grid resolution 
+y_nodes                   80 80 default | [20 40] exploratory and auto-refine (grid parameters keyword group), lowest-level y grid resolution
 
 zero_mode                 default | [1e-6] 0->1, threshold below which the molar mode of a phase is set to 0; defaults to zero for fractionation calculations

@@ -429,7 +429,11 @@ intel/Win32/
 
 intel/x64/
 
-intel/actcor.u2d
+intel/.vs/
+
+intel/Debug/
+
+intel/Logs/
 
 nomp_auto_refine.txt
 
@@ -448,10 +452,6 @@ nomp.tof
 actcor.pdb
 
 *.pdb
-
-intel/.vs/Perp2020/v15/.suo
-
-intel/.vs/Perp2020/v15/Browse.VC.db
 
 g1_auto_refine.txt
 
@@ -629,8 +629,6 @@ wet.tof
 
 *.opendb
 
-intel/.vs/
-
 bp002.tim
 
 bp002.tof
@@ -684,8 +682,6 @@ my_project.dat
 
 input file.dat
 
-*.zip
-
 partial_molar_volumes.dat
 
 andrea_COH-Fluid.dat
@@ -697,8 +693,6 @@ frac2d_perplex_option.dat
 frac2d8_COH-Fluid\+.dat
 
 frac2d8_fractionated_bulk.dat
-
-src/build.f
 
 frac2d8.fld
 
@@ -734,23 +728,30 @@ cpx_gt.bst
 
 cpx_gt.out
 
-<<<<<<< Updated upstream
 *.out
 
 vin1.bay
 
 *.bst
 
-intel/enc_temp_folder/*
+intel/enc_temp_folder/
 
+new_intel/Logs/
+
+new_intel/x64/
+
+new_intel/Win32/
+
+new_intel/.vs/
 
 vinod.bay
-=======
+
 *.bay
->>>>>>> Stashed changes
 
 lars24/
 
 otest.dat
 
 niu.dat
+
+new_intel/.vs/
