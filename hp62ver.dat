@@ -155,7 +155,7 @@ DQF(J/mol) = 0
 fatg = 1 atg - 16 ta + 16 fta
 DQF(J/mol) = 0
 
-atgts = 4 clin + 9/17 atg - 24/17 br      | Tshermaks antigorite for Atg(PN) model (Padrón-Navarta et al., 2013, Lithos)
+atgts = 4 clin + 9/17 atg - 24/17 br      | Tshermaks antigorite for Atg(PN) model (Padrï¿½n-Navarta et al., 2013, Lithos)
 DQF = -2e3 + 46.1*T_K
 
 | ettore's makes:

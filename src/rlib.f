@@ -496,16 +496,15 @@ c                                 are not used for mixture props.
 
          if (eos(id).eq.201.or.eos(id).eq.202) then
 c                                 species has been identified as a special composant
-c                                 and eos is set by ifug
+c                                 and eos is set by ifug, this is only used by FRENDLY 
+c                                 7.1.8+
             if (eos(id).eq.201) then
 
-               if (iam.ne.5) xco2 = 0d0
                call cfluid (fo2,fs2)
                gval = gval + r*t*f(1)
 
             else
 
-               if (iam.ne.5) xco2 = 1d0
                call cfluid (fo2,fs2)
                gval = gval + r*t*f(2)
 
@@ -532,21 +531,6 @@ c    *         -0.3213822427D7 / t + 0.6464888248D6 - 0.1403012026D3*t
 c                                 lacaze & Sundman (1990) EoS for Fe-Si-C alloys and compounds
 c                                 Xiong et al., 2011 for Fe-Cr alloys
             gval = gval + glacaz(eos(id))
-
-c        else if (eos(id).eq.800) then
-
-c           pgpa = p/1d4
-c           call interpolator (pgpa, t, gval, vt, a, b, err)
-
-c           if (err) then 
-c              write (*,*) 'interpolator set err true'
-c              call prtptx
-c           else 
-c              write (*,'(a,g14.6)') 'from interpolator, g = ',gval
-c              write (*,'(a,g14.6)') 'from interpolator, v = ',vt
-c              write (*,'(a,g14.6)') 'from interpolator, g = ',a
-c              write (*,'(a,g14.6)') 'from interpolator, g = ',b
-c           end if
 
          else
 
@@ -757,10 +741,8 @@ c                                 needed for a particular internal eos. 10/24
 c                                 this is an awful mess, if there is a saturated
 c                                 phase (ifct > 0) then ufluid will call the eos
 c                                 identified by ifug irrespective of the eos value.
-            if (ifct.eq.0.or.iam.eq.5) then
-c                                 there is no saturated phase assign it the default 
-c                                 saturated fluid eos, this is overriden if a GFSM
-c                                 model is found by input9
+            if (iam.eq.5) then
+c                                 7.1.8 only FRENDLY will set eos > 200
                eos(id) = 200 + k
 
             else if (k.eq.1.and.idfl.ne.2.or.
@@ -1776,8 +1758,8 @@ c----------------------------------------------------------------------
       common/ cst18a /mname(m4)
 
       integer length,com
-      character chars*1, card*lchar
-      common/ cst51 /length,com,chars(lchar),card
+      character chars*1, card*400
+      common/ cst51 /length,com,chars(400),card
 c----------------------------------------------------------------------
       ier = 0
 
@@ -1835,8 +1817,8 @@ c----------------------------------------------------------------------
       double precision rnums(*)
 
       integer length,com
-      character chars*1, card*lchar
-      common/ cst51 /length,com,chars(lchar),card
+      character chars*1, card*400
+      common/ cst51 /length,com,chars(400),card
 c----------------------------------------------------------------------
 c                                 read card scans for non blank data
 c                                 card:
@@ -1930,8 +1912,8 @@ c----------------------------------------------------------------------
      *      rkord(m1),iterm,iord,istot,jstot,kstot
 
       integer length,com
-      character chars*1, card*lchar
-      common/ cst51 /length,com,chars(lchar),card
+      character chars*1, card*400
+      common/ cst51 /length,com,chars(400),card
 
       character*2 strgs*3, mstrg, dstrg, tstrg*3, wstrg*3, e16st*3
       common/ cst56 /strgs(32),mstrg(6),dstrg(m8),tstrg(m7),wstrg(m16),
@@ -2119,8 +2101,8 @@ c----------------------------------------------------------------------
      *          strg*40, strg1*40
 
       integer length,com
-      character chars*1, card*lchar
-      common/ cst51 /length,com,chars(lchar),card
+      character chars*1, card*400
+      common/ cst51 /length,com,chars(400),card
 
       integer indq,idqf
       double precision dqf
@@ -2239,8 +2221,8 @@ c----------------------------------------------------------------------
       double precision nums(m3)
 
       integer length,com
-      character chars*1, card*lchar
-      common/ cst51 /length,com,chars(lchar),card
+      character chars*1, card*400
+      common/ cst51 /length,com,chars(400),card
 
       integer kstot,jend,i,ict
 c----------------------------------------------------------------------
@@ -2336,8 +2318,8 @@ c----------------------------------------------------------------------
       double precision nums(m3)
 
       integer length,com
-      character chars*1, card*lchar
-      common/ cst51 /length,com,chars(lchar),card
+      character chars*1, card*400
+      common/ cst51 /length,com,chars(400),card
 
       integer jend,i,idqf,indq
       double precision dqf
@@ -2426,8 +2408,8 @@ c----------------------------------------------------------------------
       common/ cst18a /mname(m4)
 
       integer length,com
-      character chars*1, card*lchar
-      common/ cst51 /length,com,chars(lchar),card
+      character chars*1, card*400
+      common/ cst51 /length,com,chars(400),card
 c----------------------------------------------------------------------
       ier = 0
 
@@ -2550,8 +2532,8 @@ c----------------------------------------------------------------------
       character name*8, tname*10, tag*3
 
       integer length,com
-      character chars*1, card*lchar
-      common/ cst51 /length,com,chars(lchar),card
+      character chars*1, card*400
+      common/ cst51 /length,com,chars(400),card
 c----------------------------------------------------------------------
       ict = 0
       do i = 1, k7
@@ -4947,27 +4929,6 @@ c                                 with a composant of the GFSM.
      *                        n1name(1:nblen(n1name))
                call errpau
 
-            else if (eos(kdsol(i)).gt.200) then
-
-               temp = names(kdsol(i))(1:nblen(names(kdsol(i))))
-c                                 no warning if pssect/werami
-               if (iam.ne.3.and.iam.ne.7) write (*,1040) 
-     *                        tname(1:nblen(tname)),
-     *                        temp(1:nblen(temp)),
-     *                        n2name(1:nblen(n2name)),
-     *                        temp(1:nblen(temp)),
-     *                        n1name(1:nblen(n1name)),
-     *                        temp(1:nblen(temp))
-c                                 set the GFSM option
-               lopt(63) = .true.
-c                                 locate the species
-               do j = 1, nsp
-                  if (temp.eq.specie(j)) then
-                     eos(kdsol(i)) = 100 + j
-                     exit
-                  end if
-               end do
-
             end if
 
          end do
@@ -5020,12 +4981,7 @@ c                                missing endmember warnings:
      *       'component saturation constraint. Eliminate either ',
      *       'the saturation constraint or',/,
      *       'the GFSM model from your input (',a,').')
-1040  format (/,'**warning ver117** GFSM solution model ',a,' has a ',
-     *       'species (',a,') that is a composant of',/,'a special ',
-     *       'component specified in ',a,'. ',a,' will be reclassified',
-     *       ' as a GFSM species.',/,'The EoS specified for this ',
-     *       'species in ',a,' will be overridden by the hybrid_EoS_',a,
-     *       ' option.',/)
+
       end
 
       subroutine redep (jkill)
@@ -9574,8 +9530,8 @@ c---------------------------------------------------------------------
       character begin*5, tag*3, tname*10
 
       integer length,com
-      character chars*1, card*lchar
-      common/ cst51 /length,com,chars(lchar),card
+      character chars*1, card*400
+      common/ cst51 /length,com,chars(400),card
 c----------------------------------------------------------------------
 
       call readcd (n9,ier,.true.)
@@ -12133,8 +12089,8 @@ c-----------------------------------------------------------------------
       common/ cxt2 /aqg(m4),qq(m4),rt,jnd(m4)
 
       integer length,com
-      character chars*1, card*lchar
-      common/ cst51 /length,com,chars(lchar),card
+      character chars*1, card*400
+      common/ cst51 /length,com,chars(400),card
 
       integer idaq, jdaq
       logical laq
@@ -12992,7 +12948,7 @@ c-----------------------------------------------------------------------
 
       include 'perplex_parameters.h'
 
-      integer i, j
+      integer i, j, jc(2)
 
       character*162 title
       common/ csta8 /title(4)
@@ -13038,7 +12994,7 @@ c                          title:
 c                          data base
       write (n3,1210) dname
 c                          fluid
-      if (ifct.gt.0.or.gflu) call rfluid (2)
+      if (ifct.gt.0.or.gflu) call rfluid (2,jc)
 c                          independent potentials:
       write (n3,1070) (vname(jv(j)), j = 1, ipot)
 c                          saturated phase components:
@@ -14628,8 +14584,8 @@ c                                 adaptive coordinates
       common/ cxt2 /aqg(m4),qq(m4),rt,jnd(m4)
 
       integer length,com
-      character chars*1, card*lchar
-      common/ cst51 /length,com,chars(lchar),card
+      character chars*1, card*400
+      common/ cst51 /length,com,chars(400),card
 
       integer idaq, jdaq
       logical laq
@@ -17225,8 +17181,8 @@ c----------------------------------------------------------------------
       character name*8, eod*3, tname*10
 
       integer length,com
-      character chars*1, card*lchar
-      common/ cst51 /length,com,chars(lchar),card
+      character chars*1, card*400
+      common/ cst51 /length,com,chars(400),card
 
       integer iend,isub,insp,iterm,iord,istot,jstot,kstot,rkord
       double precision wg,wk
@@ -18855,7 +18811,7 @@ c                               general input data for main program
 c                               reorder thermodynamic components if 
 c                               they include special components, this 
 c                               is archaic
-      if (lopt(7)) then
+      if (ifct.gt.0) then
 
          do k = 1, ispec 
 c                               check for special components in the the
@@ -18876,17 +18832,19 @@ c                               thermodynamic composition space.
 
                   cname(k) = cmpnt(idspe(k))
 
-                  exit            
+                  exit
 
                end if 
 
             end do 
 
-         end do 
+         end do
+c                                 reserve 1st two positions in 
+c                                 the compound arrays for the special
+c                                 component composants
+         iphct = 2
 
       end if
-c                                 load the old cbulk array
-      if (ifct.gt.0) iphct = 2
 c                                 identify nonzero components.
 c                                 initialize icout(i) = 0
       icout = 0
@@ -19400,13 +19358,17 @@ c                                 then check to make sure no GFSM
 c                                 endmembers are in use as saturated 
 c                                 components or in the thermodynamic
 c                                 composition space:
-      if (ifct.gt.0) then
-
-         do i = ifct+1, kphct
+      if (ifct.gt.0.and.(iam.eq.1.or.iam.eq.2.or.iam.eq.15)) then
+c                                 7.1.8 if ifct ~0 then the 1st 2 positions
+c                                 of the endmember arrays are reserved, for 
+c                                 saturated phase components (regardless of
+c                                 whether they are used).
+         do i = 3, kphct
 
             if (eos(i).gt.100.and.eos(i).lt.200) then 
 c                                 got one
-               write (*,1060) names(i), names(i)
+               write (*,1060) names(i)(1:nblen(names(i))), 
+     *                        names(i)(1:nblen(names(i)))
 
                call wrnstp
 

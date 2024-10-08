@@ -6,7 +6,7 @@
 	</Platforms>
 	<Configurations>
 		<Configuration Name="Debug|Win32" UseCompiler="ifortCompiler" OutputDirectory="..\." IntermediateDirectory="$(PlatformName)\$(ConfigurationName)" BuildLogFile="$(IntDir)\$(TargetName).BuildLog.htm" WholeProgramOptimization="true">
-			<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" WarningsAsErrors="true" DisableSpecificDiagnostics="8291,8290,8293" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" FloatingPointExceptionHandling="fpe0" FloatingPointStackCheck="true" Traceback="true" RuntimeChecks="rtChecksAll" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true" SV_DiagParLevel="svDiagParLevel3"/>
+			<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" WarningsAsErrors="true" DisableSpecificDiagnostics="8291,8290,8293" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" FloatingPointExceptionHandling="fpe0" FloatingPointStackCheck="true" Traceback="true" RuntimeChecks="rtChecksAll" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" SV_DiagParLevel="svDiagParLevel3" Interfaces="true"/>
 			<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\pstable.exe" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateManifest="false" ManifestFile="$(TargetPath).$(TargetName).intermediate.manifest" GenerateDebugInformation="true" SubSystem="subSystemConsole"/>
 			<Tool Name="VFResourceCompilerTool"/>
 			<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -28,7 +28,7 @@
 			<Tool Name="VFManifestTool" SuppressStartupBanner="true"/>
 		</Configuration>
 		<Configuration Name="Debug|x64" UseCompiler="ifortCompiler" BuildLogFile="$(IntDir)\$(TargetName).BuildLog.htm">
-			<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" WarningsAsErrors="true" DisableSpecificDiagnostics="8291,8290,8293,8889,10448" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" LocalSavedScalarsSNaN="true" InitArrays="true" FloatingPointExceptionHandling="fpe0" FloatingPointStackCheck="true" Traceback="true" NullPointerCheck="true" BoundsCheck="true" UninitializedVariablesCheck="true" ArgTempCreatedCheck="true" StackFrameCheck="true" RuntimeLibrary="rtMultiThreadedDebug" SV_Includes="true" Interfaces="true" SV_DiagParLevel="svDiagParLevel3"/>
+			<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" WarningsAsErrors="true" DisableSpecificDiagnostics="8291,8290,8293,8889,10448" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" LocalSavedScalarsSNaN="true" InitArrays="true" FloatingPointExceptionHandling="fpe0" FloatingPointStackCheck="true" Traceback="true" NullPointerCheck="true" BoundsCheck="true" UninitializedVariablesCheck="true" ArgTempCreatedCheck="true" StackFrameCheck="true" RuntimeLibrary="rtMultiThreadedDebug" SV_DiagParLevel="svDiagParLevel3" Interfaces="true" SV_Includes="true"/>
 			<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\pstable.exe" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateManifest="false" ManifestFile="$(TargetPath).$(TargetName).intermediate.manifest" GenerateDebugInformation="true" SubSystem="subSystemConsole"/>
 			<Tool Name="VFResourceCompilerTool"/>
 			<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
@@ -55,6 +55,8 @@
 		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
 			<File RelativePath="..\src\cont_lib.f"/>
+			<File RelativePath="..\src\flib.f">
+			</File>
 			<File RelativePath="..\src\pscom.f"/>
 			<File RelativePath="..\src\pslib.f"/>
 			<File RelativePath="..\src\pstable.f"/>

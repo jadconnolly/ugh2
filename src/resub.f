@@ -3372,8 +3372,6 @@ c----------------------------------------------------------------------
 
       logical first, err
 
-      integer i
-
       integer eos
       common/ cst303 /eos(k10)
 
