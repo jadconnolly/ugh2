@@ -3404,24 +3404,6 @@ c                                 allow reading of auto-refine data
       call setau1
 c                                 read data for solution phases on n9:
       call input9 (first)
-
-      if (lopt(7).and..not.lopt(63)) then
-c                                 special components and override
-c                                 hybrid EoS choice warnings
-         err = .false.
-
-         do i = 1, ipoint
-
-            if (eos(i).eq.201.or.eos(i).eq.202) then
-               call warn (56,0d0,i,names(i))
-               err = .true.
-            end if
-
-         end do
-
-         if (err) write (*,'(80(''-''))')
-
-      end if
 c                                 load static compositions for manual autorefine
       if (refine) then
          call reload (refine)
