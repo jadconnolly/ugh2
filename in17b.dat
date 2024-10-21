@@ -1,5 +1,5 @@
-DEWHP622ver_COH.dat     thermodynamic data file                                                                                             
-no_print | print generates print output
+DEW17HP622ver_COH.dat     thermodynamic data file                                                                                           
+print    | no_print suppresses print output
 plot     | obsolete 6.8.4+
 solution_model.dat     | solution model file, blank = none
 in17b
@@ -53,6 +53,9 @@ end independent potential list
 
 
 begin excluded phase list
+h2oL    
+O2      
+tan     
 end excluded phase list
 
 

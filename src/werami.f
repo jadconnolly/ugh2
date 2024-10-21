@@ -385,6 +385,9 @@ c---------------------------------------------------------------------
       double precision vip
       common/ cst28 /vip(l2,k2)
 
+      integer jfct,jmct,jprct,jmuct
+      common/ cst307 /jfct,jmct,jprct,jmuct
+
       logical fileio, flsh, anneal, verbos, siphon, colcmp, usecmp
       integer ncol, nrow
       common/ cst226 /ncol,nrow,fileio,flsh,anneal,verbos,siphon,
@@ -396,11 +399,11 @@ c                                 only exact nodal coordinates allowed
           ind = idint(var(1))
 
           do j = 1, ipot
-             v(jv(j)) = vip(j,ind)
-          end do 
+             v(jv(j)) = vip(jv(j),ind)
+             var(j+1) = v(jv(j))
+          end do
 
-          var(2) = v(jv(1))
-          var(3) = v(jv(2))
+          if (jmct.gt.0) call subinc
 
       else if (icopt.eq.12) then 
 c                                 0-d infiltration, var(2) is the

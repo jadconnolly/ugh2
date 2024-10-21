@@ -36,6 +36,7 @@ FeO   1  1.37000      0.00000      0.00000     molar amount
 SiO2  1  7.49000      0.00000      0.00000     molar amount
 H2O   1  1.46000      0.00000      0.00000     molar amount
 CO2   1 0.659000      0.00000      0.00000     molar amount
+O2    1 0
 end thermodynamic component list
 
 
@@ -52,7 +53,6 @@ end independent potential list
 
 
 begin excluded phase list
-h2oL    
 end excluded phase list
 
 
